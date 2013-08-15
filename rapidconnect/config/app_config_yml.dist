@@ -1,0 +1,5 @@
+mail:
+  user_name: 'noreply@example.org'
+  password: ''
+  from: 'noreply@example.org'
+  to: 'support@example.org'

@@ -1,0 +1,47 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <ul class="breadcrumb">
+      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li class="active">Administrators</li>
+      <li class="pull-right"><strong><a href="/administration/administrators/create">Create Administrator</a></strong></li>
+    </ul>
+
+    <div class="container">
+      <h2>Administrators</h2>
+
+      <table class="table table-borderless table-sortable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Targeted ID</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @administrators.sort.each_with_index do |(k, v), i| %>
+          <tr>
+            <td><%= v['name'] %></td>
+            <td><%= v['mail'] %></td>
+            <td>
+              <div data-toggle="tooltip" title="<%= k %>"><%= k.truncate(40) %></div>
+              <!-- <%= k %> -->
+            </td>
+            <td>
+              <a href="#" data-type="Administrator" data-target="delete-<%= i %>" class="delete-target btn btn-danger btn-small">Delete</a>
+              <form action="/administration/administrators/delete" method="post" id="delete-<%= i %>">
+                <input name="_method" type="hidden" value="delete" />
+                <input name="identifier" type="hidden" value="<%= k %>" />
+              </form>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+
+    </div>
+  </body>
+</html>

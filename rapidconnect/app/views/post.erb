@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>AAF Rapid Connect - Redirection</title>
+  </head>
+  <body>
+
+    <form method="post" action="<%= @endpoint %>" style="visibility:hidden;">
+      <input type="hidden" name="assertion" value="<%= @jws %>">
+      <input type="submit" value="Submit">
+    </form>
+
+    <script>
+      window.onload = function() { document.forms[0].submit(); }
+    </script>
+
+  </body>
+</html>

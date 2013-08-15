@@ -1,0 +1,116 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+
+    <ul class="breadcrumb">
+      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
+      <li class="active"><%= @service['name'] %></li>
+    </ul>
+
+    <h2><%= @service['name'] %></h2>
+
+    <% if !@service['enabled'] %>
+      <div class="alert alert-error">
+        <h4>Not Enabled</h4>
+        This service is not currently enabled. It <strong>will fail</strong> to authenticate regardless of secret being used.
+      </div>
+    <% end %>
+
+    <ul class="nav nav-tabs">
+      <li class="dropdown pull-right">
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+          Actions
+          <b class="caret"></b>
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <% if !@service['enabled'] %>
+              <a href="#" class="toggle-target" data-type="enabled" data-target="toggle-<%= @identifier %>">Enable</a>
+            <% else %>
+              <a href="#" class="toggle-target" data-type="disabled" data-target="toggle-<%= @identifier %>">Disable</a>
+            <% end %>
+            <form action="/administration/services/toggle/<%= @identifier %>" method="post" id="toggle-<%= @identifier %>">
+              <input name="_method" type="hidden" value="patch" />
+            </form>
+          </li>
+
+          <li class="divider"></li>
+
+          <li><a href="/administration/services/edit/<%= @identifier %>">Edit</a></li>
+          <li>
+            <a href="#" class="delete-target" data-type="Service" data-target="delete-<%= @identifier %>">Delete</a>
+            <form action="/administration/services/delete/<%= @identifier %>" method="post" id="delete-<%= @identifier %>">
+              <input name="_method" type="hidden" value="delete" />
+            </form>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <% if @service['enabled'] %>
+      <div class="row">
+        <div class="span12">
+          <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
+          <ol>
+            <li>Research & Scholarly Applications<br><a href="#">https://rapid.aaf.edu.au/jwt/authnrequest/research/<%= @identifier %></a></li>
+          </ol>
+        </div>
+      </div>
+
+      <hr>
+    <% end %>
+
+    <div class="row">
+      <div class="span6">
+        <h3 class="muted">Technical</h3>
+        <table class="table table-borderless table-sortable">
+          <tbody>
+            <tr>
+              <td>Identifier</td>
+              <td><%= @identifier %></td>
+            </tr>
+            <tr>
+              <td>Name</td>
+              <td><%= @service['name'] %></td>
+            </tr>
+            <tr>
+              <td>URL</td>
+              <td><%= @service['audience'] %></td>
+            </tr>
+            <tr>
+              <td>Callback URL</td>
+              <td><%= @service['endpoint'] %></td>
+            </tr>
+            <tr>
+              <td>Secret</td>
+              <td><%= @service['secret'] %></td>
+            </tr>
+            <tr>
+              <td>Enabled</td>
+              <td><%= @service['enabled'] %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="span6">
+        <h3 class="muted">Registrant</h3>
+        <table class="table table-borderless">
+          <tbody>
+            <tr>
+              <td>Name</td>
+              <td><%= @service['registrant_name'] %></td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td><%= @service['registrant_mail'] %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

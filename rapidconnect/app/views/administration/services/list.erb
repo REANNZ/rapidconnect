@@ -1,0 +1,40 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <ul class="breadcrumb">
+      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li class="active">Services</li>
+      <li class="pull-right"><strong><a href="/registration">Register Service</a></strong></li>
+    </ul>
+
+    <div class="container">
+      <h2>Services</h2>
+
+      <table class="table table-borderless table-sortable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Audience</th>
+            <th>Enabled</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @services.sort.each do |k, v| %>
+          <tr>
+            <td><%= v['name'] %></td>
+            <td><%= v['audience'] %></td>
+            <td><%= v['enabled'] %></td>
+            <td>
+              <a href="/administration/services/<%= k %>" class="btn btn-small">Show</a>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+
+    </div>
+  </body>
+</html>

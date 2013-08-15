@@ -1,0 +1,133 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <ul class="breadcrumb">
+      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
+      <li><a href="/administration/services/<%= @identifier %>"><%= @service['name'] %></a> <span class="divider">/</span></li>
+      <li class="active">Editing</li>
+    </ul>
+
+    <h2>Editing <%= @service['name'] %></h2>
+
+    <form method="post" action="/administration/services/update" class="form form-horizontal">
+
+      <input type="hidden" name="identifier" value="<%= @identifier %>">
+      <input name="_method" type="hidden" value="put" />
+
+      <h3 class="muted">Technical Details</h3>
+      <div class="control-group">
+        <label class="control-label" for="name">Name</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="name" class="span5" value="<%= @service['name'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+              A descriptive name for the service.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="audience">Service URL</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="audience" class="span5" value="<%= @service['audience'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+              The primary URL of the service.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="endpoint">Callback URL</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="endpoint" class="span5" value="<%= @service['endpoint'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+              The URL that AAF Fuse should POST responses to.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="secret">Secret</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="secret" class="span5" value="<%= @service['secret'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+              Secret used by Fuse and the application to verify JWS.
+            </p>
+            <p>
+              <strong>Recommended Generation Method</strong><br>
+              <code>tr -dc '[[:alnum:][:punct:]]' < /dev/urandom | head -c32 ;echo</code>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="enabled">Enabled</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="checkbox" name="enabled" class="span5" <%= @service['enabled'] ? "checked" : "" %>>
+          </div>
+          <div class="span4 help-block">
+            <p>
+              Determines if this service is able to make authentication requests agains AAF Fuse.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <h3 class="muted">Registrant</h3>
+      <div class="control-group">
+        <label class="control-label" for="registrant_name">Name</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="registrant_name" class="span5" value="<%= @service['registrant_name'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label" for="registrant_mail">Email</label>
+        <div class="controls">
+          <div class="span5">
+            <input type="text" name="registrant_mail" class="span5" value="<%= @service['registrant_mail'] %>">
+          </div>
+          <div class="span4 help-block">
+            <p>
+
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-info">Update Service</button>
+        <a href="/administration/services/<%= @identifier %>" class="btn">Cancel</a>
+      </div>
+
+    </form>
+  </body>
+</html>

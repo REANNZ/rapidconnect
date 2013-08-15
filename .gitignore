@@ -1,0 +1,3 @@
+rapidconnect/tmp/*
+rapidconnect/logs/*
+rapidconnect/config/app_config.yml

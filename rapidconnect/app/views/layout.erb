@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="/application.css" rel="stylesheet">
+    <title>AAF Rapid Connect</title>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <img alt="Logo" height="50" src="/logo.jpg" width="102" />
+            <h1>AAF Rapid Connect</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="container">
+
+        <div class="alert alert-info alert-block">
+          <p>
+            <small>This is a <strong>beta</strong> release of the AAF Rapid Connect software. There could be <strong>bugs, errors or rough edges!</strong>. We'd appreciate your experiences with and feedback on AAF Rapid Connect to <a href="mailto:support@aaf.edu.au?subject=AAF Rapid Connect Feedback">support@aaf.edu.au</a>.</small>
+          </p>
+        </div>
+
+        <% flash_types.select{ |kind| flash.has?(kind) }.each do |kind| %>
+          <div class="alert alert-<%= kind %>">
+            <%= flash[kind] %>
+          </div>
+        <% end %>
+
+        <%= yield %>
+
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>
+          AAF Rapid Connect <strong> version 0.1.0</strong>
+          <% if session[:subject] %>
+            <br>
+            Logged in as <em><%= session[:subject][:cn] %></em> ( <%=session[:subject][:principal]%> )
+          <% end %>
+          <br>
+
+          Developed for the <a href="http://www.aaf.edu.au">Australian Access Federation</a> by <a href="http://bradleybeddoes.com">Bradley Beddoes</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="/bootbox.min.js"></script>
+    <script src="/application.js"></script>
+
+  </body>
+</html>
