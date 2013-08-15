@@ -84,14 +84,14 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  fakeredis
-  json-jwt
-  mail
-  rack-flash3
-  redis
+  fakeredis (< 1)
+  json-jwt (~> 0.5.5)
+  mail (~> 2.5.4)
+  rack-flash3 (~> 1.0.3)
+  redis (~> 3.0.4)
   redis-rack!
-  rspec
-  sinatra
-  sinatra-contrib
+  rspec (< 3)
+  sinatra (~> 1.4.3)
+  sinatra-contrib (~> 1.4.0)
   unicorn
-  webrat
+  webrat (< 1)

@@ -1,18 +1,19 @@
 source 'https://rubygems.org'
 
-gem 'sinatra'
-gem 'sinatra-contrib'
 gem 'unicorn'
 
-gem 'redis'
-gem 'redis-rack', :git => 'git://github.com/jodosha/redis-store', :ref => '9226b96aff', :require => ['rack/session/redis']
-gem 'json-jwt'
+gem 'sinatra', '~> 1.4.3'
+gem 'sinatra-contrib', '~> 1.4.0'
 
-gem 'rack-flash3'
-gem 'mail'
+gem 'redis', '~> 3.0.4'
+gem 'redis-rack', :git => 'git://github.com/jodosha/redis-store', :ref => '9226b96aff', :require => ['rack/session/redis']
+gem 'json-jwt', '~> 0.5.5'
+
+gem 'rack-flash3', '~> 1.0.3'
+gem 'mail', '~> 2.5.4'
 
 group :test do
-  gem 'rspec'
-  gem 'webrat'
-  gem "fakeredis", :require => "fakeredis/rspec"
+  gem 'rspec', '< 3'
+  gem 'webrat', '< 1'
+  gem "fakeredis", '< 1', :require => "fakeredis/rspec"
 end
