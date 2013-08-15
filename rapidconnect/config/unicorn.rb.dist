@@ -1,0 +1,9 @@
+@dir = ""
+
+listen "127.0.0.1:8080"
+worker_processes 5
+preload_app true
+
+pid "@dir/"
+stderr_path "@dir/"
+stdout_path "@dir/"
