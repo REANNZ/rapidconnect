@@ -1,11 +1,9 @@
 ENV['RACK_ENV'] = 'test'
 
-require 'rspec'
-require 'sinatra'
-require 'webrat'
+require 'bundler'
+Bundler.require :default, :test
+
 require 'rack/test'
-require 'fakeredis'
-require 'mail'
 
 Webrat.configure do |config|
   config.mode = :rack
