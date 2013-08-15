@@ -1,8 +1,9 @@
 require 'rubygems'
 require 'bundler'
 require 'sinatra'
-require './app/rapid_connect'
 
 Bundler.require
+
+require './app/rapid_connect'
 
 run RapidConnect

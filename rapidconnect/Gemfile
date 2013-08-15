@@ -5,6 +5,7 @@ gem 'sinatra-contrib'
 gem 'unicorn'
 
 gem 'redis'
+gem 'redis-rack', :git => 'git://github.com/jodosha/redis-store', :ref => '9226b96aff', :require => ['rack/session/redis']
 gem 'json-jwt'
 
 gem 'rack-flash3'

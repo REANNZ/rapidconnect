@@ -8,7 +8,7 @@ require 'rack-flash'
 require 'mail'
 
 class RapidConnect < Sinatra::Base
-  use Rack::Session::Pool, :expire_after => 3600
+  use Rack::Session::Redis, :expire_after => 3600
   use Rack::MethodOverride
   use Rack::Flash, :sweep => true
 
