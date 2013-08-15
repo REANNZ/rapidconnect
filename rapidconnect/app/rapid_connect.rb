@@ -377,7 +377,8 @@ class RapidConnect < Sinatra::Base
     def administrator?
       if !@redis.hexists('administrators', session[:subject][:principal])
         @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
-        halt 403, "We denied your access as you're not a current administrator. Referenced EPTID: #{session[:subject][:principal]}"
+        status 403
+        halt erb (:'administration/administrators/denied')
       end
     end
 

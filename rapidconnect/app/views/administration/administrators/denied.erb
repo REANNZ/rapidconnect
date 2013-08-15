@@ -1,0 +1,18 @@
+<html>
+  <head>
+
+  </head>
+  <body>
+    <div class="alert alert-error alert-block">
+      <h3>Access Denied</h3>
+      <p>You do not have overall administrative access to this system and no further action can be taken.</p>
+    </div>
+
+    <p>If you believe this to be in error please send the following to AAF support:</p>
+    <ul>
+      <li><strong>Name</strong>: <%= session[:subject][:cn] %></li>
+      <li><strong>Mail</strong>: <%= session[:subject][:mail] %></li>
+      <li><strong>Principal</strong>: <%= session[:subject][:principal] %></li>
+    </ul>
+  </body>
+</html>
