@@ -53,8 +53,6 @@ class RapidConnect < Sinatra::Base
     @app_logger.formatter = Logger::Formatter.new
     @audit_logger = Logger.new(settings.audit_logfile,'daily')
     @audit_logger.level = Logger::INFO
-
-    @app_logger.info "environment: #{settings.environment}"
   end
 
   ##
