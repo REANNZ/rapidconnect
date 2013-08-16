@@ -324,7 +324,7 @@ class RapidConnect < Sinatra::Base
 
       if service['enabled']
         subject = session['subject']
-        claim = generate_research_claim(request.url, service['audience'], subject)
+        claim = generate_research_claim(service['audience'], subject)
         @jws = JSON::JWT.new(claim).sign(service['secret'])
         @endpoint = service['endpoint']
 
@@ -350,7 +350,7 @@ class RapidConnect < Sinatra::Base
 
       if service['enabled']
         subject = session['subject']
-        claim = generate_zendesk_claim(request.url, service['audience'], subject)
+        claim = generate_zendesk_claim(service['audience'], subject)
         jws = JSON::JWT.new(claim).sign(service['secret'])
         endpoint = service['endpoint']
         @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
@@ -382,7 +382,7 @@ class RapidConnect < Sinatra::Base
       end
     end
 
-    def generate_research_claim(issuer, audience, subject)
+    def generate_research_claim(audience, subject)
       response_time = Time.now
 
       ##
@@ -393,7 +393,7 @@ class RapidConnect < Sinatra::Base
       # eppn (optional) [subject identifier]
       ##
       claim = {
-        iss: issuer,
+        iss: settings.issuer,
         iat: response_time,
         jti: SecureRandom.urlsafe_base64(24, false),
         nbf: 1.minute.ago,
@@ -419,11 +419,11 @@ class RapidConnect < Sinatra::Base
     ##
     # Generate tokens specifically for Zendesk instances which define their own format
     ##
-    def generate_zendesk_claim(issuer, audience, subject)
+    def generate_zendesk_claim(audience, subject)
       response_time = Time.now
 
       claim = {
-        iss: issuer,
+        iss: settings.issuer,
         iat: response_time,
         jti: SecureRandom.urlsafe_base64(24, false),
         nbf: 1.minute.ago,

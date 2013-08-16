@@ -419,9 +419,9 @@ describe RapidConnect do
 
   it 'generate valid research claim' do
     rc = RapidConnect.new
-    claim = rc.helpers.generate_research_claim('http://example.org/jwt/authnrequest/research/1234abcd', 'http://service.com', @valid_subject)
+    claim = rc.helpers.generate_research_claim('http://service.com', @valid_subject)
     claim[:aud].should eq('http://service.com')
-    claim[:iss].should eq('http://example.org/jwt/authnrequest/research/1234abcd')
+    claim[:iss].should eq('https://rapid.example.org')
     claim[:sub].should eq(@valid_subject[:principal])
     claim[:'https://aaf.edu.au/attributes'][:'cn'].should eq(@valid_subject[:cn])
     claim[:'https://aaf.edu.au/attributes'][:'mail'].should eq(@valid_subject[:mail])
@@ -432,9 +432,9 @@ describe RapidConnect do
 
   it 'generate valid zendesk claim' do
     rc = RapidConnect.new
-    claim = rc.helpers.generate_zendesk_claim('http://example.org/jwt/authnrequest/research/1234abcd', 'http://service.com', @valid_subject)
+    claim = rc.helpers.generate_zendesk_claim('http://service.com', @valid_subject)
     claim[:aud].should eq('http://service.com')
-    claim[:iss].should eq('http://example.org/jwt/authnrequest/research/1234abcd')
+    claim[:iss].should eq('https://rapid.example.org')
     claim[:name].should eq(@valid_subject[:cn])
     claim[:email].should eq(@valid_subject[:mail])
     claim[:external_id].should eq(@valid_subject[:principal])
