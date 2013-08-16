@@ -332,9 +332,10 @@ class RapidConnect < Sinatra::Base
         # IdP we create a shibboleth styled audit.log file for each service access.
         # Format:
         # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-        @audit_logger.info "#{Time.now.utc.strftime "%Y%m%dT%H%M%SZ"}|urn:mace:aaf.edu.au:rc.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rc.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rc.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
+        @audit_logger.info "#{Time.now.utc.strftime "%Y%m%dT%H%M%SZ"}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
         @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service['name']}(#{service['endpoint']})"
         @app_logger.debug "#{claim}"
+
         erb :post, :layout => :post
       else
         halt 403, "The service \"#{service['name']}\" is unable to process requests at this time."
@@ -353,7 +354,14 @@ class RapidConnect < Sinatra::Base
         claim = generate_zendesk_claim(service['audience'], subject)
         jws = JSON::JWT.new(claim).sign(service['secret'])
         endpoint = service['endpoint']
+
+        # To enable raptor and other tools to report on RC like we would any other
+        # IdP we create a shibboleth styled audit.log file for each service access.
+        # Format:
+        # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
+        @audit_logger.info "#{Time.now.utc.strftime "%Y%m%dT%H%M%SZ"}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
         @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
+
         redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
       else
         halt 403, "The zendesk service \"#{service['name']}\" is unable to process requests at this time."
