@@ -6,6 +6,7 @@ require 'json/jwt'
 require 'securerandom'
 require 'rack-flash'
 require 'mail'
+require 'rdiscount'
 
 class RapidConnect < Sinatra::Base
   configure :production, :development do
@@ -61,7 +62,7 @@ class RapidConnect < Sinatra::Base
   # Marketing Site
   ##
   get '/' do
-    erb :welcome
+    erb :welcome, :layout => nil
   end
 
   ###
@@ -371,6 +372,10 @@ class RapidConnect < Sinatra::Base
     end
   end
 
+  get '/developers' do
+    erb :developers, :locals => { :text => markdown(:'documentation/developers') }
+  end
+
     def flash_types
       [:success, :warning, :error]
     end
@@ -408,14 +413,14 @@ class RapidConnect < Sinatra::Base
         exp: 2.minute.from_now,
         typ: 'authnresponse',
         aud: audience,
-        sub: repack_principal(subject[:principal], audience),
+        sub: repack_principal(subject, settings.issuer, audience),
         :'https://aaf.edu.au/attributes' => {
           :'cn' => subject[:cn],
           :'mail' => subject[:mail],
           :'displayname' => subject[:display_name],
           :'givenname' => subject[:given_name],
           :'surname' => subject[:surname],
-          :'edupersontargetedid' => subject[:principal],
+          :'edupersontargetedid' => repack_principal(subject, settings.issuer, audience),
           :'edupersonscopedaffiliation' => subject[:scoped_affiliation],
           :'edupersonprincipalname' => subject[:principal_name]
         }
@@ -440,7 +445,7 @@ class RapidConnect < Sinatra::Base
         aud: audience,
         name: subject[:cn],
         email: subject[:mail],
-        external_id: repack_principal(subject[:principal], audience),
+        external_id: repack_principal(subject, settings.issuer, audience),
         organization: subject[:o]
       }
     end
@@ -451,11 +456,11 @@ class RapidConnect < Sinatra::Base
     # The eduPersonTargetedID value is an opaque string of no more than 256 characters
     # The format comprises the entity name of the identity provider, the entity name of the service provider, and the opaque string value. These strings are separated by “!” symbols.
     ##
-    def repack_principal(principal, audience)
-      parts = principal.split('!')
-      new_opaque = Digest::SHA1.base64digest "#{parts[2]} #{audience}"
-      new_principal = "#{parts[0]}!#{parts[1]}!#{new_opaque}"
-      @app_logger.info "Translated incoming principal #{principal} to #{new_principal} for aud #{audience}"
+    def repack_principal(subject, issuer, audience)
+      parts = subject[:principal].split('!')
+      new_opaque = Digest::SHA1.base64digest "#{parts[2]} #{subject[:mail]} #{audience}"
+      new_principal = "#{issuer}!#{audience}!#{new_opaque}"
+      @app_logger.info "Translated incoming principal #{subject[:principal]} (#{subject[:cn]}, #{subject[:mail]}) to #{new_principal} for aud #{audience}"
 
       new_principal
     end
