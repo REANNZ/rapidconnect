@@ -53,6 +53,8 @@ class RapidConnect < Sinatra::Base
     @app_logger.formatter = Logger::Formatter.new
     @audit_logger = Logger.new(settings.audit_logfile,'daily')
     @audit_logger.level = Logger::INFO
+
+    @current_version = "0.2.0"
   end
 
   ##
@@ -490,6 +492,10 @@ class RapidConnect < Sinatra::Base
           "
         end
       end
+    end
+
+    def current_version
+      @current_version
     end
 
 end

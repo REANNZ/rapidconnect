@@ -39,7 +39,7 @@
     <footer>
       <div class="container">
         <p>
-          AAF Rapid Connect <strong> version 0.1.0</strong>
+          AAF Rapid Connect <strong>version <%= current_version %></strong>
           <% if session[:subject] %>
             <br>
             Logged in as <em><%= session[:subject][:cn] %></em> ( <%=session[:subject][:principal]%> )
