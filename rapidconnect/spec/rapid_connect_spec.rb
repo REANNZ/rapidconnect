@@ -422,7 +422,7 @@ describe RapidConnect do
     claim = rc.helpers.generate_research_claim('http://service.com', @valid_subject)
     claim[:aud].should eq('http://service.com')
     claim[:iss].should eq('https://rapid.example.org')
-    claim[:sub].should eq(@valid_subject[:principal])
+    claim[:sub].should eq('https://idp.example.com!https://sp.example.com!HCCNNr3O2uHy3xVXn63kMwNFrxo=')
     claim[:'https://aaf.edu.au/attributes'][:'cn'].should eq(@valid_subject[:cn])
     claim[:'https://aaf.edu.au/attributes'][:'mail'].should eq(@valid_subject[:mail])
     claim[:'https://aaf.edu.au/attributes'][:'edupersontargetedid'].should eq(@valid_subject[:principal])
@@ -437,7 +437,7 @@ describe RapidConnect do
     claim[:iss].should eq('https://rapid.example.org')
     claim[:name].should eq(@valid_subject[:cn])
     claim[:email].should eq(@valid_subject[:mail])
-    claim[:external_id].should eq(@valid_subject[:principal])
+    claim[:external_id].should eq('https://idp.example.com!https://sp.example.com!HCCNNr3O2uHy3xVXn63kMwNFrxo=')
   end
 
 end

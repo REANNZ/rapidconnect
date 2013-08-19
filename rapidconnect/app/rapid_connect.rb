@@ -406,7 +406,7 @@ class RapidConnect < Sinatra::Base
         exp: 2.minute.from_now,
         typ: 'authnresponse',
         aud: audience,
-        sub: subject[:principal],
+        sub: repack_principal(subject[:principal], audience),
         :'https://aaf.edu.au/attributes' => {
           :'cn' => subject[:cn],
           :'mail' => subject[:mail],
@@ -438,9 +438,24 @@ class RapidConnect < Sinatra::Base
         aud: audience,
         name: subject[:cn],
         email: subject[:mail],
-        external_id: subject[:principal],
+        external_id: repack_principal(subject[:principal], audience),
         organization: subject[:o]
       }
+    end
+
+    ##
+    # Refine EPTID for each rapid connect service this user visits
+    #
+    # The eduPersonTargetedID value is an opaque string of no more than 256 characters
+    # The format comprises the entity name of the identity provider, the entity name of the service provider, and the opaque string value. These strings are separated by “!” symbols.
+    ##
+    def repack_principal(principal, audience)
+      parts = principal.split('!')
+      new_opaque = Digest::SHA1.base64digest "#{parts[2]} #{audience}"
+      new_principal = "#{parts[0]}!#{parts[1]}!#{new_opaque}"
+      @app_logger.info "Translated incoming principal #{principal} to #{new_principal} for aud #{audience}"
+
+      new_principal
     end
 
     ##
