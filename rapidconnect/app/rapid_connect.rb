@@ -397,7 +397,7 @@ class RapidConnect < Sinatra::Base
 
     def generate_research_claim(audience, subject)
       response_time = Time.now
-
+      principal = repack_principal(subject, settings.issuer, audience)
       ##
       # Research JWT authnresponses support the following attributes
       # eduPersonTargetedID [pseudonymous identifier and JWT subject identifier]
@@ -413,14 +413,14 @@ class RapidConnect < Sinatra::Base
         exp: 2.minute.from_now,
         typ: 'authnresponse',
         aud: audience,
-        sub: repack_principal(subject, settings.issuer, audience),
+        sub: principal,
         :'https://aaf.edu.au/attributes' => {
           :'cn' => subject[:cn],
           :'mail' => subject[:mail],
           :'displayname' => subject[:display_name],
           :'givenname' => subject[:given_name],
           :'surname' => subject[:surname],
-          :'edupersontargetedid' => repack_principal(subject, settings.issuer, audience),
+          :'edupersontargetedid' => principal,
           :'edupersonscopedaffiliation' => subject[:scoped_affiliation],
           :'edupersonprincipalname' => subject[:principal_name]
         }
