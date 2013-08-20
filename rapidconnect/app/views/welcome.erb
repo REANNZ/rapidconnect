@@ -1,12 +1,152 @@
 <html>
   <head>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="/application.css" rel="stylesheet">
     <title>Welcome to AAF Rapid Connect</title>
   </head>
-  <body>
+  <body class="zero">
 
-    <div class="hero-unit">
-      <center><h1>Welcome to AAF Rapid Connect</h1></center>
+    <div id="publicbanner">
+      <section class="content">
+        <div class="container">
+          <center>
+            <h2><img src="aaf.png" width="150" height="150"> Rapid Connect</h2>
+            <br>
+            <p>
+              A new approach for connecting applications to Australian Research and Higher Education
+            </p>
+          </center>
+        </div>
+
+      </div>
     </div>
+
+    <section class="content">
+      <div class="container">
+        <div class="row">
+          <div class="span6">
+            <h3 class="muted">Benefits</h3>
+            <ul>
+              <li>There is <strong>no need to install a Shibboleth SP</strong> on your webserver;</li>
+              <li>It natively integrates into commonly used development languages;</li>
+              <li>PaaS solutions like Heroku, Google App Engine and Pagoda become suitable deployment targets for AAF services;</li>
+              <li>Attributes are already defined in logical sets, there is no approval process for attributes; and</li>
+              <li>Integration code is <strong>minimal</strong>, simple to write and <strong>easy to test</strong>.</li>
+            </ul>
+          </div>
+          <div class="span4 offset2">
+            <div class="alert alert-info alert-block">
+              <h4>Current Release</h4>
+              <p>
+                AAF Rapid Connect is now available in the <strong>production</strong> federation.
+              </p>
+              <p>
+                It is currently considered <strong>BETA</strong> software and we welcome your feedback.
+              </p>
+              <p><strong>Deployed version</strong>: <%= current_version %></p>
+            </div>
+            <center>
+              <ul class="clean">
+                <li><a href="/developers" class="btn btn-large btn-success">Get Started!</a></li>
+                <li>&nbsp;</li>
+                <li><a href="/registration" class="btn btn-large btn-info">Register a service</a><li>
+              </ul>
+            </center>
+          </div>
+        </div>
+
+        <hr>
+
+        <h3 class="muted">Example Implementations</h3>
+        <div class="row">
+          <div class="span4">
+            <center>
+              <h4 class="muted">Ruby</h4>
+              <a href="https://aaf-echo.herokuapp.com"><img src="heroku.png" height="120" alt="Heroku demo access"></a>
+              <br><br>
+              <p>
+                A demo of AAF Rapid Connect <a href="https://aaf-echo.herokuapp.com">running on Heroku</a>.
+              </p>
+            </center>
+          </div>
+          <div class="span4">
+            <center>
+              <h4 class="muted">Python</h4>
+              <a href="https://aaf-echo.appspot.com"><img src="goog.png" alt="Google App Engine demo access"></a>
+              <br><br>
+              <p>
+                A demo of Rapid Connect <a href="https://aaf-echo.appspot.com">running on Google App Engine</a>.
+              </p>
+            </center>
+          </div>
+          <div class="span4">
+            <center>
+              <h4 class="muted">PHP</h4>
+              <a href="https://aaf-echo.appspot.com"><img src="pagoda.png" alt="Pagoda Box demo access"></a>
+              <br><br>
+              <p>
+                A demo of AAF Rapid Connect <a href="https://aaf-echo.appspot.com">running on Pagoda Box</a>.
+              </p>
+            </center>
+          </div>
+        </div>
+        <br>
+        <p class="muted">
+          <small><strong>!</strong> Demonstration applications run on developer accounts and may take some time to load if underlying instances have been paused by the PaaS provider.</small>
+        </p>
+
+        <hr>
+
+        <h3 class="muted">Example Integration Code</h3>
+        <p>Here is the full source (minus the actual HTML) of an application developed in Ruby using the Sinatra framework. It implements all the bits required for using AAF Rapid Connect.</p>
+        <script src="https://gist.github.com/bradleybeddoes/6154072.js"></script>
+
+        <br><br>
+
+        <center>
+          <ul class="clean">
+            <li><a href="/developers" class="btn btn-large btn-success">Get Started!</a></li>
+            <li>&nbsp;</li>
+            <li><a href="/registration" class="btn btn-large btn-info">Register a service</a><li>
+          </ul>
+        </center>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>
+          AAF Rapid Connect <strong>version <%= current_version %></strong>
+          <br>
+          Developed for the <a href="http://www.aaf.edu.au">Australian Access Federation</a> by <a href="http://bradleybeddoes.com">Bradley Beddoes</a>
+        </p>
+      </div>
+    </footer>
+
+    <!--
+      _______________________
+      < I prefer FUUUUUUUSE >
+      -----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+    -->
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/datatables/1.9.4/jquery.dataTables.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js"></script>
+    <script src="/bootbox.min.js"></script>
+    <script src="/application.js"></script>
+
+      <script type="text/javascript">
+        $( document ).ready(function() {
+          $('#publicbanner').backstretch("/background.jpg");
+        });
+      </script>
 
   </body>
 </html>
