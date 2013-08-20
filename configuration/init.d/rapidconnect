@@ -14,7 +14,7 @@ DAEMON=unicorn
 DAEMON_OPTS="-c /opt/rapidconnect/application/config/unicorn.rb -E production -D"
 NAME=unicorn
 DESC="Unicorn app for $USER"
-PID=/opt/rapidconnect/application/tmp/pids/unicorn.pid
+PID=/opt/rapidconnect/application/tmp/unicorn.pid
 
 case "$1" in
   start)
