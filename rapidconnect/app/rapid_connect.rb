@@ -47,6 +47,13 @@ class RapidConnect < Sinatra::Base
 
   def initialize
     super
+
+    @current_version = "0.2.0"
+  end
+
+  def check_reopen
+    return if @pid == $$
+
     @redis = Redis.new
 
     @app_logger = Logger.new(settings.app_logfile,'daily')
@@ -55,7 +62,12 @@ class RapidConnect < Sinatra::Base
     @audit_logger = Logger.new(settings.audit_logfile,'daily')
     @audit_logger.level = Logger::INFO
 
-    @current_version = "0.2.0"
+    @pid = $$
+  end
+
+  def call(env)
+    check_reopen
+    super(env)
   end
 
   ##
