@@ -342,17 +342,18 @@ form input[type="text"], input[type="password"]
 
 #publicbanner {
   height: 500px;
-  /*width: 100%;*/
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   color: #fff;
   font-size: 1.8em;
   line-height: 1.0em;
 }
 
 #publicbanner .content .container{
+  padding-top: 24px;
+  padding-bottom: 24px;
   background-color: #000;
   background: rgb(0, 0, 0) transparent; /* Fallback for web browsers that doesn't support RGBa */
-  background: rgba(0, 0, 0, 0.8);   /* RGBa with 0.6 opacity */
+  background: rgba(0, 0, 0, 0.9);   /* RGBa with 0.6 opacity */
   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#CCFFFFFF); /* IE 6/7 */
   -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#CCFFFFFF, endColorstr=#CCFFFFFF)"; /* IE8 */
 }
