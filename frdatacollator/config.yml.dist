@@ -1,0 +1,2 @@
+server: 'manager.test.example.edu.au'
+org_api_endpoint: '/federationregistry/api/v1/organizations'
