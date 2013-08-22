@@ -57,11 +57,11 @@ class RapidConnect < Sinatra::Base
 
     @redis = Redis.new
 
-    @app_logger = Logger.new(settings.app_logfile,'daily')
+    @app_logger = Logger.new(settings.app_logfile)
     @app_logger.level = Logger::INFO
     @app_logger.formatter = Logger::Formatter.new
 
-    @audit_logger = Logger.new(settings.audit_logfile,'daily')
+    @audit_logger = Logger.new(settings.audit_logfile)
     @audit_logger.level = Logger::INFO
 
     @pid = $$
