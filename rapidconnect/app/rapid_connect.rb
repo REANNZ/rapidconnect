@@ -157,7 +157,7 @@ class RapidConnect < Sinatra::Base
        endpoint && !endpoint.empty? &&
        secret && !secret.empty?
 
-      identifier = SecureRandom.urlsafe_base64(12, false)
+      @identifier = SecureRandom.urlsafe_base64(12, false)
       if(@redis.hexists('serviceproviders', identifier))
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
