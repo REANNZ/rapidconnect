@@ -23,10 +23,10 @@ case "$1" in
 
         echo -n "Starting $DESC: "
         if [ `whoami` = root ]; then
-   su - $USER -c "mkdir -p /opt/rapidconnect/application/tmp/pids" > /dev/null 2>&1
-         su - $USER -c "$CD_TO_APP_DIR > /dev/null 2>&1 && $START_DAEMON_PROCESS"
+          su - $USER -c "mkdir -p /opt/rapidconnect/application/tmp" > /dev/null 2>&1
+          su - $USER -c "$CD_TO_APP_DIR > /dev/null 2>&1 && $START_DAEMON_PROCESS"
         else
-          mkdir -p /opt/rapidconnect/application/tmp/pids > /dev/null 2>&1
+          mkdir -p /opt/rapidconnect/application/tmp > /dev/null 2>&1
           $CD_TO_APP_DIR > /dev/null 2>&1 && $START_DAEMON_PROCESS
         fi
         echo "$NAME."
