@@ -55,7 +55,13 @@
         <div class="span12">
           <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
-            <li>Research & Scholarly Applications<br><a href="#">https://rapid.aaf.edu.au/jwt/authnrequest/research/<%= @identifier %></a></li>
+            <li>Research & Scholarly Applications<br>
+              <% if settings.federation == 'test' %>
+                <a href="#">https://rapid.test.aaf.edu.au/jwt/authnrequest/research/<%= @identifier %></a>
+              <% else %>
+                <a href="#">https://rapid.aaf.edu.au/jwt/authnrequest/research/<%= @identifier %></a>
+              <% end %>
+            </li>
           </ol>
         </div>
       </div>

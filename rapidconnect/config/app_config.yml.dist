@@ -5,3 +5,4 @@ mail:
   password: ''
   from: 'noreply@example.org'
   to: 'support@example.org'
+federation: 'test'

@@ -123,7 +123,7 @@ describe RapidConnect do
     last_response.body.should contain('Invalid data supplied')
   end
 
-  it 'sends an email and shows success page when valid registration form submitted' do
+  it 'sends an email and shows success page when valid registration form submitted in production' do
     post '/registration/save', {'organisation' => 'Test Org Name', 'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'https://service.com/auth/jwt', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
 
     should have_sent_email
@@ -143,6 +143,26 @@ describe RapidConnect do
     last_response.location.should eq('http://example.org/registration/complete')
     follow_redirect!
     last_response.body.should contain('Service Registration Complete')
+  end
+
+  it 'shows success page when valid registration form submitted in test and auto approves' do
+    Sinatra::Base.set :federation, 'test'
+
+    post '/registration/save', {'organisation' => 'Test Org Name', 'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'https://service.com/auth/jwt', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
+
+    should_not have_sent_email
+
+    @redis.hlen('serviceproviders').should eq(1)
+    service = JSON.parse(@redis.hvals('serviceproviders')[0])
+    service['name'].should eq('Our Web App')
+    service['endpoint'].should eq('https://service.com/auth/jwt')
+    service['secret'].should eq('ykUlP1XMq3RXMd9w')
+    service['enabled'].should be_true
+
+    last_response.should be_redirect
+    last_response.location.should eq('http://example.org/registration/complete')
+    follow_redirect!
+    last_response.body.should contain('Service Registered and automatically approved')
   end
 
   it 'directs to login if administration url requested when unauthenticated' do

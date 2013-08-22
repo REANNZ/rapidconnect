@@ -162,12 +162,19 @@ class RapidConnect < Sinatra::Base
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
+        if(settings.federation == 'test')
+          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
+                                                      'endpoint' => endpoint, 'secret' => secret,
+                                                      'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
+                                                      'enabled' => true}.to_json)
+        else
+          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                       'endpoint' => endpoint, 'secret' => secret,
                                                       'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                       'enabled' => false}.to_json)
+          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
+        end
 
-        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
         redirect to('/registration/complete')
       end

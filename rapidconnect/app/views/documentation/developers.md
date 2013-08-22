@@ -161,7 +161,11 @@ To complete registration please provide:
 4. Secret - Must be random and securely stored by the service. This value should never be publicly disclosed and is used by the service to verify signed tokens from AAF Rapid Connect. We generated this as part of the *Integration Steps* shown above.
 
 
-Once submitted the AAF will review and contact you with any questions. You should expect a response via email within 2 business days which will include a unique URL within AAF Rapid Connect for your service to start the authentication process as we discussed in *Standard Flow* above.
+#### If you're registering in the production federation
+Once submitted the AAF will review and contact you with any questions. You should expect a response via email within 2 business days which will include a unique URL within AAF Rapid Connect for your application to start the authentication process as we discussed in *Standard Flow* above.
+
+#### If you're registering in the test federation
+Your application will be **automatically approved**. The completion screen will show the unique URL for your application to initiate login. You can use this immediently with your application to start the authentication process as we discussed in *Standard Flow* above.
 
 ## Help
 To get help with AAF Rapid Connect simply [email AAF support on support@aaf.edu.au](mailto:support@aaf.edu.au?subject=Help with integrating AAF Rapid Connect)
