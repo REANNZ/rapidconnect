@@ -154,6 +154,7 @@ Access the [AAF Rapid Connect website](https://rapid.aaf.edu.au) and click on th
 
 To complete registration please provide:
 
+1. Organisation - The AAF subscribed organisation which is sponsoring this service.
 1. Name - A descriptive name for your service.
 2. URL - The primary URL of your application which users would enter in the browser to visit your application. This value is provided to your application as the **aud** claim.
 3. Callback URL - The secure URL within your application that AAF Rapid Connect should **POST** completed responses to. We described this endpoint as part of the *Integration Steps* above.

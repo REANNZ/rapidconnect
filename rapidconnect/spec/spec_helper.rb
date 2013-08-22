@@ -18,6 +18,7 @@ Sinatra::Base.set :app_logfile, File.join(settings.app_root,'logs','app-test.log
 Sinatra::Base.set :audit_logfile, File.join(settings.app_root, 'logs', 'audit-test.log')
 
 Sinatra::Base.set :issuer, 'https://rapid.example.org'
+Sinatra::Base.set :organisations, '/tmp/rspec_organisations.json'
 Sinatra::Base.set :mail, {from:'noreply@example.org', to:'support@example.org'}
 
 module AppHelper

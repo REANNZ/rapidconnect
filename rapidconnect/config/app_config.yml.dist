@@ -1,4 +1,5 @@
 issuer: 'https://rapid.example.org'
+organisations: '/tmp/fr_org_names.json'
 mail:
   user_name: 'noreply@example.org'
   password: ''

@@ -3,6 +3,14 @@ require './app/rapid_connect'
 
 describe RapidConnect do
 
+  before :all do
+    File.open('/tmp/rspec_organisations.json', 'w') {|f| f.write( JSON.generate ['Test Org Name', 'Another Test Org Name'] ) }
+  end
+
+  after :all do
+    File.delete('/tmp/rspec_organisations.json')
+  end
+
   before :each do
     @valid_shibboleth_headers = {
       'HTTP_SHIB_SESSION_ID' => 'abcd1234',
@@ -116,7 +124,7 @@ describe RapidConnect do
   end
 
   it 'sends an email and shows success page when valid registration form submitted' do
-    post '/registration/save', {'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'https://service.com/auth/jwt', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
+    post '/registration/save', {'organisation' => 'Test Org Name', 'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'https://service.com/auth/jwt', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
 
     should have_sent_email
     last_email.to('support@aaf.edu.au')
@@ -229,7 +237,7 @@ describe RapidConnect do
     current_service['secret'].should eq('ykUlP1XMq3RXMd9w')
     !current_service['enabled']
 
-    put '/administration/services/update', {'identifier' => '1234abcd', 'name'=>'Our Web App2', 'audience'=>'https://service2.com',
+    put '/administration/services/update', {'identifier' => '1234abcd', 'organisation' => 'Test Org Name', 'name'=>'Our Web App2', 'audience'=>'https://service2.com',
                                             'endpoint'=>'https://service.com/auth/jwt2', 'secret'=>'ykUlP1XMq3RXMd9w2',
                                             'enabled'=>'on', 'registrant_name'=>'Dummy User', 'registrant_mail'=>'dummy@example.org'},
                                             {'rack.session' => { :subject => @valid_subject}}

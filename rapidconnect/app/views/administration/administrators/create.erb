@@ -11,13 +11,13 @@
 
     <h2>Create Administrator</h2>
 
-    <form method="post" action="/administration/administrators/save" class="form form-horizontal">
+    <form method="post" action="/administration/administrators/save" class="form form-horizontal validate">
 
       <div class="control-group">
         <label class="control-label" for="name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="name" class="span5" placeholder="Jimbo Jones">
+            <input type="text" name="name" class="span5 required" placeholder="Jimbo Jones">
           </div>
           <div class="span4 help-block">
             <p>
@@ -31,7 +31,7 @@
         <label class="control-label" for="mail">Email</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="mail" class="span5" placeholder="jimbo@jones.com">
+            <input type="text" name="mail" class="span5 required" placeholder="jimbo@jones.com">
           </div>
           <div class="span4 help-block">
             <p>
@@ -45,7 +45,7 @@
         <label class="control-label" for="identifier">Targeted ID</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="identifier" class="span5" placeholder="https://idp.example.com/idp....">
+            <input type="text" name="identifier" class="span5 required" placeholder="https://idp.example.com/idp....">
           </div>
           <div class="span4 help-block">
             <p>

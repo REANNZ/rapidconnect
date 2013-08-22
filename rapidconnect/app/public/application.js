@@ -38,4 +38,20 @@ $(document).ready(function() {
     }]);
   });
 
+  $("#orgselect").attr("selectedIndex", -1);
+
+  $('.validate').validate({
+    ignore: ":disabled",
+    keyup: true,
+    focusout: false,
+    focusInvalid:true,
+    errorElement: "div",
+    wrapper: "div",
+    errorPlacement: function(error, element) {
+      error.css('margin-bottom', '12px');
+
+      error.addClass('text-error');
+      element.parent().append(error);
+    }
+  });
 });

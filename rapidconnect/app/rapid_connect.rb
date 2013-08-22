@@ -7,6 +7,7 @@ require 'securerandom'
 require 'rack-flash'
 require 'mail'
 require 'rdiscount'
+require 'json'
 
 class RapidConnect < Sinatra::Base
   configure :production, :development do
@@ -123,10 +124,12 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/registration' do
+    @organisations = load_organisations
     erb :'registration/index'
   end
 
   post '/registration/save' do
+    organisation = params[:organisation]
     name = params[:name]
     audience = params[:audience]
     endpoint = params[:endpoint]
@@ -134,24 +137,28 @@ class RapidConnect < Sinatra::Base
     registrant_name = session[:subject][:cn]
     registrant_mail = session[:subject][:mail]
 
-    if name && !name.empty? &&
+    if organisation && !organisation.empty? &&
+       name && !name.empty? &&
        audience && !audience.empty? &&
        endpoint && !endpoint.empty? &&
        secret && !secret.empty?
+
       identifier = SecureRandom.urlsafe_base64(12, false)
       if(@redis.hexists('serviceproviders', identifier))
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        @redis.hset('serviceproviders', identifier, { 'name' => name, 'audience' => audience, 'endpoint' => endpoint, 'secret' => secret,
+        @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
+                                                      'endpoint' => endpoint, 'secret' => secret,
                                                       'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                       'enabled' => false}.to_json)
 
-        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
-        @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail}"
+        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
+        @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
         redirect to('/registration/complete')
       end
     else
+      @organisations = load_organisations
       flash[:error] = 'Invalid data supplied'
       erb :'registration/index'
     end
@@ -194,6 +201,7 @@ class RapidConnect < Sinatra::Base
     if @redis.hexists('serviceproviders', identifier)
       @identifier = identifier
       @service = JSON.parse(@redis.hget('serviceproviders', identifier))
+      @organisations = load_organisations
       erb :'administration/services/edit'
     else
       404
@@ -202,6 +210,7 @@ class RapidConnect < Sinatra::Base
 
   put '/administration/services/update' do
     identifier = params[:identifier]
+    organisation = params[:organisation]
     name = params[:name]
     audience = params[:audience]
     endpoint = params[:endpoint]
@@ -211,6 +220,7 @@ class RapidConnect < Sinatra::Base
     registrant_mail = params[:registrant_mail]
 
     if (identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
+        organisation && !organisation.empty? &&
         name && !name.empty? &&
         audience && !audience.empty? &&
         endpoint && !endpoint.empty? &&
@@ -218,8 +228,9 @@ class RapidConnect < Sinatra::Base
         registrant_name && !registrant_name.empty? &&
         registrant_mail && !registrant_mail.empty?)
 
-      @redis.hset('serviceproviders', identifier, {'name' => name, 'audience' => audience, 'endpoint' => endpoint, 'secret' => secret,
-                                                  'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail, 'enabled' => enabled}.to_json)
+      @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
+                                                    'endpoint' => endpoint, 'secret' => secret,
+                                                    'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail, 'enabled' => enabled}.to_json)
 
       @app_logger.info "Service #{identifier} updated by #{session[:subject][:principal]} #{session[:subject][:cn]}"
       redirect to('/administration/services/' + identifier)
@@ -468,7 +479,7 @@ class RapidConnect < Sinatra::Base
     ##
     # New Service Registration Notification
     ##
-    def send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
+    def send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
       mail_settings = settings.mail
       mail = Mail.deliver do
         from mail_settings[:from]
@@ -485,6 +496,7 @@ class RapidConnect < Sinatra::Base
               <li>Service Name: #{name}</li>
               <li>Endpoint: #{endpoint}</li>
               <li>Creator: #{registrant_name} (#{registrant_mail})</li>
+              <li>Organisation: #{organisation}</li>
             </ul>
             <br><br>
             Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
@@ -502,5 +514,10 @@ class RapidConnect < Sinatra::Base
     def current_version
       @current_version
     end
+
+    def load_organisations
+      JSON.parse( IO.read(settings.organisations) )
+    end
+
 
 end

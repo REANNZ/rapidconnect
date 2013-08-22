@@ -12,17 +12,18 @@
 
     <h2>Editing <%= @service['name'] %></h2>
 
-    <form method="post" action="/administration/services/update" class="form form-horizontal">
+    <form method="post" action="/administration/services/update" class="form form-horizontal validate">
 
       <input type="hidden" name="identifier" value="<%= @identifier %>">
       <input name="_method" type="hidden" value="put" />
 
       <h3 class="muted">Technical Details</h3>
+
       <div class="control-group">
         <label class="control-label" for="name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="name" class="span5" value="<%= @service['name'] %>">
+            <input type="text" name="name" class="span5 required" value="<%= @service['name'] %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -36,7 +37,7 @@
         <label class="control-label" for="audience">Service URL</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="audience" class="span5" value="<%= @service['audience'] %>">
+            <input type="text" name="audience" class="span5 required" value="<%= @service['audience'] %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -50,7 +51,7 @@
         <label class="control-label" for="endpoint">Callback URL</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="endpoint" class="span5" value="<%= @service['endpoint'] %>">
+            <input type="text" name="endpoint" class="span5 required" value="<%= @service['endpoint'] %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -64,7 +65,7 @@
         <label class="control-label" for="secret">Secret</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="secret" class="span5" value="<%= @service['secret'] %>">
+            <input type="text" name="secret" class="span5 required" value="<%= @service['secret'] %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -96,10 +97,33 @@
 
       <h3 class="muted">Registrant</h3>
       <div class="control-group">
+        <label class="control-label" for="name">Organisation</label>
+        <div class="controls">
+          <div class="span5">
+            <select name="organisation" class="span5 required">
+              <option></option>
+              <% @organisations.each { |org| %>
+                <% if org.eql? @service['organisation'] %>
+                  <option value='<%= org %>' selected><%= org %></option>
+                <% else %>
+                  <option value='<%= org %>'><%= org %></option>
+                <% end %>
+              <% } %>
+            </select>
+          </div>
+          <div class="span4 help-block">
+            <p>
+              The AAF registered organisation which is sponsoring this service.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
         <label class="control-label" for="registrant_name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="registrant_name" class="span5" value="<%= @service['registrant_name'] %>">
+            <input type="text" name="registrant_name" class="span5 required" value="<%= @service['registrant_name'] %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -113,7 +137,7 @@
         <label class="control-label" for="registrant_mail">Email</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="registrant_mail" class="span5" value="<%= @service['registrant_mail'] %>">
+            <input type="text" name="registrant_mail" class="span5 required" value="<%= @service['registrant_mail'] %>">
           </div>
           <div class="span4 help-block">
             <p>
