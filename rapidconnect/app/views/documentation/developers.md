@@ -150,7 +150,7 @@ You can now use this data to create a local account suitable for internal use by
 
 ### Register your service
 
-Access the [AAF Rapid Connect website](https://rapid.aaf.edu.au) and click on the button for "Register a service". This is on the right hand side in a blue color under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
+Access the [AAF Rapid Connect website](/) and click on the button for "Register a service". This is on the right hand side in a blue color under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
 
 To complete registration please provide:
 
