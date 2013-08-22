@@ -50,7 +50,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = "0.4.1"
+    @current_version = "0.4.2"
   end
 
   def check_reopen
@@ -157,7 +157,7 @@ class RapidConnect < Sinatra::Base
        endpoint && !endpoint.empty? &&
        secret && !secret.empty?
 
-      @identifier = SecureRandom.urlsafe_base64(12, false)
+      identifier = SecureRandom.urlsafe_base64(12, false)
       if(@redis.hexists('serviceproviders', identifier))
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
@@ -167,6 +167,7 @@ class RapidConnect < Sinatra::Base
                                                       'endpoint' => endpoint, 'secret' => secret,
                                                       'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                       'enabled' => true}.to_json)
+          @identifier = identifier
         else
           @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                       'endpoint' => endpoint, 'secret' => secret,
