@@ -167,6 +167,7 @@ class RapidConnect < Sinatra::Base
                                                       'endpoint' => endpoint, 'secret' => secret,
                                                       'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                       'enabled' => true}.to_json)
+          session[:registration_identifier] = identifier
         else
           @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                       'endpoint' => endpoint, 'secret' => secret,
@@ -174,8 +175,6 @@ class RapidConnect < Sinatra::Base
                                                       'enabled' => false}.to_json)
           send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
         end
-
-        session[:registration_identifier] = identifier
 
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
         redirect to('/registration/complete')
