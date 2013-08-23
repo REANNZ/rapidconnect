@@ -1,13 +1,19 @@
 # AAF Rapid Connect
 
-Author: Bradley Beddoes
-
-Status: Currently in public beta
-
+Author: Bradley Beddoes and Shaun Mangelsdorf
+License: Currently closed source.
 
 ## Overview
 
 The AAF Rapid Connect service will allow us to translate SAML assertions which are verified by a standard Shibboleth SP into formats which may be more palitable for use by services with restricted environments or no need to access some of the more advanced parts of the AAF offering.
+
+### Benefits
+
+* There is no need to install a Shibboleth SP on your webserver;
+* It natively integrates into commonly used development languages;
+* PaaS solutions like Heroku, Google App Engine and Pagoda become suitable deployment targets for AAF services;
+* Attributes are already defined in logical sets, there is no approval process for attributes; and
+* Integration code is minimal, simple to write and easy to test.
 
 ## JWT
 The following is sourced from [the JWT specification](http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html).
@@ -47,4 +53,6 @@ However, with these claims being optional, other uses of the JWT
 format are also permitted.
 
 ## Documentation
-See the documentation directory for futher technical guides on setting up AAF Rapid Connect and connecting to it from remote services.
+Documentation for application developers is provided as part of the web application e.g [https://rapid.aaf.edu.au/developers] (https://rapid.aaf.edu.au/developers)
+
+Documentation for deployers of the Rapid Connect server software are provided in the documentation directory above along with example configurations in configuration.
