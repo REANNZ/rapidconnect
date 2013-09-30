@@ -167,5 +167,22 @@ Once submitted the AAF will review and contact you with any questions. You shoul
 #### If you're registering in the test federation
 Your application will be **automatically approved**. The completion screen will show the unique URL for your application to initiate login. You can use this immediently with your application to start the authentication process as we discussed in *Standard Flow* above.
 
+## Buttons
+The AAF provides buttons in several sizes which your application **should** use to let your users know they can login via the AAF. These buttons are used in marketing and help documentation which is provided to end user support desks and makes the process of logging in seem familiar for users across multiple applications.
+
+You may hotlink or rehost these images. Please use in accordance with the [AAF logo use policy](http://www.aaf.edu.au/wp-content/uploads/2010/05/AAF_LogoUsePolicy_05_10.pdf) <small>(PDF)</small>.
+
+**110x26** <br>
+![AAF tiny login](/aaf_service_110x26.png "AAF Login")
+		
+**223x54** <br>
+![AAF tiny login](/aaf_service_223x54.png "AAF Login")
+		
+**439x105** <br>
+![AAF tiny login](/aaf_service_439x105.png "AAF Login")
+		
+**866x193** <br>
+![AAF tiny login](/aaf_service_866x193.png "AAF Login")
+
 ## Help
 To get help with AAF Rapid Connect simply [email AAF support on support@aaf.edu.au](mailto:support@aaf.edu.au?subject=Help with integrating AAF Rapid Connect)
