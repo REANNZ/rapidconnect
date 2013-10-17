@@ -83,17 +83,18 @@ class RapidConnect < Sinatra::Base
   ###
   # Session Management
   ###
-  get '/login' do
-    shibboleth_login_url = "/Shibboleth.sso/Login?target=/login/shibboleth"
+  get '/login/:id' do |id|
+    shibboleth_login_url = "/Shibboleth.sso/Login?target=/login/shibboleth/#{id}"
     redirect (shibboleth_login_url)
   end
 
-  get '/login/shibboleth' do
+  get '/login/shibboleth/:id' do |id|
     # Process Shibboleth provided login details
     if env['HTTP_SHIB_SESSION_ID'] && !env['HTTP_SHIB_SESSION_ID'].empty?
-      target = session[:target]
+      targets = session[:target] || {}
+      target = targets[id.to_s]
       if target
-        session[:target] = nil
+        session[:target].delete id.to_s
 
         # As we support more attributes in the future the subject should be extended to hold all of them
         subject = {
@@ -419,8 +420,10 @@ class RapidConnect < Sinatra::Base
 
     def authenticated?
       if !session[:subject]
-        session[:target] = request.url
-        redirect '/login'
+        id = SecureRandom.urlsafe_base64(24, false)
+        session[:target] ||= {}
+        session[:target][id] = request.url
+        redirect "/login/#{id}"
       end
     end
 

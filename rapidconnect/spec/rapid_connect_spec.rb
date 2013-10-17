@@ -64,18 +64,18 @@ describe RapidConnect do
   end
 
   it "redirects to Shibboleth SP SSO on login request" do
-    get '/login'
+    get '/login/1'
     last_response.should be_redirect
-    last_response.location.should eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth')
+    last_response.location.should eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth/1')
   end
 
   it "sends a 403 response if Shibboleth SP login response contains no session id" do
-    get '/login/shibboleth', rack_env={}
+    get '/login/shibboleth/1', rack_env={}
     last_response.status.should eq(403)
   end
 
   it "sends a redirect to service unknown if original target not in session" do
-    get '/login/shibboleth', {}, @valid_shibboleth_headers
+    get '/login/shibboleth/1', {}, @valid_shibboleth_headers
     last_response.should be_redirect
     last_response.location.should eq('http://example.org/serviceunknown')
     follow_redirect!
@@ -84,10 +84,10 @@ describe RapidConnect do
 
   it "sends a redirect to the original target and populates subject into session when there is a valid Shibboleth SP response" do
     target = 'http://example.org/jwt/authnrequest'
-    get '/login/shibboleth', {}, {'rack.session' => { :target => target }}.merge(@valid_shibboleth_headers)
+    get '/login/shibboleth/1', {}, {'rack.session' => { :target => { '1' => target } }}.merge(@valid_shibboleth_headers)
     last_response.should be_redirect
     last_response.location.should eq(target)
-    session[:target].should be_nil
+    session[:target].should be_empty
     session[:subject][:principal].should eq(@valid_shibboleth_headers['HTTP_PERSISTENT_ID'])
     session[:subject][:cn].should eq(@valid_shibboleth_headers['HTTP_CN'])
     session[:subject][:display_name].should eq(@valid_shibboleth_headers['HTTP_DISPLAYNAME'])
@@ -106,9 +106,10 @@ describe RapidConnect do
   end
 
   it 'directs to login if registration attempted when unauthenticated' do
+    SecureRandom.stub(:urlsafe_base64).and_return('1')
     get '/registration'
     last_response.should be_redirect
-    last_response.location.should eq('http://example.org/login')
+    last_response.location.should eq('http://example.org/login/1')
   end
 
   it 'shows the registration screen' do
@@ -166,9 +167,10 @@ describe RapidConnect do
   end
 
   it 'directs to login if administration url requested when unauthenticated' do
+    SecureRandom.stub(:urlsafe_base64).and_return('1')
     get '/administration/xyz'
     last_response.should be_redirect
-    last_response.location.should eq('http://example.org/login')
+    last_response.location.should eq('http://example.org/login/1')
   end
 
   it 'halts with 403 if administration url requested when authenticated user is not an administrator' do
@@ -403,9 +405,10 @@ describe RapidConnect do
   end
 
   it 'directs to login if a jwt url requested when unauthenticated' do
+    SecureRandom.stub(:urlsafe_base64).and_return('1')
     get '/jwt/xyz'
     last_response.should be_redirect
-    last_response.location.should eq('http://example.org/login')
+    last_response.location.should eq('http://example.org/login/1')
   end
 
   it 'sends 404 if no service registered for research JWT' do
