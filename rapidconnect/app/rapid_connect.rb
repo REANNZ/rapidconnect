@@ -8,6 +8,7 @@ require 'rack-flash'
 require 'mail'
 require 'rdiscount'
 require 'json'
+require 'uri'
 
 class RapidConnect < Sinatra::Base
   configure :production, :development do
@@ -43,6 +44,10 @@ class RapidConnect < Sinatra::Base
         :authentication => :plain,
         :enable_starttls_auto => true
       }
+    end
+
+    unless settings.respond_to? :hostname
+      set :hostname, URI.parse(settings.issuer).hostname
     end
   end
 
