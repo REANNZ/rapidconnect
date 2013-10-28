@@ -1,9 +1,4 @@
-require 'rubygems'
-require 'bundler'
-require 'sinatra'
-
-Bundler.require
-
-require './app/rapid_connect'
+$LOAD_PATH.unshift('.')
+require 'init'
 
 run RapidConnect
