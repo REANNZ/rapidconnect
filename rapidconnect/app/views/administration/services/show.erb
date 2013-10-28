@@ -56,7 +56,8 @@
           <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
             <li>Research & Scholarly Applications<br>
-              <a href="#">https://<%= settings.hostname %>/jwt/authnrequest/research/<%= @identifier %></a>
+              <% url = "https://#{settings.hostname}/jwt/authnrequest/research/#{@identifier}" %>
+              <a href="<%= url %>"><%= url %></a>
             </li>
           </ol>
         </div>
