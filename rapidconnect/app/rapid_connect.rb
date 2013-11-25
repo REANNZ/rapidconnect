@@ -47,7 +47,7 @@ class RapidConnect < Sinatra::Base
     end
 
     unless settings.respond_to? :hostname
-      set :hostname, URI.parse(settings.issuer).hostname
+      set :hostname, ::URI.parse(settings.issuer).hostname
     end
   end
 
