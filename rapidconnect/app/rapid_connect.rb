@@ -160,7 +160,7 @@ class RapidConnect < Sinatra::Base
     if organisation && !organisation.empty? &&
        name && !name.empty? &&
        audience && !audience.empty? &&
-       endpoint && !endpoint.empty? &&
+       endpoint && !endpoint.empty? && endpoint =~ ::URI.regexp &&
        secret && !secret.empty?
 
       identifier = SecureRandom.urlsafe_base64(12, false)

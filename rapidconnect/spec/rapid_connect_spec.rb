@@ -118,6 +118,12 @@ describe RapidConnect do
     last_response.body.should contain('Service Registration')
   end
 
+  it 'sends a flash message when an invalid url is submitted' do
+    post '/registration/save', {'organisation' => 'Test Org Name', 'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'afsjdlaksdfjh', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
+    last_response.body.should contain('Service Registration')
+    last_response.body.should contain('Invalid data supplied')
+  end
+
   it 'sends a flash message when invalid registration form data is submitted' do
     post '/registration/save', {}, {'rack.session' => { :subject => @valid_subject}}
     last_response.body.should contain('Service Registration')
