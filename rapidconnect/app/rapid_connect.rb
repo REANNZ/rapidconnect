@@ -61,7 +61,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def check_reopen
-    return if @pid == $PID
+    return if @pid == Process.pid
 
     @redis = Redis.new
 
@@ -72,7 +72,7 @@ class RapidConnect < Sinatra::Base
     @audit_logger = Logger.new(settings.audit_logfile)
     @audit_logger.level = Logger::INFO
 
-    @pid = $PID
+    @pid = Process.pid
   end
 
   def call(env)
