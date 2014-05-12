@@ -468,11 +468,11 @@ describe RapidConnect do
     claim[:aud].should eq('http://service.com')
     claim[:iss].should eq('https://rapid.example.org')
     claim[:sub].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    claim[:'https://aaf.edu.au/attributes'][:'cn'].should eq(@valid_subject[:cn])
-    claim[:'https://aaf.edu.au/attributes'][:'mail'].should eq(@valid_subject[:mail])
-    claim[:'https://aaf.edu.au/attributes'][:'edupersontargetedid'].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    claim[:'https://aaf.edu.au/attributes'][:'edupersonprincipalname'].should eq(@valid_subject[:principal_name])
-    claim[:'https://aaf.edu.au/attributes'][:'edupersonscopedaffiliation'].should eq(@valid_subject[:scoped_affiliation])
+    claim[:'https://aaf.edu.au/attributes'][:cn].should eq(@valid_subject[:cn])
+    claim[:'https://aaf.edu.au/attributes'][:mail].should eq(@valid_subject[:mail])
+    claim[:'https://aaf.edu.au/attributes'][:edupersontargetedid].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
+    claim[:'https://aaf.edu.au/attributes'][:edupersonprincipalname].should eq(@valid_subject[:principal_name])
+    claim[:'https://aaf.edu.au/attributes'][:edupersonscopedaffiliation].should eq(@valid_subject[:scoped_affiliation])
   end
 
   it 'generate valid zendesk claim' do
