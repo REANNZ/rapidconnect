@@ -433,6 +433,10 @@ describe RapidConnect do
     get '/jwt/authnrequest/research/1234abcd', {}, {'rack.session' => { :subject => @valid_subject}}
     last_response.status.should eq(200)
     last_response.body.should contain('AAF Rapid Connect - Redirection')
+    last_response.headers.should include('Set-Cookie')
+    last_response.headers['Set-Cookie'].should =~ /rack.session=/
+    last_response.headers['Set-Cookie'].should =~ /HttpOnly/
+    last_response.headers['Set-Cookie'].should_not =~ /expires=/
   end
 
   it 'sends 404 if no service registered for zendesk JWT' do
@@ -452,6 +456,10 @@ describe RapidConnect do
     last_response.status.should eq(302)
     last_response.location.should contain("jwt=")
     last_response.location.should contain("return_to=")
+    last_response.headers.should include('Set-Cookie')
+    last_response.headers['Set-Cookie'].should =~ /rack.session=/
+    last_response.headers['Set-Cookie'].should =~ /HttpOnly/
+    last_response.headers['Set-Cookie'].should_not =~ /expires=/
   end
 
   it 'generate valid research claim' do

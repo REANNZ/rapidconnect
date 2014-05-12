@@ -12,10 +12,10 @@ require 'uri'
 
 class RapidConnect < Sinatra::Base
   configure :production, :development do
-    use Rack::Session::Redis, :expire_after => 3600
+    use Rack::Session::Redis, expire_in: 3600
   end
   configure :test do
-    use Rack::Session::Pool, :expire => 3600
+    use Rack::Session::Pool, expire_in: 3600
   end
 
   use Rack::MethodOverride
