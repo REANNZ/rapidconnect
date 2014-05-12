@@ -118,6 +118,12 @@ describe RapidConnect do
     last_response.body.should contain('Service Registration')
   end
 
+  it 'sends a flash message when an invalid url is submitted' do
+    post '/registration/save', {'organisation' => 'Test Org Name', 'name'=>'Our Web App', 'audience'=>'https://service.com', 'endpoint'=>'afsjdlaksdfjh', 'secret'=>'ykUlP1XMq3RXMd9w'}, {'rack.session' => { :subject => @valid_subject}}
+    last_response.body.should contain('Service Registration')
+    last_response.body.should contain('Invalid data supplied')
+  end
+
   it 'sends a flash message when invalid registration form data is submitted' do
     post '/registration/save', {}, {'rack.session' => { :subject => @valid_subject}}
     last_response.body.should contain('Service Registration')
@@ -427,6 +433,10 @@ describe RapidConnect do
     get '/jwt/authnrequest/research/1234abcd', {}, {'rack.session' => { :subject => @valid_subject}}
     last_response.status.should eq(200)
     last_response.body.should contain('AAF Rapid Connect - Redirection')
+    last_response.headers.should include('Set-Cookie')
+    last_response.headers['Set-Cookie'].should =~ /rack.session=/
+    last_response.headers['Set-Cookie'].should =~ /HttpOnly/
+    last_response.headers['Set-Cookie'].should_not =~ /expires=/
   end
 
   it 'sends 404 if no service registered for zendesk JWT' do
@@ -446,6 +456,10 @@ describe RapidConnect do
     last_response.status.should eq(302)
     last_response.location.should contain("jwt=")
     last_response.location.should contain("return_to=")
+    last_response.headers.should include('Set-Cookie')
+    last_response.headers['Set-Cookie'].should =~ /rack.session=/
+    last_response.headers['Set-Cookie'].should =~ /HttpOnly/
+    last_response.headers['Set-Cookie'].should_not =~ /expires=/
   end
 
   it 'generate valid research claim' do
@@ -454,11 +468,11 @@ describe RapidConnect do
     claim[:aud].should eq('http://service.com')
     claim[:iss].should eq('https://rapid.example.org')
     claim[:sub].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    claim[:'https://aaf.edu.au/attributes'][:'cn'].should eq(@valid_subject[:cn])
-    claim[:'https://aaf.edu.au/attributes'][:'mail'].should eq(@valid_subject[:mail])
-    claim[:'https://aaf.edu.au/attributes'][:'edupersontargetedid'].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    claim[:'https://aaf.edu.au/attributes'][:'edupersonprincipalname'].should eq(@valid_subject[:principal_name])
-    claim[:'https://aaf.edu.au/attributes'][:'edupersonscopedaffiliation'].should eq(@valid_subject[:scoped_affiliation])
+    claim[:'https://aaf.edu.au/attributes'][:cn].should eq(@valid_subject[:cn])
+    claim[:'https://aaf.edu.au/attributes'][:mail].should eq(@valid_subject[:mail])
+    claim[:'https://aaf.edu.au/attributes'][:edupersontargetedid].should eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
+    claim[:'https://aaf.edu.au/attributes'][:edupersonprincipalname].should eq(@valid_subject[:principal_name])
+    claim[:'https://aaf.edu.au/attributes'][:edupersonscopedaffiliation].should eq(@valid_subject[:scoped_affiliation])
   end
 
   it 'generate valid zendesk claim' do
