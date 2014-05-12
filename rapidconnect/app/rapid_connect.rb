@@ -498,7 +498,7 @@ class RapidConnect < Sinatra::Base
   # The format comprises the entity name of the identity provider, the entity name of the service provider, and the opaque string value. These strings are separated by a bang
   def repack_principal(subject, issuer, audience)
     parts = subject[:principal].split('!')
-    new_opaque = Digest::SHA1.base64digest "#{parts[2]} #{subject[:mail]} #{audience}"
+    new_opaque = OpenSSL::Digest::SHA1.base64digest "#{parts[2]} #{subject[:mail]} #{audience}"
     new_principal = "#{issuer}!#{audience}!#{new_opaque}"
     @app_logger.info "Translated incoming principal #{subject[:principal]} (#{subject[:cn]}, #{subject[:mail]}) to #{new_principal} for aud #{audience}"
 
