@@ -254,14 +254,14 @@ class RapidConnect < Sinatra::Base
     registrant_name = params[:registrant_name]
     registrant_mail = params[:registrant_mail]
 
-    if (identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
+    if  identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
         organisation && !organisation.empty? &&
         name && !name.empty? &&
         audience && !audience.empty? &&
         endpoint && !endpoint.empty? &&
         secret && !secret.empty? &&
         registrant_name && !registrant_name.empty? &&
-        registrant_mail && !registrant_mail.empty?)
+        registrant_mail && !registrant_mail.empty?
 
       @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                     'endpoint' => endpoint, 'secret' => secret,

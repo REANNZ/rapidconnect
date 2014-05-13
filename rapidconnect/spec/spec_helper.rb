@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 ENV['RACK_ENV'] = 'test'
 
 require 'bundler'
@@ -45,6 +48,10 @@ module AppHelper
   def flush_stores
     @redis.flushall
     Mail::TestMailer.deliveries.clear
+  end
+
+  def flash
+    last_request.env['x-rack.flash']
   end
 end
 

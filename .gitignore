@@ -1,4 +1,5 @@
 .DS_Store
+rapidconnect/coverage
 rapidconnect/tmp/*
 rapidconnect/logs/*
 rapidconnect/config/app_config.yml
