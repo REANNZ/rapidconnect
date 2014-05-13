@@ -182,7 +182,7 @@ class RapidConnect < Sinatra::Base
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                         'enabled' => false }.to_json)
-          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
+          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
         end
 
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
@@ -510,7 +510,7 @@ class RapidConnect < Sinatra::Base
   # New Service Registration Notification
   ##
   def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail, organisation)
+                              registrant_name, registrant_mail)
     mail_settings = settings.mail
     Mail.deliver do
       from mail_settings[:from]
@@ -527,7 +527,6 @@ class RapidConnect < Sinatra::Base
             <li>Service Name: #{name}</li>
             <li>Endpoint: #{endpoint}</li>
             <li>Creator: #{registrant_name} (#{registrant_mail})</li>
-            <li>Organisation: #{organisation}</li>
           </ul>
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
