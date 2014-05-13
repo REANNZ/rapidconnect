@@ -167,6 +167,7 @@ class RapidConnect < Sinatra::Base
 
       identifier = SecureRandom.urlsafe_base64(12, false)
       if @redis.hexists('serviceproviders', identifier)
+        @organisations = load_organisations
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
