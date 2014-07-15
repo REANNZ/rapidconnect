@@ -515,6 +515,66 @@ describe RapidConnect do
     end
   end
 
+  describe '/export' do
+    describe '/services' do
+      context 'export disabled' do
+        before(:each) do
+          Sinatra::Base.set :export, enabled: false
+        end
+
+        it 'returns 404 if export is not enabled' do
+          get '/export/services'
+          expect(last_response.status).to eq 404
+        end
+      end
+
+      context 'export enabled' do
+        before(:each) do
+          Sinatra::Base.set :export, enabled: true
+        end
+
+        context 'authorize header malformed' do
+          it 'responds with 403 if not supplied' do
+            get '/export/services'
+            expect(last_response.status).to eq 403
+          end
+
+          it 'responds with 403 if not formed correctly' do
+            get '/export/services', {'HTTP_AUTHORIZATION' => 'invalid content'}
+            expect(last_response.status).to eq 403
+          end
+        end
+
+        context 'authorize header correctly formed' do
+          context 'invalid secret' do
+            it '403 response' do
+              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="wrong_secret"' }
+              expect(last_response.status).to eq 403
+            end
+          end
+
+          context 'valid secret' do
+            before(:each) do
+              enableexampleservice
+            end
+
+            it '200 response code' do
+              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+              expect(last_response.status).to eq 200
+            end
+
+            it 'provides expected json' do
+              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+              json = JSON.parse(response.body)
+              expect(json['services'][0]['id']).to eq '1234abcd'
+              expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
+            end
+          end
+        end
+      end
+    end
+  end
+
   describe '#generate_research_claim' do
     it 'creates a valid claim' do
       rc = RapidConnect.new

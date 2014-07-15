@@ -52,6 +52,7 @@ class RapidConnect < Sinatra::Base
   end
 
   attr_reader :current_version
+  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/
 
   def initialize
     super
@@ -537,6 +538,61 @@ class RapidConnect < Sinatra::Base
     end
   end
 
+  ##
+  # Export Data
+  ##
+  before '/export*' do
+    api_authenticated?
+  end
+
+  get '/export/services' do
+    content_type :json
+    services_raw = @redis.hgetall('serviceproviders').reduce({}) { |map, (k, v)| map.merge(k => JSON.parse(v)) }
+
+    services = Array.new
+    services_raw.sort.each do |id, service|
+      services << { id: id,
+                    name: service['name'],
+                    contact: {
+                      name: service['registrant_name'],
+                      email: service['registrant_mail'],
+                      type: 'technical'
+                    },
+                    rapidconnect: {
+                      audience: service['audience'],
+                      callback: service['endpoint'],
+                      secret: service['secret'],
+                      endpoints: {
+                        scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
+                      }
+                    },
+                    enabled: service['enabled'],
+                    organization: service['organisation'] }
+    end
+    { services: services }.to_json
+  end
+
+  def api_authenticated?
+    if settings.export[:enabled]
+      authorization = request.env['HTTP_AUTHORIZATION']
+      unless authorization && authorization =~ AUTHORIZE_REGEX
+        halt 403, 'Invalid authorization token'
+      end
+
+      service, secret = authorization.match(AUTHORIZE_REGEX).captures
+      unless secret == settings.export[:secret]
+        halt 403, 'Invalid authorization header'
+      end
+
+      @app_logger.info "Established API session for service #{service}"
+    else
+      halt 404
+    end
+  end
+
+  ##
+  # Organisation names via FR
+  ##
   def load_organisations
     JSON.parse(IO.read(settings.organisations))
   end
