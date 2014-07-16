@@ -545,32 +545,48 @@ class RapidConnect < Sinatra::Base
     api_authenticated?
   end
 
+  get '/export/service/:identifier' do |identifier|
+    content_type :json
+
+    if @redis.hexists('serviceproviders', identifier)
+      service = JSON.parse(@redis.hget('serviceproviders', identifier))
+      { service: service_as_json(identifier, service) }.to_json
+    else
+      halt 404
+    end
+  end
+
   get '/export/services' do
     content_type :json
     services_raw = @redis.hgetall('serviceproviders').reduce({}) { |map, (k, v)| map.merge(k => JSON.parse(v)) }
 
     services = Array.new
     services_raw.sort.each do |id, service|
-      services << { id: id,
-                    name: service['name'],
-                    contact: {
-                      name: service['registrant_name'],
-                      email: service['registrant_mail'],
-                      type: 'technical'
-                    },
-                    rapidconnect: {
-                      audience: service['audience'],
-                      callback: service['endpoint'],
-                      secret: service['secret'],
-                      endpoints: {
-                        scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
-                      }
-                    },
-                    enabled: service['enabled'],
-                    organization: service['organisation'] }
+      services << service_as_json(id, service)
     end
     { services: services }.to_json
   end
+
+  def service_as_json(id, service)
+    { id: id,
+      name: service['name'],
+      contact: {
+        name: service['registrant_name'],
+        email: service['registrant_mail'],
+        type: 'technical'
+      },
+      rapidconnect: {
+        audience: service['audience'],
+        callback: service['endpoint'],
+        secret: service['secret'],
+        endpoints: {
+          scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
+        }
+      },
+      enabled: service['enabled'],
+      organization: service['organisation'] }
+  end
+
 
   def api_authenticated?
     if settings.export[:enabled]

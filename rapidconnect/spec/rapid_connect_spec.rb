@@ -515,61 +515,99 @@ describe RapidConnect do
     end
   end
 
-  describe '/export' do
-    describe '/services' do
-      context 'export disabled' do
-        before(:each) do
-          Sinatra::Base.set :export, enabled: false
+  shared_examples_for 'export API' do
+    context 'export disabled' do
+      before(:each) do
+        Sinatra::Base.set :export, enabled: false
+      end
+
+      it '404' do
+        get '/export/services'
+        expect(last_response.status).to eq 404
+      end
+    end
+
+    context 'export enabled' do
+      before(:each) do
+        Sinatra::Base.set :export, enabled: true
+      end
+
+      context 'authorize header malformed' do
+        it '403 if not supplied' do
+          get '/export/services'
+          expect(last_response.status).to eq 403
         end
 
-        it 'returns 404 if export is not enabled' do
-          get '/export/services'
+        it '403 if not formed correctly' do
+          get '/export/services', {'HTTP_AUTHORIZATION' => 'invalid content'}
+          expect(last_response.status).to eq 403
+        end
+      end
+
+      context 'authorize header correctly formed' do
+        context 'invalid secret' do
+          it '403' do
+            get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="wrong_secret"' }
+            expect(last_response.status).to eq 403
+          end
+        end
+
+        context 'valid secret' do
+          before(:each) do
+            enableexampleservice
+          end
+
+        end
+      end
+    end
+  end
+
+  describe '/export' do
+    describe '/services' do
+      it_behaves_like 'export API'
+
+      context 'valid request' do
+        before(:each) do
+          enableexampleservice
+        end
+
+        it '200' do
+          get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          expect(last_response.status).to eq 200
+        end
+
+        it 'provides json' do
+          get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          json = JSON.parse(response.body)
+          expect(json['services'][0]['id']).to eq '1234abcd'
+          expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
+        end
+      end
+    end
+
+    describe '/service/:identifier' do
+      it_behaves_like 'export API'
+
+      context 'invalid service' do
+        it '404' do
+          get '/export/services/notvalid', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
           expect(last_response.status).to eq 404
         end
       end
 
-      context 'export enabled' do
+      context 'valid service' do
         before(:each) do
-          Sinatra::Base.set :export, enabled: true
+          enableexampleservice
         end
-
-        context 'authorize header malformed' do
-          it 'responds with 403 if not supplied' do
-            get '/export/services'
-            expect(last_response.status).to eq 403
-          end
-
-          it 'responds with 403 if not formed correctly' do
-            get '/export/services', {'HTTP_AUTHORIZATION' => 'invalid content'}
-            expect(last_response.status).to eq 403
-          end
+        it '200' do
+          get '/export/service/1234abcd', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          expect(last_response.status).to eq 200
         end
-
-        context 'authorize header correctly formed' do
-          context 'invalid secret' do
-            it '403 response' do
-              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="wrong_secret"' }
-              expect(last_response.status).to eq 403
-            end
-          end
-
-          context 'valid secret' do
-            before(:each) do
-              enableexampleservice
-            end
-
-            it '200 response code' do
-              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
-              expect(last_response.status).to eq 200
-            end
-
-            it 'provides expected json' do
-              get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
-              json = JSON.parse(response.body)
-              expect(json['services'][0]['id']).to eq '1234abcd'
-              expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
-            end
-          end
+        it 'provides json' do
+          get '/export/service/1234abcd', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          json = JSON.parse(response.body)
+          expect(json['service']['id']).to eq '1234abcd'
+          expect(json['service']['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
         end
       end
     end
