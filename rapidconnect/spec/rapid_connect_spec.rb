@@ -539,7 +539,7 @@ describe RapidConnect do
         end
 
         it '403 if not formed correctly' do
-          get '/export/services', {'HTTP_AUTHORIZATION' => 'invalid content'}
+          get '/export/services', 'HTTP_AUTHORIZATION' => 'invalid content'
           expect(last_response.status).to eq 403
         end
       end
@@ -547,16 +547,9 @@ describe RapidConnect do
       context 'authorize header correctly formed' do
         context 'invalid secret' do
           it '403' do
-            get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="wrong_secret"' }
+            get '/export/services', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="wrong_secret"'
             expect(last_response.status).to eq 403
           end
-        end
-
-        context 'valid secret' do
-          before(:each) do
-            enableexampleservice
-          end
-
         end
       end
     end
@@ -572,12 +565,12 @@ describe RapidConnect do
         end
 
         it '200' do
-          get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          get '/export/services', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
           expect(last_response.status).to eq 200
         end
 
         it 'provides json' do
-          get '/export/services', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          get '/export/services', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
           json = JSON.parse(response.body)
           expect(json['services'][0]['id']).to eq '1234abcd'
           expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
@@ -590,7 +583,7 @@ describe RapidConnect do
 
       context 'invalid service' do
         it '404' do
-          get '/export/services/notvalid', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          get '/export/services/notvalid', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
           expect(last_response.status).to eq 404
         end
       end
@@ -600,11 +593,11 @@ describe RapidConnect do
           enableexampleservice
         end
         it '200' do
-          get '/export/service/1234abcd', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          get '/export/service/1234abcd', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
           expect(last_response.status).to eq 200
         end
         it 'provides json' do
-          get '/export/service/1234abcd', nil, { 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"' }
+          get '/export/service/1234abcd', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
           json = JSON.parse(response.body)
           expect(json['service']['id']).to eq '1234abcd'
           expect(json['service']['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
