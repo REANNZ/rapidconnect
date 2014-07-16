@@ -558,12 +558,11 @@ class RapidConnect < Sinatra::Base
 
   get '/export/services' do
     content_type :json
-    services_raw = @redis.hgetall('serviceproviders').reduce({}) { |map, (k, v)| map.merge(k => JSON.parse(v)) }
 
-    services = Array.new
-    services_raw.sort.each do |id, service|
-      services << service_as_json(id, service)
+    services = @redis.hgetall('serviceproviders').sort.map do |(id, encoded)|
+      service_as_json(id, JSON.parse(encoded))
     end
+
     { services: services }.to_json
   end
 
@@ -586,7 +585,6 @@ class RapidConnect < Sinatra::Base
       enabled: service['enabled'],
       organization: service['organisation'] }
   end
-
 
   def api_authenticated?
     if settings.export[:enabled]
