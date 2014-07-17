@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 ENV['RACK_ENV'] = 'test'
 
 require 'bundler'
@@ -28,6 +31,9 @@ Sinatra::Base.set :organisations, '/tmp/rspec_organisations.json'
 Sinatra::Base.set :federation, 'production'
 Sinatra::Base.set :mail, from: 'noreply@example.org', to: 'support@example.org'
 
+Sinatra::Base.set :export, enabled: true
+Sinatra::Base.set :export, secret: 'test_secret'
+
 # Supply common framework actions to tests
 module AppHelper
   def app
@@ -45,6 +51,10 @@ module AppHelper
   def flush_stores
     @redis.flushall
     Mail::TestMailer.deliveries.clear
+  end
+
+  def flash
+    last_request.env['x-rack.flash']
   end
 end
 

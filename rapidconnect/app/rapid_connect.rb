@@ -52,6 +52,7 @@ class RapidConnect < Sinatra::Base
   end
 
   attr_reader :current_version
+  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/
 
   def initialize
     super
@@ -167,6 +168,7 @@ class RapidConnect < Sinatra::Base
 
       identifier = SecureRandom.urlsafe_base64(12, false)
       if @redis.hexists('serviceproviders', identifier)
+        @organisations = load_organisations
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
@@ -181,7 +183,7 @@ class RapidConnect < Sinatra::Base
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                         'enabled' => false }.to_json)
-          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, organisation)
+          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
         end
 
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
@@ -253,14 +255,14 @@ class RapidConnect < Sinatra::Base
     registrant_name = params[:registrant_name]
     registrant_mail = params[:registrant_mail]
 
-    if (identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
+    if  identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
         organisation && !organisation.empty? &&
         name && !name.empty? &&
         audience && !audience.empty? &&
         endpoint && !endpoint.empty? &&
         secret && !secret.empty? &&
         registrant_name && !registrant_name.empty? &&
-        registrant_mail && !registrant_mail.empty?)
+        registrant_mail && !registrant_mail.empty?
 
       @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                     'endpoint' => endpoint, 'secret' => secret,
@@ -509,7 +511,7 @@ class RapidConnect < Sinatra::Base
   # New Service Registration Notification
   ##
   def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail, organisation)
+                              registrant_name, registrant_mail)
     mail_settings = settings.mail
     Mail.deliver do
       from mail_settings[:from]
@@ -526,7 +528,6 @@ class RapidConnect < Sinatra::Base
             <li>Service Name: #{name}</li>
             <li>Endpoint: #{endpoint}</li>
             <li>Creator: #{registrant_name} (#{registrant_mail})</li>
-            <li>Organisation: #{organisation}</li>
           </ul>
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
@@ -537,6 +538,75 @@ class RapidConnect < Sinatra::Base
     end
   end
 
+  ##
+  # Export Data
+  ##
+  before '/export*' do
+    api_authenticated?
+  end
+
+  get '/export/service/:identifier' do |identifier|
+    content_type :json
+
+    if @redis.hexists('serviceproviders', identifier)
+      service = JSON.parse(@redis.hget('serviceproviders', identifier))
+      { service: service_as_json(identifier, service) }.to_json
+    else
+      halt 404
+    end
+  end
+
+  get '/export/services' do
+    content_type :json
+
+    services = @redis.hgetall('serviceproviders').sort.map do |(id, encoded)|
+      service_as_json(id, JSON.parse(encoded))
+    end
+
+    { services: services }.to_json
+  end
+
+  def service_as_json(id, service)
+    { id: id,
+      name: service['name'],
+      contact: {
+        name: service['registrant_name'],
+        email: service['registrant_mail'],
+        type: 'technical'
+      },
+      rapidconnect: {
+        audience: service['audience'],
+        callback: service['endpoint'],
+        secret: service['secret'],
+        endpoints: {
+          scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
+        }
+      },
+      enabled: service['enabled'],
+      organization: service['organisation'] }
+  end
+
+  def api_authenticated?
+    if settings.export[:enabled]
+      authorization = request.env['HTTP_AUTHORIZATION']
+      unless authorization && authorization =~ AUTHORIZE_REGEX
+        halt 403, 'Invalid authorization token'
+      end
+
+      service, secret = authorization.match(AUTHORIZE_REGEX).captures
+      unless secret == settings.export[:secret]
+        halt 403, 'Invalid authorization header'
+      end
+
+      @app_logger.info "Established API session for service #{service}"
+    else
+      halt 404
+    end
+  end
+
+  ##
+  # Organisation names via FR
+  ##
   def load_organisations
     JSON.parse(IO.read(settings.organisations))
   end
