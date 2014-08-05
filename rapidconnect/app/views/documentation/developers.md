@@ -108,6 +108,12 @@ To get started with AAF Rapid Connect integration select a suitable JWT library 
 * Example Perl code by 
 Michael Lynch from EResearch Support Group, Information Technology Division, University of Technology, Sydney. [https://github.com/spikelynch/Osiris/blob/master/Osiris/lib/Osiris/AAF.pm](https://github.com/spikelynch/Osiris/blob/master/Osiris/lib/Osiris/AAF.pm)
 
+###### Haskell
+* [https://hackage.haskell.org/package/jwt](https://hackage.haskell.org/package/jwt)
+* Example Haskell application by Dr Carlo Hamalainen, Centre for Advanced Imaging, University of Queensland
+
+    * [http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo](http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo)
+    * [https://github.com/carlohamalainen/rapid-connect-yesod-demo](https://github.com/carlohamalainen/rapid-connect-yesod-demo)
 
 ##### 2. Create a secret
 The first step in integrating your code is to compute a secret that will be shared between your applicaition and AAF Rapid Connect for signing and verifying JWT.
