@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/jodosha/redis-store
+  remote: https://github.com/jodosha/redis-store.git
   revision: 9226b96affdd2e68a477d23bbe8d2f52a857ae6e
   ref: 9226b96aff
   specs:
