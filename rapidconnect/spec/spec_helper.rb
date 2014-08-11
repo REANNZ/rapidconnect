@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 ENV['RACK_ENV'] = 'test'
 
 require 'bundler'
@@ -13,15 +16,25 @@ Mail.defaults do
   delivery_method :test
 end
 
-Sinatra::Base.set :app_root, File.expand_path(File.join(File.dirname(__FILE__), '..'))
-Sinatra::Base.set :app_logfile, File.join(settings.app_root,'logs','app-test.log')
-Sinatra::Base.set :audit_logfile, File.join(settings.app_root, 'logs', 'audit-test.log')
+Sinatra::Base.set :app_root,
+                  File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+Sinatra::Base.set :app_logfile,
+                  File.join(settings.app_root, 'logs', 'app-test.log')
+
+Sinatra::Base.set :audit_logfile,
+                  File.join(settings.app_root, 'logs', 'audit-test.log')
 
 Sinatra::Base.set :issuer, 'https://rapid.example.org'
+Sinatra::Base.set :hostname, 'rapid.example.org'
 Sinatra::Base.set :organisations, '/tmp/rspec_organisations.json'
 Sinatra::Base.set :federation, 'production'
-Sinatra::Base.set :mail, {from:'noreply@example.org', to:'support@example.org'}
+Sinatra::Base.set :mail, from: 'noreply@example.org', to: 'support@example.org'
 
+Sinatra::Base.set :export, enabled: true
+Sinatra::Base.set :export, secret: 'test_secret'
+
+# Supply common framework actions to tests
 module AppHelper
   def app
     RapidConnect
@@ -38,6 +51,10 @@ module AppHelper
   def flush_stores
     @redis.flushall
     Mail::TestMailer.deliveries.clear
+  end
+
+  def flash
+    last_request.env['x-rack.flash']
   end
 end
 
