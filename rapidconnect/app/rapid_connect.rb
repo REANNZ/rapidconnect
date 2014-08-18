@@ -38,8 +38,8 @@ class RapidConnect < Sinatra::Base
     mail_settings = settings.mail
     Mail.defaults do
       delivery_method :smtp,
-                      address: 'smtp.gmail.com',
-                      port: '587',
+                      address: 'localhost',
+                      port: '25',
                       user_name: mail_settings[:user_name],
                       password: mail_settings[:password],
                       authentication: :plain,
