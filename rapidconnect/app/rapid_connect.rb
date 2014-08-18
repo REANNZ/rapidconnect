@@ -38,8 +38,8 @@ class RapidConnect < Sinatra::Base
     mail_settings = settings.mail
     Mail.defaults do
       delivery_method :smtp,
-                      address: 'smtp.gmail.com',
-                      port: '587',
+                      address: 'localhost',
+                      port: '25',
                       user_name: mail_settings[:user_name],
                       password: mail_settings[:password],
                       authentication: :plain,
@@ -58,7 +58,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.0.0'
+    @current_version = '1.0.1'
   end
 
   def check_reopen
