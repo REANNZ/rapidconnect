@@ -27,7 +27,7 @@ This is an initial cut of the document and doesn't go into fine depth on things 
 #### Install
 RBenv
 Ruby 2+
-Bundlder
+Bundler
 
 #### Project setup
 Clone from github to ~/rapidconnect and change to this directory. AAF deployments should come from [https://github.com/ausaccessfed/rapidconnect](https://github.com/ausaccessfed/rapidconnect). Should Rapid Connect be deployed by non AAF we suggest your fork the project and deploy from there.
