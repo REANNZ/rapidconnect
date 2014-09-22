@@ -13,7 +13,7 @@ require 'uri'
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
   configure :production, :development do
-    use Rack::Session::Redis, expire_in: 3600, secure: true
+    use Rack::Session::Redis, expire_in: 3600, secure: Sinatra::Base.production?
   end
   configure :test do
     use Rack::Session::Pool, expire_in: 3600
