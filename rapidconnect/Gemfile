@@ -4,6 +4,7 @@ gem 'unicorn'
 
 gem 'sinatra', '~> 1.4.3'
 gem 'sinatra-contrib', '~> 1.4.0'
+gem 'erubis'
 
 gem 'redis', '~> 3.0.4'
 gem 'redis-rack', :git => 'https://github.com/jodosha/redis-store.git', :ref => '9226b96aff', :require => ['rack/session/redis']
