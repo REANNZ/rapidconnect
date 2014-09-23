@@ -13,7 +13,7 @@ require 'uri'
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
   configure :production, :development do
-    use Rack::Session::Redis, expire_in: 3600
+    use Rack::Session::Redis, expire_in: 3600, secure: Sinatra::Base.production?
   end
   configure :test do
     use Rack::Session::Pool, expire_in: 3600
@@ -513,6 +513,7 @@ class RapidConnect < Sinatra::Base
   def send_registration_email(identifier, name, endpoint,
                               registrant_name, registrant_mail)
     mail_settings = settings.mail
+    settings_hostname = settings.hostname
     Mail.deliver do
       from mail_settings[:from]
       to mail_settings[:to]
@@ -532,7 +533,7 @@ class RapidConnect < Sinatra::Base
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
-          For more information and to enable this service please view the <a href='https://rapid.aaf.edu.au/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
         "
       end
     end
