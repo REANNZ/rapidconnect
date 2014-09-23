@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/config_file'
+require 'erubis'
 require 'json'
 require 'json/jwt'
 require 'securerandom'
@@ -34,6 +35,8 @@ class RapidConnect < Sinatra::Base
     config_file File.join(settings.app_root, 'config', 'app_config.yml')
     set :app_logfile, File.join(settings.app_root, 'logs', 'app.log')
     set :audit_logfile, File.join(settings.app_root, 'logs', 'audit.log')
+
+    set :erb, escape_html: true
 
     mail_settings = settings.mail
     Mail.defaults do
