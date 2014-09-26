@@ -1,6 +1,9 @@
 require './app/rapid_connect'
 
 describe RapidConnect do
+  def stringify_keys(hash)
+    hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
+  end
 
   before :all do
     File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate ['Test Org Name', 'Another Test Org Name']) }
@@ -124,72 +127,127 @@ describe RapidConnect do
       expect(last_response.body).to contain('Service Registration')
     end
 
-    it 'sends a flash message when an invalid url is submitted' do
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'afsjdlaksdfjh', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
-      expect(last_response.body).to contain('Service Registration')
-      expect(last_response.body).to contain('Invalid data supplied')
-    end
+    context '/save' do
+      before do
+        allow(SecureRandom).to receive(:urlsafe_base64).and_return(identifier)
+        @valid_subject.merge!(cn: attrs[:registrant_name],
+                              mail: attrs[:registrant_mail])
+      end
 
-    it 'sends a flash message when invalid registration form data is submitted' do
-      post '/registration/save', {}, 'rack.session' => { subject: @valid_subject }
-      expect(last_response.body).to contain('Service Registration')
-      expect(last_response.body).to contain('Invalid data supplied')
-    end
+      let(:identifier) { '1234abc' }
+      let(:attrs) { attributes_for(:rapid_connect_service) }
 
-    it 'shows error when valid registration form submitted but duplicate identifier exists' do
-      ident = '1234abc'
-      @redis.hset('serviceproviders', ident, 1)
-      expect(SecureRandom).to receive(:urlsafe_base64).and_return(ident)
+      let(:params) do
+        attrs.select do |k, _|
+          %i(name audience endpoint secret organisation).include?(k)
+        end
+      end
 
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+      let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
 
-      should_not have_sent_email
+      def run
+        post '/registration/save', params, rack_env
+      end
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      expect(last_response).to be_ok
-      expect(flash[:error]).to eq('Invalid identifier generated. Please re-submit registration.')
-    end
+      shared_examples 'a failed registration' do |opts = {}|
+        it 'is rejected' do
+          run
+          expect(last_response.body).to contain('Service Registration')
+          expect(last_response.body)
+            .to contain(opts[:message] || 'Invalid data supplied')
+        end
 
-    it 'sends an email and shows success page when valid registration form submitted in production' do
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+        it 'does not create a service' do
+          expect { run }.not_to change { @redis.hlen('serviceproviders') }
+        end
+      end
 
-      should have_sent_email
-      last_email.to('support@aaf.edu.au')
-      last_email.from('noreply@aaf.edu.au')
-      last_email.subject('New service registration for AAF Rapid Connect')
-      expect(last_email.html_part).to contain(@valid_subject[:cn])
+      context 'with an invalid endpoint' do
+        let(:attrs) do
+          attributes_for(:rapid_connect_service, endpoint: 'example.com/auth')
+        end
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      service = JSON.parse(@redis.hvals('serviceproviders')[0])
-      expect(service['name']).to eq('Our Web App')
-      expect(service['endpoint']).to eq('https://service.com/auth/jwt')
-      expect(service['secret']).to eq('ykUlP1XMq3RXMd9w')
-      expect(service['enabled']).to be_falsey
+        it_behaves_like 'a failed registration'
+      end
 
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/registration/complete')
-      follow_redirect!
-      expect(last_response.body).to contain('Service Registration Complete')
-    end
+      context 'with an invalid audience' do
+        let(:attrs) do
+          attributes_for(:rapid_connect_service, audience: 'example.com/auth')
+        end
 
-    it 'shows success page when valid registration form submitted in test and auto approves' do
-      Sinatra::Base.set :federation, 'test'
+        it_behaves_like 'a failed registration'
+      end
 
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+      context 'with no organisation' do
+        let(:attrs) do
+          attributes_for(:rapid_connect_service)
+            .reject { |k, _| k == :organisation }
+        end
 
-      should_not have_sent_email
+        it_behaves_like 'a failed registration'
+      end
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      service = JSON.parse(@redis.hvals('serviceproviders')[0])
-      expect(service['name']).to eq('Our Web App')
-      expect(service['endpoint']).to eq('https://service.com/auth/jwt')
-      expect(service['secret']).to eq('ykUlP1XMq3RXMd9w')
-      expect(service['enabled']).to be_truthy
+      context 'when an identifier collides' do
+        before do
+          @redis.hset('serviceproviders', identifier, '{}')
+        end
 
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/registration/complete')
-      follow_redirect!
-      expect(last_response.body).to contain('Service Registered and automatically approved')
+        it_behaves_like 'a failed registration',
+                        message: 'Invalid identifier generated. ' \
+                                 'Please re-submit registration.'
+      end
+
+      shared_examples 'a successful registration' do |opts|
+        before { attrs.merge!(enabled: opts[:enabled]) }
+
+        it 'creates the service' do
+          expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
+          json = @redis.hget('serviceproviders', identifier)
+          expect(json).not_to be_nil
+
+          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+        end
+
+        it 'redirects to the completed registration page' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location)
+            .to eq('http://example.org/registration/complete')
+          follow_redirect!
+          expect(last_response.body).to contain(opts[:message])
+        end
+      end
+
+      context 'in production' do
+        before { RapidConnect.set :federation, 'production' }
+
+        it 'sends an email' do
+          run
+          is_expected.to have_sent_email
+          expect(last_email.to).to include('support@example.org')
+          expect(last_email.from).to include('noreply@example.org')
+          expect(last_email.subject)
+            .to eq('New service registration for AAF Rapid Connect')
+          expect(last_email.html_part).to contain(@valid_subject[:cn])
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: false,
+                        message: 'Service Registration Complete'
+      end
+
+      context 'in test' do
+        before { RapidConnect.set :federation, 'test' }
+
+        it 'sends no email' do
+          run
+          is_expected.not_to have_sent_email
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: true,
+                        message: 'Service Registered and automatically approved'
+      end
     end
   end
 

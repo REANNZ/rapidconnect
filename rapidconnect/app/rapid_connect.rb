@@ -156,47 +156,44 @@ class RapidConnect < Sinatra::Base
     erb :'registration/index'
   end
 
+  def service_attrs
+    %i(organisation name audience endpoint secret).reduce({}) do |map, sym|
+      map.merge(sym => params[sym])
+    end
+  end
+
+  def registrant_attrs
+    subject = session[:subject]
+    return {} if subject.nil?
+    { registrant_name: subject[:cn], registrant_mail: subject[:mail] }
+  end
+
   post '/registration/save' do
-    organisation = params[:organisation]
-    name = params[:name]
-    audience = params[:audience]
-    endpoint = params[:endpoint]
-    secret = params[:secret]
-    registrant_name = session[:subject][:cn]
-    registrant_mail = session[:subject][:mail]
+    service = RapidConnectService.new
+    service.attributes = service_attrs.merge(registrant_attrs)
 
-    if organisation && !organisation.empty? &&
-       name && !name.empty? &&
-       audience && !audience.empty? &&
-       endpoint && !endpoint.empty? && endpoint =~ ::URI.regexp &&
-       secret && !secret.empty?
-
-      identifier = SecureRandom.urlsafe_base64(12, false)
-      if @redis.hexists('serviceproviders', identifier)
+    if service.valid?
+      service.identifier = SecureRandom.urlsafe_base64(12, false)
+      if @redis.hexists('serviceproviders', service.identifier)
         @organisations = load_organisations
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        if settings.federation == 'test'
-          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                        'endpoint' => endpoint, 'secret' => secret,
-                                                        'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                        'enabled' => true }.to_json)
-          session[:registration_identifier] = identifier
+        service.enabled = (settings.federation == 'test')
+        @redis.hset('serviceproviders', service.identifier, service.to_json)
+
+        if service.enabled
+          session[:registration_identifier] = service.identifier
         else
-          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                        'endpoint' => endpoint, 'secret' => secret,
-                                                        'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                        'enabled' => false }.to_json)
-          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
+          send_registration_email(service)
         end
 
-        @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
+        @app_logger.info "New service #{service}, endpoint: #{service.endpoint}, contact email: #{service.registrant_mail}, organisation: #{service.organisation}"
         redirect to('/registration/complete')
       end
     else
       @organisations = load_organisations
-      flash[:error] = 'Invalid data supplied'
+      flash[:error] = "Invalid data supplied: #{service.errors.full_messages.join("\n")}"
       erb :'registration/index'
     end
   end
@@ -515,8 +512,7 @@ class RapidConnect < Sinatra::Base
   ##
   # New Service Registration Notification
   ##
-  def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail)
+  def send_registration_email(service)
     mail_settings = settings.mail
     settings_hostname = settings.hostname
     Mail.deliver do
@@ -531,14 +527,14 @@ class RapidConnect < Sinatra::Base
           <strong>Details</strong>
           <br>
           <ul>
-            <li>Service Name: #{name}</li>
-            <li>Endpoint: #{endpoint}</li>
-            <li>Creator: #{registrant_name} (#{registrant_mail})</li>
+            <li>Service Name: #{service.name}</li>
+            <li>Endpoint: #{service.endpoint}</li>
+            <li>Creator: #{service.registrant_name} (#{service.registrant_mail})</li>
           </ul>
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
-          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{service.identifier}'>full service record</a> in AAF Rapid Connect.
         "
       end
     end
