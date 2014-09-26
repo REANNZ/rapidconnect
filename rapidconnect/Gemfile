@@ -21,4 +21,9 @@ group :test do
   gem 'fakeredis'
   gem 'rubocop'
   gem 'simplecov'
+
+  gem 'guard'
+  gem 'guard-rspec'
+  gem 'guard-rubocop'
+  gem 'guard-bundler'
 end
