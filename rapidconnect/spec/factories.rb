@@ -2,7 +2,7 @@ FactoryGirl.define do
   factory :rapid_connect_service do
     name { Faker::Company.name }
     audience { Faker::Internet.url }
-    endpoint { URI.parse(audience).merge('/auth/jwt').to_s }
+    endpoint { Faker::Internet.url }
     secret 'abcdefghijklmnopqrstuvwxyz'
     enabled true
     organisation { Faker::Company.name }

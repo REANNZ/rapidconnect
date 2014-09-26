@@ -5,6 +5,7 @@ class RapidConnectService
   include ActiveModel::Model
   include ActiveModel::Serializers::JSON
 
+  attr_accessor :identifier
   attr_reader :attributes
 
   validates :name, :organisation, :registrant_name, :registrant_mail,
@@ -29,6 +30,10 @@ class RapidConnectService
 
   def attributes=(attrs)
     attrs.each { |k, v| send(:"#{k}=", v) }
+  end
+
+  def to_s
+    "RapidService(identifier=#{identifier || 'nil'} name=`#{name}`)"
   end
 
   class <<self

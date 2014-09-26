@@ -30,6 +30,23 @@ describe RapidConnectService do
     it { is_expected.not_to allow_value('example.com').for(:endpoint) }
   end
 
+  context '#to_s' do
+    let(:attrs) do
+      attrs = attributes_for(:rapid_connect_service,
+                             name: 'Test', identifier: 'xyz')
+      stringify_keys(attrs)
+    end
+
+    it 'generates a string' do
+      expect(subject.to_s).to eq('RapidService(identifier=xyz name=`Test`)')
+    end
+
+    it 'generates a string when identifier is nil' do
+      attrs['identifier'] = nil
+      expect(subject.to_s).to eq('RapidService(identifier=nil name=`Test`)')
+    end
+  end
+
   context '#to_json' do
     it 'creates valid json' do
       expect { JSON.load(subject.to_json) }.not_to raise_error
