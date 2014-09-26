@@ -164,7 +164,7 @@ describe RapidConnect do
       service['name'].should eq('Our Web App')
       service['endpoint'].should eq('https://service.com/auth/jwt')
       service['secret'].should eq('ykUlP1XMq3RXMd9w')
-      service['enabled'].should be_false
+      service['enabled'].should be_falsey
 
       last_response.should be_redirect
       last_response.location.should eq('http://example.org/registration/complete')
@@ -184,7 +184,7 @@ describe RapidConnect do
       service['name'].should eq('Our Web App')
       service['endpoint'].should eq('https://service.com/auth/jwt')
       service['secret'].should eq('ykUlP1XMq3RXMd9w')
-      service['enabled'].should be_true
+      service['enabled'].should be_truthy
 
       last_response.should be_redirect
       last_response.location.should eq('http://example.org/registration/complete')
@@ -315,21 +315,21 @@ describe RapidConnect do
         administrator
 
         service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        service['enabled'].should be_false
+        service['enabled'].should be_falsey
 
         # Toggle On
         patch '/administration/services/toggle/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
         last_response.status.should eq(302)
         last_response.location.should eq('http://example.org/administration/services/1234abcd')
         service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        service['enabled'].should be_true
+        service['enabled'].should be_truthy
 
         # Toggle back off
         patch '/administration/services/toggle/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
         last_response.status.should eq(302)
         last_response.location.should eq('http://example.org/administration/services/1234abcd')
         service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        service['enabled'].should be_false
+        service['enabled'].should be_falsey
       end
 
       it 'unknown id sends 404' do
