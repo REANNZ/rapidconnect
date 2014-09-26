@@ -112,7 +112,7 @@ describe RapidConnect do
 
   describe '/registration' do
     it 'directs to login if registration attempted when unauthenticated' do
-      SecureRandom.stub(:urlsafe_base64).and_return('1')
+      allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
       get '/registration'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/login/1')
@@ -195,7 +195,7 @@ describe RapidConnect do
 
   describe '/administration' do
     it 'directs to login if administration url requested when unauthenticated' do
-      SecureRandom.stub(:urlsafe_base64).and_return('1')
+      allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
       get '/administration/xyz'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/login/1')
@@ -452,7 +452,7 @@ describe RapidConnect do
 
   describe '/jwt' do
     it 'directs to login if a jwt url requested when unauthenticated' do
-      SecureRandom.stub(:urlsafe_base64).and_return('1')
+      allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
       get '/jwt/xyz'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/login/1')
