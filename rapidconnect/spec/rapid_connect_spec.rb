@@ -1,4 +1,3 @@
-require 'spec_helper'
 require './app/rapid_connect'
 
 describe RapidConnect do
