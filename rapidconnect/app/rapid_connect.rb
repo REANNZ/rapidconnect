@@ -173,17 +173,17 @@ class RapidConnect < Sinatra::Base
     service.attributes = service_attrs.merge(registrant_attrs)
 
     if service.valid?
-      service.identifier = SecureRandom.urlsafe_base64(12, false)
-      if @redis.hexists('serviceproviders', service.identifier)
+      identifier = service.identifier!
+      if @redis.hexists('serviceproviders', identifier)
         @organisations = load_organisations
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
         service.enabled = (settings.federation == 'test')
-        @redis.hset('serviceproviders', service.identifier, service.to_json)
+        @redis.hset('serviceproviders', identifier, service.to_json)
 
         if service.enabled
-          session[:registration_identifier] = service.identifier
+          session[:registration_identifier] = identifier
         else
           send_registration_email(service)
         end

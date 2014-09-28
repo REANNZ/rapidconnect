@@ -30,6 +30,33 @@ describe RapidConnectService do
     it { is_expected.not_to allow_value('example.com').for(:endpoint) }
   end
 
+  context '#identifier!' do
+    let(:identifier) { '1' }
+    before do
+      allow(SecureRandom).to receive(:urlsafe_base64).and_return(identifier)
+    end
+
+    it 'returns the identifier' do
+      expect(subject.identifier!).to eq(identifier)
+    end
+
+    it 'persists the identifier' do
+      subject.identifier!
+      expect(subject.identifier).to eq(identifier)
+    end
+
+    it 'leaves an existing identifier' do
+      subject.identifier = '2'
+      subject.identifier!
+      expect(subject.identifier).to eq('2')
+    end
+
+    it 'returns the existing identifier' do
+      subject.identifier = '2'
+      expect(subject.identifier!).to eq('2')
+    end
+  end
+
   context '#to_s' do
     let(:attrs) do
       attrs = attributes_for(:rapid_connect_service,

@@ -28,6 +28,10 @@ class RapidConnectService
     @attributes = {}
   end
 
+  def identifier!
+    self.identifier ||= SecureRandom.urlsafe_base64
+  end
+
   def attributes=(attrs)
     unknown = attrs.keys.map(&:to_s) - self.class.attribute_names
     fail("Bad attribute: #{unknown}") unless unknown.empty?
