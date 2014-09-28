@@ -7,6 +7,7 @@ describe RapidConnectService do
 
   let(:attrs) { stringify_keys(attributes_for(:rapid_connect_service)) }
   let(:json) { attrs.to_json }
+  let(:redis) { Redis.new }
 
   subject { build(:rapid_connect_service, attrs) }
 

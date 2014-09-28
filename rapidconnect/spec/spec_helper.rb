@@ -72,6 +72,12 @@ end
 FactoryGirl.find_definitions
 
 RSpec.configure do |config|
+  config.filter_run focus: true
+  config.run_all_when_everything_filtered = true
+
+  config.order = :random
+  Kernel.srand config.seed
+
   config.before(:suite) { FactoryGirl.lint }
   config.include Rack::Test::Methods
   config.include Webrat::Methods

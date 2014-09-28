@@ -168,6 +168,14 @@ class RapidConnect < Sinatra::Base
     { registrant_name: subject[:cn], registrant_mail: subject[:mail] }
   end
 
+  def admin_supplied_attrs
+    base = { enabled: !params[:enabled].nil? }
+
+    %i(registrant_name registrant_mail).reduce(base) do |map, sym|
+      map.merge(sym => params[sym])
+    end
+  end
+
   post '/registration/save' do
     service = RapidConnectService.new
     service.attributes = service_attrs.merge(registrant_attrs)
@@ -248,29 +256,18 @@ class RapidConnect < Sinatra::Base
 
   put '/administration/services/update' do
     identifier = params[:identifier]
-    organisation = params[:organisation]
-    name = params[:name]
-    audience = params[:audience]
-    endpoint = params[:endpoint]
-    secret = params[:secret]
-    enabled = params[:enabled].nil? ? false : true
-    registrant_name = params[:registrant_name]
-    registrant_mail = params[:registrant_mail]
+    json = @redis.hget('serviceproviders', identifier)
 
-    if  identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
-        organisation && !organisation.empty? &&
-        name && !name.empty? &&
-        audience && !audience.empty? &&
-        endpoint && !endpoint.empty? &&
-        secret && !secret.empty? &&
-        registrant_name && !registrant_name.empty? &&
-        registrant_mail && !registrant_mail.empty?
+    if json.nil?
+      flash[:error] = 'Invalid data supplied'
+      halt redirect to('/administration/services')
+    end
 
-      @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                    'endpoint' => endpoint, 'secret' => secret,
-                                                    'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                    'enabled' => enabled }.to_json)
+    service = RapidConnectService.new.from_json(json)
+    service.attributes = service_attrs.merge(admin_supplied_attrs)
 
+    if service.valid?
+      @redis.hset('serviceproviders', identifier, service.to_json)
       @app_logger.info "Service #{identifier} updated by #{session[:subject][:principal]} #{session[:subject][:cn]}"
       redirect to('/administration/services/' + identifier)
     else
