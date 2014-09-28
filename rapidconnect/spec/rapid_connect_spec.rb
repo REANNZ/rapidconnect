@@ -197,6 +197,14 @@ describe RapidConnect do
                                  'Please re-submit registration.'
       end
 
+      context 'with an excessively short secret' do
+        let(:attrs) do
+          attributes_for(:rapid_connect_service, secret: 'tooshort')
+        end
+
+        it_behaves_like 'a failed registration'
+      end
+
       shared_examples 'a successful registration' do |opts|
         before { attrs.merge!(enabled: opts[:enabled]) }
 
