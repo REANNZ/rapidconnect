@@ -1,0 +1,7 @@
+---
+before_script:
+  - cd rapidconnect
+  - bundle install
+language: ruby
+rvm:
+  - 2.1.1
