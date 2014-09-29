@@ -17,8 +17,11 @@ require_relative 'models/rapid_connect_service'
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
   configure :production, :development do
+    # :nocov: Doesn't run in test environment
     use Rack::Session::Redis, expire_in: 3600, secure: Sinatra::Base.production?
+    # :nocov:
   end
+
   configure :test do
     use Rack::Session::Pool, expire_in: 3600
   end
@@ -27,10 +30,13 @@ class RapidConnect < Sinatra::Base
   use Rack::Flash, sweep: true
 
   configure :development do
+    # :nocov: Doesn't run in test environment
     register Sinatra::Reloader
+    # :nocov:
   end
 
   configure :production, :development do
+    # :nocov: Doesn't run in test environment
     enable :logging
     register Sinatra::ConfigFile
 
@@ -55,6 +61,7 @@ class RapidConnect < Sinatra::Base
     unless settings.respond_to? :hostname
       set :hostname, ::URI.parse(settings.issuer).hostname
     end
+    # :nocov:
   end
 
   attr_reader :current_version
