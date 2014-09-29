@@ -227,7 +227,7 @@ class RapidConnect < Sinatra::Base
       end
     else
       @organisations = load_organisations
-      flash[:error] = "Invalid data supplied: #{service.errors.full_messages.join("\n")}"
+      flash[:error] = "Invalid data supplied: #{service.errors.full_messages.join(', ')}"
       erb :'registration/index'
     end
   end
