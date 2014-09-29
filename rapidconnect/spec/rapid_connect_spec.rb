@@ -376,6 +376,11 @@ describe RapidConnect do
           it_behaves_like 'a failed update'
         end
 
+        context 'with an invalid identifier' do
+          let(:params) { attrs.merge(identifier: 'nonexistent_sevice') }
+          it_behaves_like 'a failed update'
+        end
+
         it 'updates the service' do
           old_attrs = service.attributes
 
