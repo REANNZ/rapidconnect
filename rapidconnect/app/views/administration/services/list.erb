@@ -24,9 +24,9 @@
         <tbody>
         <% @services.sort.each do |k, v| %>
           <tr>
-            <td><%= v['name'] %></td>
-            <td><%= v['audience'] %></td>
-            <td><%= v['enabled'] %></td>
+            <td><%= v.name %></td>
+            <td><%= v.audience %></td>
+            <td><%= v.enabled %></td>
             <td>
               <a href="/administration/services/<%= k %>" class="btn btn-small">Show</a>
             </td>

@@ -157,6 +157,24 @@ class RapidConnect < Sinatra::Base
     erb :'registration/index'
   end
 
+  def load_service(identifier)
+    json = @redis.hget('serviceproviders', identifier)
+    return nil if json.nil?
+
+    RapidConnectService.new.from_json(json).tap do |service|
+      service.identifier = identifier
+    end
+  end
+
+  def load_all_services
+    @redis.hgetall('serviceproviders').sort.reduce({}) do |hash, (id, json)|
+      service = RapidConnectService.new.from_json(json).tap do |s|
+        s.identifier = id
+      end
+      hash.merge(id => service)
+    end
+  end
+
   def service_attrs
     %i(organisation name audience endpoint secret).reduce({}) do |map, sym|
       map.merge(sym => params[sym])
@@ -229,42 +247,36 @@ class RapidConnect < Sinatra::Base
 
   # Administration - Services
   get '/administration/services' do
-    services_raw = @redis.hgetall('serviceproviders')
-    @services = services_raw.reduce({}) { |map, (k, v)| map.merge(k => JSON.parse(v)) }
+    @services = load_all_services
     erb :'administration/services/list'
   end
 
   get '/administration/services/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @identifier = identifier
-      @service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      erb :'administration/services/show'
-    else
-      404
-    end
+    @identifier = identifier
+    @service = load_service(identifier)
+    halt 404 if @service.nil?
+
+    erb :'administration/services/show'
   end
 
   get '/administration/services/edit/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @identifier = identifier
-      @service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      @organisations = load_organisations
-      erb :'administration/services/edit'
-    else
-      404
-    end
+    @identifier = identifier
+    @service = load_service(identifier)
+    halt 404 if @service.nil?
+
+    @organisations = load_organisations
+    erb :'administration/services/edit'
   end
 
   put '/administration/services/update' do
     identifier = params[:identifier]
-    json = @redis.hget('serviceproviders', identifier)
+    service = load_service(identifier)
 
-    if json.nil?
+    if service.nil?
       flash[:error] = 'Invalid data supplied'
       halt redirect to('/administration/services')
     end
 
-    service = RapidConnectService.new.from_json(json)
     service.attributes = service_attrs.merge(admin_supplied_attrs)
 
     if service.valid?
@@ -278,29 +290,26 @@ class RapidConnect < Sinatra::Base
   end
 
   patch '/administration/services/toggle/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service_provider = JSON.parse(@redis.hget('serviceproviders', identifier))
-      service_provider['enabled'] = !service_provider['enabled']
+    service = load_service(identifier)
+    halt 404 if service.nil?
 
-      @redis.hset('serviceproviders', identifier, service_provider.to_json)
-      @app_logger.info "Service #{identifier} toggled by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    service.enabled = !service.enabled
 
-      flash[:success] = 'Service modified successfully'
-      redirect to('/administration/services/' + identifier)
-    else
-      404
-    end
+    @redis.hset('serviceproviders', identifier, service.to_json)
+    @app_logger.info "Service #{identifier} toggled by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+
+    flash[:success] = 'Service modified successfully'
+    redirect to('/administration/services/' + identifier)
   end
 
   delete '/administration/services/delete/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @redis.hdel('serviceproviders', identifier)
-      @app_logger.info "Service #{identifier} deleted by #{session[:subject][:principal]} #{session[:subject][:cn]}"
-      flash[:success] = 'Service deleted successfully'
-      redirect '/administration/services'
-    else
-      404
-    end
+    service = load_service(identifier)
+    halt 404 if service.nil?
+
+    @redis.hdel('serviceproviders', identifier)
+    @app_logger.info "Service #{identifier} deleted by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    flash[:success] = 'Service deleted successfully'
+    redirect '/administration/services'
   end
 
   # Administration - Administrators
@@ -368,55 +377,53 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/jwt/authnrequest/research/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-
-      if service['enabled']
-        subject = session['subject']
-        claim = generate_research_claim(service['audience'], subject)
-        @jws = JSON::JWT.new(claim).sign(service['secret'])
-        @endpoint = service['endpoint']
-
-        # To enable raptor and other tools to report on RC like we would any other
-        # IdP we create a shibboleth styled audit.log file for each service access.
-        # Format:
-        # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-        @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
-        @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service['name']}(#{service['endpoint']})"
-        @app_logger.debug "#{claim}"
-
-        erb :post, layout: :post
-      else
-        halt 403, "The service \"#{service['name']}\" is unable to process requests at this time."
-      end
-    else
+    service = load_service(identifier)
+    if service.nil?
       halt 404, 'There is no such endpoint defined please validate the request.'
+    end
+
+    if service.enabled
+      subject = session['subject']
+      claim = generate_research_claim(service.audience, subject)
+      @jws = JSON::JWT.new(claim).sign(service.secret)
+      @endpoint = service.endpoint
+
+      # To enable raptor and other tools to report on RC like we would any other
+      # IdP we create a shibboleth styled audit.log file for each service access.
+      # Format:
+      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
+      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
+      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service.name}(#{service.endpoint})"
+      @app_logger.debug "#{claim}"
+
+      erb :post, layout: :post
+    else
+      halt 403, "The service \"#{service.name}\" is unable to process requests at this time."
     end
   end
 
   get '/jwt/authnrequest/zendesk/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-
-      if service['enabled']
-        subject = session['subject']
-        claim = generate_zendesk_claim(service['audience'], subject)
-        jws = JSON::JWT.new(claim).sign(service['secret'])
-        endpoint = service['endpoint']
-
-        # To enable raptor and other tools to report on rapid like we would any other
-        # IdP we create a shibboleth styled audit.log file for each service access.
-        # Format:
-        # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-        @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
-        @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
-
-        redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
-      else
-        halt 403, "The zendesk service \"#{service['name']}\" is unable to process requests at this time."
-      end
-    else
+    service = load_service(identifier)
+    if service.nil?
       halt 404, 'There is no such zendesk endpoint defined please validate the request.'
+    end
+
+    if service.enabled
+      subject = session['subject']
+      claim = generate_zendesk_claim(service.audience, subject)
+      jws = JSON::JWT.new(claim).sign(service.secret)
+      endpoint = service.endpoint
+
+      # To enable raptor and other tools to report on rapid like we would any other
+      # IdP we create a shibboleth styled audit.log file for each service access.
+      # Format:
+      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
+      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
+      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
+
+      redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
+    else
+      halt 403, "The zendesk service \"#{service.name}\" is unable to process requests at this time."
     end
   end
 
@@ -548,19 +555,17 @@ class RapidConnect < Sinatra::Base
   get '/export/service/:identifier' do |identifier|
     content_type :json
 
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      { service: service_as_json(identifier, service) }.to_json
-    else
-      halt 404
-    end
+    service = load_service(identifier)
+    halt 404 if service.nil?
+
+    { service: service_as_json(identifier, service) }.to_json
   end
 
   get '/export/services' do
     content_type :json
 
-    services = @redis.hgetall('serviceproviders').sort.map do |(id, encoded)|
-      service_as_json(id, JSON.parse(encoded))
+    services = load_all_services.sort.map do |(id, service)|
+      service_as_json(id, service)
     end
 
     { services: services }.to_json
@@ -568,22 +573,22 @@ class RapidConnect < Sinatra::Base
 
   def service_as_json(id, service)
     { id: id,
-      name: service['name'],
+      name: service.name,
       contact: {
-        name: service['registrant_name'],
-        email: service['registrant_mail'],
+        name: service.registrant_name,
+        email: service.registrant_mail,
         type: 'technical'
       },
       rapidconnect: {
-        audience: service['audience'],
-        callback: service['endpoint'],
-        secret: service['secret'],
+        audience: service.audience,
+        callback: service.endpoint,
+        secret: service.secret,
         endpoints: {
           scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
         }
       },
-      enabled: service['enabled'],
-      organization: service['organisation'] }
+      enabled: service.enabled,
+      organization: service.organisation }
   end
 
   def api_authenticated?
