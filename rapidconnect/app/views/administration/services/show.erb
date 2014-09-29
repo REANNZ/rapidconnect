@@ -12,7 +12,7 @@
 
     <h2><%= @service.name %></h2>
 
-    <% if !@service.enabled %>
+    <% unless @service.enabled %>
       <div class="alert alert-error">
         <h4>Not Enabled</h4>
         This service is not currently enabled. It <strong>will fail</strong> to authenticate regardless of secret being used.
@@ -27,10 +27,10 @@
         </a>
         <ul class="dropdown-menu">
           <li>
-            <% if !@service.enabled %>
-              <a href="#" class="toggle-target" data-type="enabled" data-target="toggle-<%= @identifier %>">Enable</a>
-            <% else %>
+            <% if @service.enabled %>
               <a href="#" class="toggle-target" data-type="disabled" data-target="toggle-<%= @identifier %>">Disable</a>
+            <% else %>
+              <a href="#" class="toggle-target" data-type="enabled" data-target="toggle-<%= @identifier %>">Enable</a>
             <% end %>
             <form action="/administration/services/toggle/<%= @identifier %>" method="post" id="toggle-<%= @identifier %>">
               <input name="_method" type="hidden" value="patch" />

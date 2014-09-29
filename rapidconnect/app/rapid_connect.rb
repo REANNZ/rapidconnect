@@ -325,7 +325,7 @@ class RapidConnect < Sinatra::Base
 
   post '/administration/administrators/save' do
     identifier = params[:identifier]
-    if !identifier || identifier.empty?
+    if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
       erb :'administration/administrators/create'
     else
@@ -351,7 +351,7 @@ class RapidConnect < Sinatra::Base
 
   delete '/administration/administrators/delete' do
     identifier = params[:identifier]
-    if !identifier || identifier.empty?
+    if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
     else
       if identifier == session[:subject][:principal]
