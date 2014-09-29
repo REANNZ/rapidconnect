@@ -613,21 +613,18 @@ describe RapidConnect do
 
   shared_examples_for 'export API' do
     context 'export disabled' do
-      before(:each) do
-        Sinatra::Base.set :export, enabled: false
-      end
-
       it '404' do
-        get '/export/services'
-        expect(last_response.status).to eq 404
+        begin
+          Sinatra::Base.set :export, enabled: false
+          get '/export/services'
+          expect(last_response.status).to eq 404
+        ensure
+          Sinatra::Base.set :export, enabled: true
+        end
       end
     end
 
     context 'export enabled' do
-      before(:each) do
-        Sinatra::Base.set :export, enabled: true
-      end
-
       context 'authorize header malformed' do
         it '403 if not supplied' do
           get '/export/services'
@@ -652,6 +649,8 @@ describe RapidConnect do
   end
 
   describe '/export' do
+    before { Sinatra::Base.set :export, enabled: true }
+
     describe '/services' do
       it_behaves_like 'export API'
 
