@@ -190,7 +190,6 @@ class RapidConnect < Sinatra::Base
 
   def registrant_attrs
     subject = session[:subject]
-    return {} if subject.nil?
     { registrant_name: subject[:cn], registrant_mail: subject[:mail] }
   end
 
