@@ -1,6 +1,6 @@
 issuer: 'https://rapid.example.org'
 hostname: 'rapid.example.org'
-organisations: '/tmp/fr_org_names.json'
+organisations: '/opt/rapidconnect/application/run/fr_org_names.json'
 export:
   enabled: false
   secret: 'RHptv0kF!QcrK45MIrWFOxgQmHyaAZHEymm$SZp1KzbrJfAFDGJGKv6bwY#clCy' # This secret MUST be changed to something unique and secure on deployment
