@@ -93,6 +93,14 @@ class RapidConnect < Sinatra::Base
     erb :welcome, layout: nil
   end
 
+  ## Status for load balancer
+  get '/status' do
+    if settings.status_disabled_file && File.exists?(settings.status_disabled_file)
+        404
+    end
+    ## else return a blank 200 page
+  end
+
   ###
   # Session Management
   ###
