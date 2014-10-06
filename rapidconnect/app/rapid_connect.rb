@@ -527,6 +527,8 @@ class RapidConnect < Sinatra::Base
                               registrant_name, registrant_mail)
     mail_settings = settings.mail
     settings_hostname = settings.hostname
+    service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{identifier}"
+    service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{identifier}"
     Mail.deliver do
       from mail_settings[:from]
       to mail_settings[:to]
@@ -547,6 +549,23 @@ class RapidConnect < Sinatra::Base
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
           For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          <br><br>
+          After reviewing and approving the service, please notify the user.  We suggest the following template:
+          <br><hr><br>
+          To: \"#{registrant_name}\" <#{registrant_mail}><br>
+          Subject: service registration on #{settings_hostname}<br>
+          <br>
+          Dear #{registrant_name}<br>
+          <br>
+          Your service #{name} has been accepted into the AAF Rapid Connect at #{settings_hostname}<br>
+          <br>
+          You can now configure your service to use this login URL :<br>
+          <a href=\"#{service_url_research}\">#{service_url_research}</a><br>
+          <br>
+          Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
+          <a href=\"#{service_url_zendesk}\">#{service_url_zendesk}</a><br>
+          <br>
+          Please contact AAF support at support@aaf.edu.au if you have any questions or need any assistance with connecting your service to AAF RapidConnect.
         "
       end
     end
