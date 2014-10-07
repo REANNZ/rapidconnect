@@ -1,52 +1,75 @@
-GIT
-  remote: https://github.com/jodosha/redis-store.git
-  revision: 9226b96affdd2e68a477d23bbe8d2f52a857ae6e
-  ref: 9226b96aff
-  specs:
-    redis-rack (1.4.2)
-      rack (~> 1.4)
-      redis-store (~> 1.1.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (4.1.1)
+    activesupport (4.1.6)
       i18n (~> 0.6, >= 0.6.9)
       json (~> 1.7, >= 1.7.7)
       minitest (~> 5.1)
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
     ast (2.0.0)
-    backports (3.6.0)
+    astrolabe (1.3.0)
+      parser (>= 2.2.0.pre.3, < 3.0)
+    backports (3.6.1)
     bindata (2.1.0)
+    celluloid (0.16.0)
+      timers (~> 4.0.0)
+    coderay (1.1.0)
     diff-lcs (1.2.5)
-    docile (1.1.3)
+    docile (1.1.5)
     erubis (2.7.0)
-    fakeredis (0.4.3)
-      redis (~> 3.0.0)
-    i18n (0.6.9)
+    fakeredis (0.5.0)
+      redis (~> 3.0)
+    ffi (1.9.4)
+    formatador (0.2.5)
+    guard (2.6.1)
+      formatador (>= 0.2.4)
+      listen (~> 2.7)
+      lumberjack (~> 1.0)
+      pry (>= 0.9.12)
+      thor (>= 0.18.1)
+    guard-bundler (2.0.0)
+      bundler (~> 1.0)
+      guard (~> 2.2)
+    guard-rspec (4.3.1)
+      guard (~> 2.1)
+      rspec (>= 2.14, < 4.0)
+    guard-rubocop (1.1.0)
+      guard (~> 2.0)
+      rubocop (~> 0.20)
+    hitimes (1.2.2)
+    i18n (0.6.11)
     json (1.8.1)
-    json-jwt (0.5.6)
+    json-jwt (0.7.0)
       activesupport
       bindata
       multi_json (>= 1.3)
+      securecompare
       url_safe_base64
     kgio (2.9.2)
-    mail (2.5.4)
-      mime-types (~> 1.16)
-      treetop (~> 1.4.8)
+    listen (2.7.9)
+      celluloid (>= 0.15.2)
+      rb-fsevent (>= 0.9.3)
+      rb-inotify (>= 0.9)
+    lumberjack (1.0.9)
+    mail (2.6.1)
+      mime-types (>= 1.16, < 3)
     memcache-client (1.8.5)
-    mime-types (1.25.1)
-    mini_portile (0.5.3)
-    minitest (5.3.3)
-    multi_json (1.10.0)
-    nokogiri (1.6.1)
-      mini_portile (~> 0.5.0)
-    parser (2.1.9)
+    method_source (0.8.2)
+    mime-types (2.3)
+    mini_portile (0.6.0)
+    minitest (5.4.1)
+    multi_json (1.10.1)
+    nokogiri (1.6.3.1)
+      mini_portile (= 0.6.0)
+    parser (2.2.0.pre.4)
       ast (>= 1.1, < 3.0)
       slop (~> 3.4, >= 3.4.5)
-    polyglot (0.3.4)
     powerpack (0.0.9)
+    pry (0.10.1)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     rack (1.5.2)
     rack-flash3 (1.0.5)
       rack
@@ -56,28 +79,39 @@ GEM
       rack (>= 1.0)
     rainbow (2.0.0)
     raindrops (0.13.0)
+    rb-fsevent (0.9.4)
+    rb-inotify (0.9.5)
+      ffi (>= 0.5.0)
     rdiscount (2.1.7.1)
-    redis (3.0.7)
+    redis (3.1.0)
+    redis-rack (1.5.0)
+      rack (~> 1.5)
+      redis-store (~> 1.1.0)
     redis-store (1.1.4)
       redis (>= 2.2)
-    rspec (2.14.1)
-      rspec-core (~> 2.14.0)
-      rspec-expectations (~> 2.14.0)
-      rspec-mocks (~> 2.14.0)
-    rspec-core (2.14.8)
-    rspec-expectations (2.14.5)
-      diff-lcs (>= 1.1.3, < 2.0)
-    rspec-mocks (2.14.6)
-    rubocop (0.21.0)
-      json (>= 1.7.7, < 2)
-      parser (~> 2.1.9)
+    rspec (3.1.0)
+      rspec-core (~> 3.1.0)
+      rspec-expectations (~> 3.1.0)
+      rspec-mocks (~> 3.1.0)
+    rspec-core (3.1.4)
+      rspec-support (~> 3.1.0)
+    rspec-expectations (3.1.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.1.0)
+    rspec-mocks (3.1.1)
+      rspec-support (~> 3.1.0)
+    rspec-support (3.1.0)
+    rubocop (0.26.1)
+      astrolabe (~> 1.3)
+      parser (>= 2.2.0.pre.4, < 3.0)
       powerpack (~> 0.0.6)
       rainbow (>= 1.99.1, < 3.0)
       ruby-progressbar (~> 1.4)
-    ruby-progressbar (1.5.0)
-    simplecov (0.8.2)
+    ruby-progressbar (1.6.0)
+    securecompare (1.0.0)
+    simplecov (0.9.1)
       docile (~> 1.1.0)
-      multi_json
+      multi_json (~> 1.0)
       simplecov-html (~> 0.8.0)
     simplecov-html (0.8.0)
     sinatra (1.4.5)
@@ -91,13 +125,13 @@ GEM
       rack-test
       sinatra (~> 1.4.0)
       tilt (~> 1.3)
-    slop (3.5.0)
-    thread_safe (0.3.3)
+    slop (3.6.0)
+    thor (0.19.1)
+    thread_safe (0.3.4)
     tilt (1.4.1)
-    treetop (1.4.15)
-      polyglot
-      polyglot (>= 0.3.1)
-    tzinfo (1.1.0)
+    timers (4.0.1)
+      hitimes
+    tzinfo (1.2.2)
       thread_safe (~> 0.1)
     unicorn (4.8.3)
       kgio (~> 2.6)
@@ -114,18 +148,22 @@ PLATFORMS
 
 DEPENDENCIES
   erubis
-  fakeredis (< 1)
-  json-jwt (~> 0.5.5)
-  mail (~> 2.5.4)
+  fakeredis
+  guard
+  guard-bundler
+  guard-rspec
+  guard-rubocop
+  json-jwt
+  mail
   memcache-client
-  rack-flash3 (~> 1.0.3)
-  rdiscount (~> 2.1.6)
-  redis (~> 3.0.4)
-  redis-rack!
-  rspec (< 3)
+  rack-flash3
+  rdiscount
+  redis
+  redis-rack
+  rspec
   rubocop
   simplecov
-  sinatra (~> 1.4.3)
-  sinatra-contrib (~> 1.4.0)
+  sinatra
+  sinatra-contrib
   unicorn
-  webrat (< 1)
+  webrat

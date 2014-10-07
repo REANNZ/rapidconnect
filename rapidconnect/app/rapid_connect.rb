@@ -444,20 +444,20 @@ class RapidConnect < Sinatra::Base
   end
 
   def authenticated?
-    unless session[:subject]
-      id = SecureRandom.urlsafe_base64(24, false)
-      session[:target] ||= {}
-      session[:target][id] = request.url
-      redirect "/login/#{id}"
-    end
+    return if session[:subject]
+
+    id = SecureRandom.urlsafe_base64(24, false)
+    session[:target] ||= {}
+    session[:target][id] = request.url
+    redirect "/login/#{id}"
   end
 
   def administrator?
-    unless @redis.hexists('administrators', session[:subject][:principal])
-      @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
-      status 403
-      halt erb :'administration/administrators/denied'
-    end
+    return if @redis.hexists('administrators', session[:subject][:principal])
+
+    @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    status 403
+    halt erb :'administration/administrators/denied'
   end
 
   def generate_research_claim(audience, subject)
