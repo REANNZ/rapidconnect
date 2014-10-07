@@ -20,7 +20,7 @@ GEM
     erubis (2.7.0)
     fakeredis (0.5.0)
       redis (~> 3.0)
-    ffi (1.9.4)
+    ffi (1.9.5)
     formatador (0.2.5)
     guard (2.6.1)
       formatador (>= 0.2.4)
