@@ -366,3 +366,35 @@ form input[type="text"], input[type="password"]
   font-size: 2.7em;
   line-height: 1.0em;
 }
+
+/* overriding colours specified in bootstrap-combined.min.css */
+
+/* background colour for navigation bar */
+.breadcrumb {
+    background-color: #7FAF1B;
+}
+
+/* currently selected page */
+.breadcrumb .active {
+    color: #FFFFFF;
+}
+
+/* divider between breadcrumb entries */
+.breadcrumb li .divider {
+   color: #CADDA4;
+}
+
+/* link-up breadcrumb bar entries */
+.breadcrumb a {
+   color: #CADDA4;
+}
+
+/* but make the action pull-right link bright */
+.breadcrumb .pull-right a {
+    color: #FFFFFF;
+}
+
+/* disable text shadow on navbar entries */
+.breadcrumb > li {
+  text-shadow: none;
+}
