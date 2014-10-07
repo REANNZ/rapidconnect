@@ -60,7 +60,7 @@ describe RapidConnect do
     it 'shows welcome erb' do
       get '/'
       expect(last_response).to be_ok
-      expect(last_response.body).to contain('Welcome to AAF Rapid Connect')
+      expect(last_response.body).to contain('Welcome to Tuakiri Rapid Connect')
     end
   end
 
@@ -156,7 +156,7 @@ describe RapidConnect do
       should have_sent_email
       last_email.to('support@aaf.edu.au')
       last_email.from('noreply@aaf.edu.au')
-      last_email.subject('New service registration for AAF Rapid Connect')
+      last_email.subject('New service registration for Tuakiri Rapid Connect')
       expect(last_email.html_part).to contain(@valid_subject[:cn])
 
       expect(@redis.hlen('serviceproviders')).to eq(1)
@@ -474,7 +474,7 @@ describe RapidConnect do
         enableexampleservice
         get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to contain('AAF Rapid Connect - Redirection')
+        expect(last_response.body).to contain('Tuakiri Rapid Connect - Redirection')
         expect(last_response.headers).to include('Set-Cookie')
         expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
         expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
@@ -497,7 +497,7 @@ describe RapidConnect do
       it 'shows developer guide' do
         get '/developers'
         expect(last_response).to be_ok
-        expect(last_response.body).to contain('Integrating with AAF Rapid Connect')
+        expect(last_response.body).to contain('Integrating with Tuakiri Rapid Connect')
       end
 
       it 'creates a zendesk JWT for active services' do

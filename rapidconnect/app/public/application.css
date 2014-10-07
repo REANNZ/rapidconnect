@@ -276,8 +276,8 @@ ul.clean {
 header {
   padding-top: 12px;
   padding-bottom: 12px;
-  background-color: #495666;
-  color: #ffffff;
+  background-color: #FFFFFF;
+  color: #7CAB1D;
 }
 header img {
   float: left;
@@ -305,7 +305,8 @@ header h2 {
 }
 nav {
   margin-bottom: 12px;
-  background-color: #495666;
+  background-color: #FFFFFF;
+  color: #7CAB1D;
 }
 section h2 {
   color: #555555;

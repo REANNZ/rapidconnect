@@ -532,14 +532,14 @@ class RapidConnect < Sinatra::Base
     service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{identifier}"
     service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{identifier}"
     if approved
-         admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
+         admin_action = "There is a new registration within Tuakiri Rapid Connect that has been automatically approved - but we are letting you know anyway."
     else
-         admin_action = "There is a new registration within AAF Rapid Connect that needs to be enabled."
+         admin_action = "There is a new registration within Tuakiri Rapid Connect that needs to be enabled."
     end
     Mail.deliver do
       from mail_settings[:from]
       to mail_settings[:to]
-      subject 'New service registration for AAF Rapid Connect'
+      subject 'New service registration for Tuakiri Rapid Connect'
       html_part do
         content_type 'text/html; charset=UTF-8'
         body "
@@ -555,7 +555,7 @@ class RapidConnect < Sinatra::Base
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
-          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in Tuakiri Rapid Connect.
           <br><br>
           After reviewing and approving the service, please notify the user.  We suggest the following template:
           <br><hr><br>
@@ -564,7 +564,7 @@ class RapidConnect < Sinatra::Base
           <br>
           Dear #{registrant_name}<br>
           <br>
-          Your service #{name} has been accepted into the AAF Rapid Connect at #{settings_hostname}<br>
+          Your service #{name} has been accepted into the Tuakiri Rapid Connect at #{settings_hostname}<br>
           <br>
           You can now configure your service to use this login URL :<br>
           <a href=\"#{service_url_research}\">#{service_url_research}</a><br>
@@ -572,7 +572,7 @@ class RapidConnect < Sinatra::Base
           Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
           <a href=\"#{service_url_zendesk}\">#{service_url_zendesk}</a><br>
           <br>
-          Please contact AAF support at support@aaf.edu.au if you have any questions or need any assistance with connecting your service to AAF RapidConnect.
+          Please contact Tuakiri support at support@tuakiri.ac.nz if you have any questions or need any assistance with connecting your service to Tuakiri RapidConnect.
         "
       end
     end
