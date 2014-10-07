@@ -185,7 +185,8 @@ class RapidConnect < Sinatra::Base
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        if settings.federation == 'test'
+        approved = settings.auto_approve_in_test && settings.federation == 'test'
+        if approved
           @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
@@ -196,8 +197,8 @@ class RapidConnect < Sinatra::Base
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                         'enabled' => false }.to_json)
-          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
         end
+        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, approved)
 
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
         redirect to('/registration/complete')
@@ -211,7 +212,8 @@ class RapidConnect < Sinatra::Base
 
   get '/registration/complete' do
     @identifier = nil
-    if settings.federation == 'test'
+    @approved = settings.auto_approve_in_test && settings.federation == 'test'
+    if @approved
       @identifier = session[:registration_identifier]
     end
     erb :'registration/complete'
@@ -524,11 +526,16 @@ class RapidConnect < Sinatra::Base
   # New Service Registration Notification
   ##
   def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail)
+                              registrant_name, registrant_mail, approved)
     mail_settings = settings.mail
     settings_hostname = settings.hostname
     service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{identifier}"
     service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{identifier}"
+    if approved
+         admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
+    else
+         admin_action = "There is a new registration within AAF Rapid Connect that needs to be enabled."
+    end
     Mail.deliver do
       from mail_settings[:from]
       to mail_settings[:to]
@@ -536,7 +543,7 @@ class RapidConnect < Sinatra::Base
       html_part do
         content_type 'text/html; charset=UTF-8'
         body "
-          There is a new registration within AAF Rapid Connect that needs to be enabled.
+          #{admin_action}
           <br><br>
           <strong>Details</strong>
           <br>

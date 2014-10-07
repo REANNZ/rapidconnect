@@ -4,7 +4,7 @@
   </head>
   <body>
 
-    <% if settings.federation == 'test' %>
+    <% if @approved %>
       <div class="well">
         <h2>Service Registered and automatically approved</h2>
 
@@ -19,6 +19,13 @@
         <div class="alert alert-block">
           <strong>https://<%= settings.hostname %>/jwt/authnrequest/research/<%= @identifier %></strong>
         </div>
+
+        <p>Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
+
+        <div class="alert alert-block">
+          <strong>https://<%= settings.hostname %>/jwt/authnrequest/zendesk/<%= @identifier %></strong>
+        </div>
+
       </div>
 
     <% else %>
