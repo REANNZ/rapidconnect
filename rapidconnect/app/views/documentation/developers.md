@@ -120,7 +120,7 @@ The first step in integrating your code is to compute a secret that will be shar
 
 Recommended secret generation method on *nix hosts, **32 characters long**:
 
-    LC_CTYPE=C tr -dc '[[:alnum:][:punct:]]' < /dev/urandom | head -c32 ;echo
+    openssl rand -base64 24
 
 This value should never be publicly disclosed. Once created be sure to store it securely. *This value will be required during service registration*.
 
