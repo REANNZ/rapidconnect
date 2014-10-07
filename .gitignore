@@ -2,5 +2,6 @@
 rapidconnect/coverage
 rapidconnect/tmp/*
 rapidconnect/logs/*
+rapidconnect/run/*
 rapidconnect/config/app_config.yml
 rapidconnect/config/unicorn.rb

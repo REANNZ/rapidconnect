@@ -32,5 +32,5 @@ fr_json["organizations"].each { |org|
   org_names << fr_org_json['organization']['displayName']
 }
 
-File.open('/tmp/fr_org_names.json.new', 'w') {|f| f.write( JSON.generate org_names.sort! ) }
+File.open('/opt/rapidconnect/application/run/fr_org_names.json.new', 'w') {|f| f.write( JSON.generate org_names.sort! ) }
 

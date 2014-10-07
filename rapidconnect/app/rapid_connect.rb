@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/config_file'
+require 'erubis'
 require 'json'
 require 'json/jwt'
 require 'securerandom'
@@ -10,10 +11,12 @@ require 'rdiscount'
 require 'json'
 require 'uri'
 
+require 'app/rcmcsession'
+
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
   configure :production, :development do
-    use Rack::Session::Redis, expire_in: 3600
+    use RapidConnectMemcacheSession, memcache_session_expiry: 3600, secure: Sinatra::Base.production?
   end
   configure :test do
     use Rack::Session::Pool, expire_in: 3600
@@ -34,6 +37,8 @@ class RapidConnect < Sinatra::Base
     config_file File.join(settings.app_root, 'config', 'app_config.yml')
     set :app_logfile, File.join(settings.app_root, 'logs', 'app.log')
     set :audit_logfile, File.join(settings.app_root, 'logs', 'audit.log')
+
+    set :erb, escape_html: true
 
     mail_settings = settings.mail
     Mail.defaults do
@@ -86,6 +91,14 @@ class RapidConnect < Sinatra::Base
   ##
   get '/' do
     erb :welcome, layout: nil
+  end
+
+  ## Status for load balancer
+  get '/status' do
+    if settings.status_disabled_file && File.exists?(settings.status_disabled_file)
+        404
+    end
+    ## else return a blank 200 page
   end
 
   ###
@@ -172,7 +185,8 @@ class RapidConnect < Sinatra::Base
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        if settings.federation == 'test'
+        approved = settings.auto_approve_in_test && settings.federation == 'test'
+        if approved
           @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
@@ -183,8 +197,8 @@ class RapidConnect < Sinatra::Base
                                                         'endpoint' => endpoint, 'secret' => secret,
                                                         'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
                                                         'enabled' => false }.to_json)
-          send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail)
         end
+        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, approved)
 
         @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
         redirect to('/registration/complete')
@@ -198,7 +212,8 @@ class RapidConnect < Sinatra::Base
 
   get '/registration/complete' do
     @identifier = nil
-    if settings.federation == 'test'
+    @approved = settings.auto_approve_in_test && settings.federation == 'test'
+    if @approved
       @identifier = session[:registration_identifier]
     end
     erb :'registration/complete'
@@ -429,20 +444,20 @@ class RapidConnect < Sinatra::Base
   end
 
   def authenticated?
-    unless session[:subject]
-      id = SecureRandom.urlsafe_base64(24, false)
-      session[:target] ||= {}
-      session[:target][id] = request.url
-      redirect "/login/#{id}"
-    end
+    return if session[:subject]
+
+    id = SecureRandom.urlsafe_base64(24, false)
+    session[:target] ||= {}
+    session[:target][id] = request.url
+    redirect "/login/#{id}"
   end
 
   def administrator?
-    unless @redis.hexists('administrators', session[:subject][:principal])
-      @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
-      status 403
-      halt erb :'administration/administrators/denied'
-    end
+    return if @redis.hexists('administrators', session[:subject][:principal])
+
+    @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    status 403
+    halt erb :'administration/administrators/denied'
   end
 
   def generate_research_claim(audience, subject)
@@ -511,8 +526,16 @@ class RapidConnect < Sinatra::Base
   # New Service Registration Notification
   ##
   def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail)
+                              registrant_name, registrant_mail, approved)
     mail_settings = settings.mail
+    settings_hostname = settings.hostname
+    service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{identifier}"
+    service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{identifier}"
+    if approved
+         admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
+    else
+         admin_action = "There is a new registration within AAF Rapid Connect that needs to be enabled."
+    end
     Mail.deliver do
       from mail_settings[:from]
       to mail_settings[:to]
@@ -520,7 +543,7 @@ class RapidConnect < Sinatra::Base
       html_part do
         content_type 'text/html; charset=UTF-8'
         body "
-          There is a new registration within AAF Rapid Connect that needs to be enabled.
+          #{admin_action}
           <br><br>
           <strong>Details</strong>
           <br>
@@ -532,7 +555,24 @@ class RapidConnect < Sinatra::Base
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
-          For more information and to enable this service please view the <a href='https://rapid.aaf.edu.au/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          <br><br>
+          After reviewing and approving the service, please notify the user.  We suggest the following template:
+          <br><hr><br>
+          To: \"#{registrant_name}\" <#{registrant_mail}><br>
+          Subject: service registration on #{settings_hostname}<br>
+          <br>
+          Dear #{registrant_name}<br>
+          <br>
+          Your service #{name} has been accepted into the AAF Rapid Connect at #{settings_hostname}<br>
+          <br>
+          You can now configure your service to use this login URL :<br>
+          <a href=\"#{service_url_research}\">#{service_url_research}</a><br>
+          <br>
+          Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
+          <a href=\"#{service_url_zendesk}\">#{service_url_zendesk}</a><br>
+          <br>
+          Please contact AAF support at support@aaf.edu.au if you have any questions or need any assistance with connecting your service to AAF RapidConnect.
         "
       end
     end

@@ -34,6 +34,17 @@ Sinatra::Base.set :mail, from: 'noreply@example.org', to: 'support@example.org'
 Sinatra::Base.set :export, enabled: true
 Sinatra::Base.set :export, secret: 'test_secret'
 
+legacy_rspec_matchers = [
+  Webrat::Matchers::HasContent,
+  Mail::Matchers::HasSentEmailMatcher
+]
+
+legacy_rspec_matchers.each do |m|
+  m.instance_eval do
+    alias_method :failure_message_when_negated, :negative_failure_message
+  end
+end
+
 # Supply common framework actions to tests
 module AppHelper
   def app
