@@ -25,6 +25,8 @@ group :test do
   gem 'factory_girl'
   gem 'faker'
   gem 'shoulda-matchers'
+  gem 'rake'
+  gem 'coveralls', require: false
 
   gem 'guard'
   gem 'guard-rspec'
