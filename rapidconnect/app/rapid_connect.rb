@@ -12,7 +12,7 @@ require 'rdiscount'
 require 'json'
 require 'uri'
 
-require 'app/rcmcsession'
+require_relative 'rcmcsession'
 require_relative 'models/rapid_connect_service'
 
 # The RapidConnect application
