@@ -10,6 +10,7 @@ gem 'redis'
 gem 'redis-rack'
 gem 'memcache-client'
 gem 'json-jwt'
+gem 'activemodel', require: 'active_model'
 
 gem 'rack-flash3'
 gem 'mail'
@@ -22,6 +23,9 @@ group :test do
   gem 'fakeredis'
   gem 'rubocop'
   gem 'simplecov'
+  gem 'factory_girl'
+  gem 'faker'
+  gem 'shoulda-matchers'
 
   gem 'guard'
   gem 'guard-rspec'

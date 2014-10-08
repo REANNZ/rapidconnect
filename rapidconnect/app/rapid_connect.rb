@@ -6,18 +6,23 @@ require 'json'
 require 'json/jwt'
 require 'securerandom'
 require 'rack-flash'
+require 'redis-rack'
 require 'mail'
 require 'rdiscount'
 require 'json'
 require 'uri'
 
 require 'app/rcmcsession'
+require_relative 'models/rapid_connect_service'
 
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
   configure :production, :development do
+    # :nocov: Doesn't run in test environment
     use RapidConnectMemcacheSession, memcache_session_expiry: 3600, secure: Sinatra::Base.production?
+    # :nocov:
   end
+
   configure :test do
     use Rack::Session::Pool, expire_in: 3600
   end
@@ -26,10 +31,13 @@ class RapidConnect < Sinatra::Base
   use Rack::Flash, sweep: true
 
   configure :development do
+    # :nocov: Doesn't run in test environment
     register Sinatra::Reloader
+    # :nocov:
   end
 
   configure :production, :development do
+    # :nocov: Doesn't run in test environment
     enable :logging
     register Sinatra::ConfigFile
 
@@ -54,6 +62,7 @@ class RapidConnect < Sinatra::Base
     unless settings.respond_to? :hostname
       set :hostname, ::URI.parse(settings.issuer).hostname
     end
+    # :nocov:
   end
 
   attr_reader :current_version
@@ -164,48 +173,68 @@ class RapidConnect < Sinatra::Base
     erb :'registration/index'
   end
 
+  def load_service(identifier)
+    json = @redis.hget('serviceproviders', identifier)
+    return nil if json.nil?
+
+    RapidConnectService.new.from_json(json).tap do |service|
+      service.identifier = identifier
+    end
+  end
+
+  def load_all_services
+    @redis.hgetall('serviceproviders').sort.reduce({}) do |hash, (id, json)|
+      service = RapidConnectService.new.from_json(json).tap do |s|
+        s.identifier = id
+      end
+      hash.merge(id => service)
+    end
+  end
+
+  def service_attrs
+    %i(organisation name audience endpoint secret).reduce({}) do |map, sym|
+      map.merge(sym => params[sym])
+    end
+  end
+
+  def registrant_attrs
+    subject = session[:subject]
+    { registrant_name: subject[:cn], registrant_mail: subject[:mail] }
+  end
+
+  def admin_supplied_attrs
+    base = { enabled: !params[:enabled].nil? }
+
+    %i(registrant_name registrant_mail).reduce(base) do |map, sym|
+      map.merge(sym => params[sym])
+    end
+  end
+
   post '/registration/save' do
-    organisation = params[:organisation]
-    name = params[:name]
-    audience = params[:audience]
-    endpoint = params[:endpoint]
-    secret = params[:secret]
-    registrant_name = session[:subject][:cn]
-    registrant_mail = session[:subject][:mail]
+    service = RapidConnectService.new
+    service.attributes = service_attrs.merge(registrant_attrs)
 
-    if organisation && !organisation.empty? &&
-       name && !name.empty? &&
-       audience && !audience.empty? &&
-       endpoint && !endpoint.empty? && endpoint =~ ::URI.regexp &&
-       secret && !secret.empty?
-
-      identifier = SecureRandom.urlsafe_base64(12, false)
+    if service.valid?
+      identifier = service.identifier!
       if @redis.hexists('serviceproviders', identifier)
         @organisations = load_organisations
         flash[:error] = 'Invalid identifier generated. Please re-submit registration.'
         erb :'registration/index'
       else
-        approved = settings.auto_approve_in_test && settings.federation == 'test'
-        if approved
-          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                        'endpoint' => endpoint, 'secret' => secret,
-                                                        'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                        'enabled' => true }.to_json)
-          session[:registration_identifier] = identifier
-        else
-          @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                        'endpoint' => endpoint, 'secret' => secret,
-                                                        'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                        'enabled' => false }.to_json)
-        end
-        send_registration_email(identifier, name, endpoint, registrant_name, registrant_mail, approved)
+        service.enabled = settings.auto_approve_in_test && (settings.federation == 'test')
+        @redis.hset('serviceproviders', identifier, service.to_json)
 
-        @app_logger.info "New service #{name} with endpoint #{endpoint} registered by #{registrant_mail} from #{organisation}"
+        send_registration_email(service)
+        if service.enabled
+          session[:registration_identifier] = identifier
+        end
+
+        @app_logger.info "New service #{service}, endpoint: #{service.endpoint}, contact email: #{service.registrant_mail}, organisation: #{service.organisation}"
         redirect to('/registration/complete')
       end
     else
       @organisations = load_organisations
-      flash[:error] = 'Invalid data supplied'
+      flash[:error] = "Invalid data supplied: #{service.errors.full_messages.join(', ')}"
       erb :'registration/index'
     end
   end
@@ -233,57 +262,40 @@ class RapidConnect < Sinatra::Base
 
   # Administration - Services
   get '/administration/services' do
-    services_raw = @redis.hgetall('serviceproviders')
-    @services = services_raw.reduce({}) { |map, (k, v)| map.merge(k => JSON.parse(v)) }
+    @services = load_all_services
     erb :'administration/services/list'
   end
 
   get '/administration/services/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @identifier = identifier
-      @service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      erb :'administration/services/show'
-    else
-      404
-    end
+    @identifier = identifier
+    @service = load_service(identifier)
+    halt 404 if @service.nil?
+
+    erb :'administration/services/show'
   end
 
   get '/administration/services/edit/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @identifier = identifier
-      @service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      @organisations = load_organisations
-      erb :'administration/services/edit'
-    else
-      404
-    end
+    @identifier = identifier
+    @service = load_service(identifier)
+    halt 404 if @service.nil?
+
+    @organisations = load_organisations
+    erb :'administration/services/edit'
   end
 
   put '/administration/services/update' do
     identifier = params[:identifier]
-    organisation = params[:organisation]
-    name = params[:name]
-    audience = params[:audience]
-    endpoint = params[:endpoint]
-    secret = params[:secret]
-    enabled = params[:enabled].nil? ? false : true
-    registrant_name = params[:registrant_name]
-    registrant_mail = params[:registrant_mail]
+    service = load_service(identifier)
 
-    if  identifier && !identifier.empty? && @redis.hexists('serviceproviders', identifier) &&
-        organisation && !organisation.empty? &&
-        name && !name.empty? &&
-        audience && !audience.empty? &&
-        endpoint && !endpoint.empty? &&
-        secret && !secret.empty? &&
-        registrant_name && !registrant_name.empty? &&
-        registrant_mail && !registrant_mail.empty?
+    if service.nil?
+      flash[:error] = 'Invalid data supplied'
+      halt redirect to('/administration/services')
+    end
 
-      @redis.hset('serviceproviders', identifier, { 'organisation' => organisation, 'name' => name, 'audience' => audience,
-                                                    'endpoint' => endpoint, 'secret' => secret,
-                                                    'registrant_name' => registrant_name, 'registrant_mail' => registrant_mail,
-                                                    'enabled' => enabled }.to_json)
+    service.attributes = service_attrs.merge(admin_supplied_attrs)
 
+    if service.valid?
+      @redis.hset('serviceproviders', identifier, service.to_json)
       @app_logger.info "Service #{identifier} updated by #{session[:subject][:principal]} #{session[:subject][:cn]}"
       redirect to('/administration/services/' + identifier)
     else
@@ -293,29 +305,26 @@ class RapidConnect < Sinatra::Base
   end
 
   patch '/administration/services/toggle/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service_provider = JSON.parse(@redis.hget('serviceproviders', identifier))
-      service_provider['enabled'] = !service_provider['enabled']
+    service = load_service(identifier)
+    halt 404 if service.nil?
 
-      @redis.hset('serviceproviders', identifier, service_provider.to_json)
-      @app_logger.info "Service #{identifier} toggled by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    service.enabled = !service.enabled
 
-      flash[:success] = 'Service modified successfully'
-      redirect to('/administration/services/' + identifier)
-    else
-      404
-    end
+    @redis.hset('serviceproviders', identifier, service.to_json)
+    @app_logger.info "Service #{identifier} toggled by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+
+    flash[:success] = 'Service modified successfully'
+    redirect to('/administration/services/' + identifier)
   end
 
   delete '/administration/services/delete/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      @redis.hdel('serviceproviders', identifier)
-      @app_logger.info "Service #{identifier} deleted by #{session[:subject][:principal]} #{session[:subject][:cn]}"
-      flash[:success] = 'Service deleted successfully'
-      redirect '/administration/services'
-    else
-      404
-    end
+    service = load_service(identifier)
+    halt 404 if service.nil?
+
+    @redis.hdel('serviceproviders', identifier)
+    @app_logger.info "Service #{identifier} deleted by #{session[:subject][:principal]} #{session[:subject][:cn]}"
+    flash[:success] = 'Service deleted successfully'
+    redirect '/administration/services'
   end
 
   # Administration - Administrators
@@ -331,7 +340,7 @@ class RapidConnect < Sinatra::Base
 
   post '/administration/administrators/save' do
     identifier = params[:identifier]
-    if !identifier || identifier.empty?
+    if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
       erb :'administration/administrators/create'
     else
@@ -357,7 +366,7 @@ class RapidConnect < Sinatra::Base
 
   delete '/administration/administrators/delete' do
     identifier = params[:identifier]
-    if !identifier || identifier.empty?
+    if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
     else
       if identifier == session[:subject][:principal]
@@ -383,55 +392,53 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/jwt/authnrequest/research/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-
-      if service['enabled']
-        subject = session['subject']
-        claim = generate_research_claim(service['audience'], subject)
-        @jws = JSON::JWT.new(claim).sign(service['secret'])
-        @endpoint = service['endpoint']
-
-        # To enable raptor and other tools to report on RC like we would any other
-        # IdP we create a shibboleth styled audit.log file for each service access.
-        # Format:
-        # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-        @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
-        @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service['name']}(#{service['endpoint']})"
-        @app_logger.debug "#{claim}"
-
-        erb :post, layout: :post
-      else
-        halt 403, "The service \"#{service['name']}\" is unable to process requests at this time."
-      end
-    else
+    service = load_service(identifier)
+    if service.nil?
       halt 404, 'There is no such endpoint defined please validate the request.'
+    end
+
+    if service.enabled
+      subject = session['subject']
+      claim = generate_research_claim(service.audience, subject)
+      @jws = JSON::JWT.new(claim).sign(service.secret)
+      @endpoint = service.endpoint
+
+      # To enable raptor and other tools to report on RC like we would any other
+      # IdP we create a shibboleth styled audit.log file for each service access.
+      # Format:
+      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
+      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
+      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service.name}(#{service.endpoint})"
+      @app_logger.debug "#{claim}"
+
+      erb :post, layout: :post
+    else
+      halt 403, "The service \"#{service.name}\" is unable to process requests at this time."
     end
   end
 
   get '/jwt/authnrequest/zendesk/:identifier' do |identifier|
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-
-      if service['enabled']
-        subject = session['subject']
-        claim = generate_zendesk_claim(service['audience'], subject)
-        jws = JSON::JWT.new(claim).sign(service['secret'])
-        endpoint = service['endpoint']
-
-        # To enable raptor and other tools to report on rapid like we would any other
-        # IdP we create a shibboleth styled audit.log file for each service access.
-        # Format:
-        # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-        @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
-        @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
-
-        redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
-      else
-        halt 403, "The zendesk service \"#{service['name']}\" is unable to process requests at this time."
-      end
-    else
+    service = load_service(identifier)
+    if service.nil?
       halt 404, 'There is no such zendesk endpoint defined please validate the request.'
+    end
+
+    if service.enabled
+      subject = session['subject']
+      claim = generate_zendesk_claim(service.audience, subject)
+      jws = JSON::JWT.new(claim).sign(service.secret)
+      endpoint = service.endpoint
+
+      # To enable raptor and other tools to report on rapid like we would any other
+      # IdP we create a shibboleth styled audit.log file for each service access.
+      # Format:
+      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
+      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
+      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
+
+      redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
+    else
+      halt 403, "The zendesk service \"#{service.name}\" is unable to process requests at this time."
     end
   end
 
@@ -525,12 +532,11 @@ class RapidConnect < Sinatra::Base
   ##
   # New Service Registration Notification
   ##
-  def send_registration_email(identifier, name, endpoint,
-                              registrant_name, registrant_mail, approved)
+  def send_registration_email(service)
     mail_settings = settings.mail
     settings_hostname = settings.hostname
-    service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{identifier}"
-    service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{identifier}"
+    service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{service.identifier}"
+    service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{service.identifier}"
     if approved
          admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
     else
@@ -548,23 +554,23 @@ class RapidConnect < Sinatra::Base
           <strong>Details</strong>
           <br>
           <ul>
-            <li>Service Name: #{name}</li>
-            <li>Endpoint: #{endpoint}</li>
-            <li>Creator: #{registrant_name} (#{registrant_mail})</li>
+            <li>Service Name: #{service.name}</li>
+            <li>Endpoint: #{service.endpoint}</li>
+            <li>Creator: #{service.registrant_name} (#{service.registrant_mail})</li>
           </ul>
           <br><br>
           Please ensure <strong>all endpoints utilise HTTPS</strong> before enabling.
           <br><br>
-          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{identifier}'>full service record</a> in AAF Rapid Connect.
+          For more information and to enable this service please view the <a href='https://#{settings_hostname}/administration/services/#{service.identifier}'>full service record</a> in AAF Rapid Connect.
           <br><br>
           After reviewing and approving the service, please notify the user.  We suggest the following template:
           <br><hr><br>
-          To: \"#{registrant_name}\" <#{registrant_mail}><br>
+          To: \"#{service.registrant_name}\" <#{service.registrant_mail}><br>
           Subject: service registration on #{settings_hostname}<br>
           <br>
-          Dear #{registrant_name}<br>
+          Dear #{service.registrant_name}<br>
           <br>
-          Your service #{name} has been accepted into the AAF Rapid Connect at #{settings_hostname}<br>
+          Your service #{service.name} has been accepted into the AAF Rapid Connect at #{settings_hostname}<br>
           <br>
           You can now configure your service to use this login URL :<br>
           <a href=\"#{service_url_research}\">#{service_url_research}</a><br>
@@ -588,19 +594,17 @@ class RapidConnect < Sinatra::Base
   get '/export/service/:identifier' do |identifier|
     content_type :json
 
-    if @redis.hexists('serviceproviders', identifier)
-      service = JSON.parse(@redis.hget('serviceproviders', identifier))
-      { service: service_as_json(identifier, service) }.to_json
-    else
-      halt 404
-    end
+    service = load_service(identifier)
+    halt 404 if service.nil?
+
+    { service: service_as_json(identifier, service) }.to_json
   end
 
   get '/export/services' do
     content_type :json
 
-    services = @redis.hgetall('serviceproviders').sort.map do |(id, encoded)|
-      service_as_json(id, JSON.parse(encoded))
+    services = load_all_services.sort.map do |(id, service)|
+      service_as_json(id, service)
     end
 
     { services: services }.to_json
@@ -608,22 +612,22 @@ class RapidConnect < Sinatra::Base
 
   def service_as_json(id, service)
     { id: id,
-      name: service['name'],
+      name: service.name,
       contact: {
-        name: service['registrant_name'],
-        email: service['registrant_mail'],
+        name: service.registrant_name,
+        email: service.registrant_mail,
         type: 'technical'
       },
       rapidconnect: {
-        audience: service['audience'],
-        callback: service['endpoint'],
-        secret: service['secret'],
+        audience: service.audience,
+        callback: service.endpoint,
+        secret: service.secret,
         endpoints: {
           scholarly: "https://#{settings.hostname}/jwt/authnrequest/research/#{id}"
         }
       },
-      enabled: service['enabled'],
-      organization: service['organisation'] }
+      enabled: service.enabled,
+      organization: service.organisation }
   end
 
   def api_authenticated?
