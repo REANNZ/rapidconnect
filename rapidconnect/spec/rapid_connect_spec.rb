@@ -1,6 +1,9 @@
 require './app/rapid_connect'
 
 describe RapidConnect do
+  def stringify_keys(hash)
+    hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
+  end
 
   before :all do
     File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate ['Test Org Name', 'Another Test Org Name']) }
@@ -33,6 +36,9 @@ describe RapidConnect do
       principal_name: @valid_shibboleth_headers['HTTP_EPPN'],
       scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION']
     }
+
+    @non_administrator = @valid_subject
+      .merge(principal: 'https://idp.example.com!-!1234abcd')
 
     @redis =  Redis.new
   end
@@ -124,76 +130,150 @@ describe RapidConnect do
       expect(last_response.body).to contain('Service Registration')
     end
 
-    it 'sends a flash message when an invalid url is submitted' do
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'afsjdlaksdfjh', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
-      expect(last_response.body).to contain('Service Registration')
-      expect(last_response.body).to contain('Invalid data supplied')
-    end
+    context '/save' do
+      before do
+        allow(SecureRandom).to receive(:urlsafe_base64).and_return(identifier)
+        @valid_subject.merge!(cn: attrs[:registrant_name],
+                              mail: attrs[:registrant_mail])
+      end
 
-    it 'sends a flash message when invalid registration form data is submitted' do
-      post '/registration/save', {}, 'rack.session' => { subject: @valid_subject }
-      expect(last_response.body).to contain('Service Registration')
-      expect(last_response.body).to contain('Invalid data supplied')
-    end
+      let(:identifier) { '1234abc' }
+      let(:base_attrs) { attributes_for(:rapid_connect_service) }
+      let(:attrs) { base_attrs }
 
-    it 'shows error when valid registration form submitted but duplicate identifier exists' do
-      ident = '1234abc'
-      @redis.hset('serviceproviders', ident, 1)
-      expect(SecureRandom).to receive(:urlsafe_base64).and_return(ident)
+      let(:params) do
+        attrs.select do |k, _|
+          %i(name audience endpoint secret organisation).include?(k)
+        end
+      end
 
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+      let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
 
-      should_not have_sent_email
+      def run
+        post '/registration/save', params, rack_env
+      end
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      expect(last_response).to be_ok
-      expect(flash[:error]).to eq('Invalid identifier generated. Please re-submit registration.')
-    end
+      shared_examples 'a failed registration' do |opts = {}|
+        it 'is rejected' do
+          run
+          expect(last_response.body).to contain('Service Registration')
+          expect(last_response.body)
+            .to contain(opts[:message] || 'Invalid data supplied')
+        end
 
-    it 'sends an email and shows success page when valid registration form submitted in production' do
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+        it 'does not create a service' do
+          expect { run }.not_to change { @redis.hlen('serviceproviders') }
+        end
+      end
 
-      should have_sent_email
-      last_email.to('support@aaf.edu.au')
-      last_email.from('noreply@aaf.edu.au')
-      last_email.subject('New service registration for Tuakiri Rapid Connect')
-      expect(last_email.html_part).to contain(@valid_subject[:cn])
+      context 'with an invalid endpoint' do
+        let(:attrs) { base_attrs.merge(endpoint: 'example.com/auth') }
+        it_behaves_like 'a failed registration'
+      end
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      service = JSON.parse(@redis.hvals('serviceproviders')[0])
-      expect(service['name']).to eq('Our Web App')
-      expect(service['endpoint']).to eq('https://service.com/auth/jwt')
-      expect(service['secret']).to eq('ykUlP1XMq3RXMd9w')
-      expect(service['enabled']).to be_falsey
+      context 'with an invalid audience' do
+        let(:attrs) { base_attrs.merge(audience: 'example.com/auth') }
+        it_behaves_like 'a failed registration'
+      end
 
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/registration/complete')
-      follow_redirect!
-      expect(last_response.body).to contain('Service Registration Complete')
-    end
+      context 'with no organisation' do
+        let(:attrs) { base_attrs.merge(organisation: nil) }
+        it_behaves_like 'a failed registration'
+      end
 
-    it 'shows success page when valid registration form submitted in test and auto approves' do
-      Sinatra::Base.set :federation, 'test'
+      context 'when an identifier collides' do
+        before { @redis.hset('serviceproviders', identifier, '{}') }
+        it_behaves_like 'a failed registration',
+                        message: 'Invalid identifier generated. ' \
+                                 'Please re-submit registration.'
+      end
 
-      post '/registration/save', { 'organisation' => 'Test Org Name', 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }, 'rack.session' => { subject: @valid_subject }
+      context 'with an excessively short secret' do
+        let(:attrs) { base_attrs.merge(secret: 'tooshort') }
+        it_behaves_like 'a failed registration'
+      end
 
-      should_not have_sent_email
+      shared_examples 'a successful registration' do |opts|
+        before { attrs.merge!(enabled: opts[:enabled]) }
 
-      expect(@redis.hlen('serviceproviders')).to eq(1)
-      service = JSON.parse(@redis.hvals('serviceproviders')[0])
-      expect(service['name']).to eq('Our Web App')
-      expect(service['endpoint']).to eq('https://service.com/auth/jwt')
-      expect(service['secret']).to eq('ykUlP1XMq3RXMd9w')
-      expect(service['enabled']).to be_truthy
+        it 'creates the service' do
+          expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
+          json = @redis.hget('serviceproviders', identifier)
+          expect(json).not_to be_nil
 
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/registration/complete')
-      follow_redirect!
-      expect(last_response.body).to contain('Service Registered and automatically approved')
+          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+        end
+
+        it 'redirects to the completed registration page' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location)
+            .to eq('http://example.org/registration/complete')
+          follow_redirect!
+          expect(last_response.body).to contain(opts[:message])
+        end
+      end
+
+      context 'in production' do
+        before { 
+            RapidConnect.set :federation, 'production'
+            RapidConnect.set :auto_approve_in_test, true 
+        }
+
+        it 'sends an email' do
+          run
+          is_expected.to have_sent_email
+          expect(last_email.to).to include('support@example.org')
+          expect(last_email.from).to include('noreply@example.org')
+          expect(last_email.subject)
+            .to eq('New service registration for AAF Rapid Connect')
+          expect(last_email.html_part).to contain(@valid_subject[:cn])
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: false,
+                        message: 'Service Registration Complete'
+      end
+
+      context 'in test' do
+        before { 
+            RapidConnect.set :federation, 'test'
+            RapidConnect.set :auto_approve_in_test, true 
+        }
+
+        it 'sends notification email' do
+          run
+          is_expected.to have_sent_email
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: true,
+                        message: 'Service Registered and automatically approved'
+      end
+
+      context 'in test' do
+        before { 
+            RapidConnect.set :federation, 'test'
+            RapidConnect.set :auto_approve_in_test, false 
+        }
+
+        it 'sends notification email' do
+          run
+          is_expected.to have_sent_email
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: false,
+                        message: 'will review it and give final approval'
+      end
+
+
     end
   end
 
-  describe '/administration' do
+  context '/administration' do
+    before { administrator }
+
     it 'directs to login if administration url requested when unauthenticated' do
       allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
       get '/administration/xyz'
@@ -202,7 +282,7 @@ describe RapidConnect do
     end
 
     it 'halts with 403 if administration url requested when authenticated user is not an administrator' do
-      get '/administration/xyz', {}, 'rack.session' => { subject: @valid_subject }
+      get '/administration/xyz', {}, 'rack.session' => { subject: @non_administrator }
       expect(last_response.status).to eq(403)
     end
 
@@ -213,147 +293,193 @@ describe RapidConnect do
       expect(last_response.body).to contain('Administration')
     end
 
-    describe '/services' do
+    context '/services' do
+      let!(:service) { build(:rapid_connect_service) }
+      let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
+      let(:url) { '/administration/services' }
+      let(:method) { :get }
+      let(:params) { {} }
+      let(:identifier) { '1234abcd' }
+      let(:base_attrs) { attributes_for(:rapid_connect_service) }
+      let(:attrs) { base_attrs }
+
+      before { @redis.hset('serviceproviders', identifier, service.to_json) }
+      subject { last_response }
+
+      def run
+        send(method, url, params, rack_env)
+      end
+
+      def reload_service
+        json = @redis.hget('serviceproviders', identifier)
+        RapidConnectService.new.from_json(json)
+      end
+
       it 'lists all current services' do
-        exampleservice
-        administrator
-        get '/administration/services', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(200)
-        expect(last_response).to contain('Our Web App')
-        expect(last_response).to contain('Show')
+        run
+        expect(subject).to be_successful
+        expect(subject).to contain(service.name)
+        expect(subject).to contain('Show')
       end
 
-      it 'sends 404 when an invalid service is requested' do
-        administrator
-        get '/administration/services/invalidid', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+      context '/:identifier' do
+        before { run }
+
+        context 'with an invalid identifier' do
+          let(:url) { '/administration/services/invalidid' }
+          it { is_expected.to be_not_found }
+        end
+
+        context 'with a valid identifier' do
+          let(:url) { '/administration/services/1234abcd' }
+
+          it 'shows a specific service' do
+            expect(subject).to be_successful
+            expect(subject).to contain(service.name)
+            expect(subject).to contain('Edit')
+            expect(subject).to contain('Delete')
+          end
+        end
       end
 
-      it 'shows a specific service' do
-        exampleservice
-        administrator
-        get '/administration/services/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(200)
-        expect(last_response).to contain('Our Web App')
-        expect(last_response).to contain('Edit')
-        expect(last_response).to contain('Delete')
+      context '/edit/:identifier' do
+        before { run }
+
+        context 'with an invalid identifier' do
+          let(:url) { '/administration/services/edit/invalidid' }
+          it { is_expected.to be_not_found }
+        end
+
+        context 'with a valid identifier' do
+          let(:url) { '/administration/services/edit/1234abcd' }
+
+          it 'shows a specific service' do
+            expect(subject).to be_successful
+            expect(subject).to contain("Editing #{service.name}")
+            expect(subject).to contain('Update Service')
+            expect(subject).to contain('Cancel')
+          end
+        end
       end
 
-      it 'sends 404 when an invalid service is edited' do
-        administrator
-        get '/administration/edit/invalidid', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+      context '/update' do
+        let(:method) { :put }
+        let(:url) { '/administration/services/update' }
+        let(:params) { attrs.merge(identifier: identifier) }
+
+        shared_examples 'a failed update' do
+          it 'is rejected' do
+            run
+            expect(flash[:error]).to eq('Invalid data supplied')
+            expect(subject).to be_redirect
+            expect(subject.location).to end_with('/administration/services')
+          end
+
+          it 'does not create a service' do
+            expect { run }.not_to change { @redis.hlen('serviceproviders') }
+          end
+        end
+
+        context 'with an invalid endpoint' do
+          let(:attrs) { base_attrs.merge(endpoint: 'example.com/auth') }
+          it_behaves_like 'a failed update'
+        end
+
+        context 'with an invalid audience' do
+          let(:attrs) { base_attrs.merge(audience: 'example.com/auth') }
+          it_behaves_like 'a failed update'
+        end
+
+        context 'with no organisation' do
+          let(:attrs) { base_attrs.merge(organisation: nil) }
+          it_behaves_like 'a failed update'
+        end
+
+        context 'with an excessively short secret' do
+          let(:attrs) { base_attrs.merge(secret: 'tooshort') }
+          it_behaves_like 'a failed update'
+        end
+
+        context 'with an invalid identifier' do
+          let(:params) { attrs.merge(identifier: 'nonexistent_sevice') }
+          it_behaves_like 'a failed update'
+        end
+
+        it 'updates the service' do
+          old_attrs = service.attributes
+
+          expect { run }.to change { reload_service.attributes }
+            .from(stringify_keys(old_attrs)).to(stringify_keys(attrs))
+        end
       end
 
-      it 'edits a specific service' do
-        exampleservice
-        administrator
-        get '/administration/services/edit/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(200)
-        expect(last_response).to contain('Editing Our Web App')
-        expect(last_response).to contain('Update Service')
-        expect(last_response).to contain('Cancel')
+      context '/toggle/:identifier' do
+        let(:method) { :patch }
+        let(:url) { '/administration/services/toggle/1234abcd' }
+
+        context 'with a disabled service' do
+          let(:service) { build(:rapid_connect_service, enabled: false) }
+
+          it 'enables the service' do
+            expect { run }.to change { reload_service.enabled }
+              .from(false).to(true)
+          end
+
+          it 'redirects to the service' do
+            run
+            expect(subject).to be_redirect
+            expect(subject.location)
+              .to end_with("/administration/services/#{identifier}")
+          end
+        end
+
+        context 'with an enabled service' do
+          let(:service) { build(:rapid_connect_service, enabled: true) }
+
+          it 'disables the service' do
+            expect { run }.to change { reload_service.enabled }
+              .from(true).to(false)
+          end
+
+          it 'redirects to the service' do
+            run
+            expect(subject).to be_redirect
+            expect(subject.location)
+              .to end_with("/administration/services/#{identifier}")
+          end
+        end
+
+        context 'with an unknown service' do
+          let(:identifier) { 'nonexistent_service' }
+
+          before { run }
+          it { is_expected.to be_not_found }
+        end
       end
 
-      it 'returns 404 on invalid service' do
-        administrator
-        get '/administration/services/edit/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
-      end
+      context '/delete/:identifier' do
+        let(:method) { :delete }
 
-      it 'provides an error when invalid service is provided in update' do
-        exampleservice
-        administrator
+        context 'with an invalid identifier' do
+          before { run }
+          let(:url) { '/administration/services/delete/nonexistent_service' }
+          it { is_expected.to be_not_found }
+        end
 
-        put '/administration/services/update', { 'identifier' => 'xyz' }, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services')
-        follow_redirect!
-        expect(last_response.body).to contain('Invalid data supplied')
-      end
+        context 'with a valid identifier' do
+          let(:url) { '/administration/services/delete/1234abcd' }
 
-      it 'provides an error when invalid service data is provided in update' do
-        exampleservice
-        administrator
+          it 'deletes the service' do
+            expect { run }.to change { @redis.hlen('serviceproviders') }.by(-1)
+            expect(@redis.hexists('serviceproviders', identifier)).to be_falsey
+          end
 
-        put '/administration/services/update', { 'identifier' => '1234abcd', 'name' => 'Our Web App' }, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services')
-        follow_redirect!
-        expect(last_response.body).to contain('Invalid data supplied')
-      end
-
-      it 'successfully updates services' do
-        exampleservice
-        administrator
-
-        current_service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        expect(current_service['name']).to eq('Our Web App')
-        expect(current_service['audience']).to eq('https://service.com')
-        expect(current_service['endpoint']).to eq('https://service.com/auth/jwt')
-        expect(current_service['secret']).to eq('ykUlP1XMq3RXMd9w')
-        !current_service['enabled']
-
-        put '/administration/services/update', { 'identifier' => '1234abcd', 'organisation' => 'Test Org Name', 'name' => 'Our Web App2', 'audience' => 'https://service2.com',
-                                                 'endpoint' => 'https://service.com/auth/jwt2', 'secret' => 'ykUlP1XMq3RXMd9w2',
-                                                 'enabled' => 'on', 'registrant_name' => 'Dummy User', 'registrant_mail' => 'dummy@example.org' },
-            'rack.session' => { subject: @valid_subject }
-
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services/1234abcd')
-
-        updated_service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        expect(updated_service['name']).to eq('Our Web App2')
-        expect(updated_service['audience']).to eq('https://service2.com')
-        expect(updated_service['endpoint']).to eq('https://service.com/auth/jwt2')
-        expect(updated_service['secret']).to eq('ykUlP1XMq3RXMd9w2')
-        updated_service['enabled']
-      end
-
-      it 'successfully toggles service state' do
-        exampleservice
-        administrator
-
-        service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        expect(service['enabled']).to be_falsey
-
-        # Toggle On
-        patch '/administration/services/toggle/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services/1234abcd')
-        service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        expect(service['enabled']).to be_truthy
-
-        # Toggle back off
-        patch '/administration/services/toggle/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services/1234abcd')
-        service = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
-        expect(service['enabled']).to be_falsey
-      end
-
-      it 'unknown id sends 404' do
-        administrator
-
-        patch '/administration/services/toggle/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
-      end
-
-      it 'prevents service delete if no identifier' do
-        administrator
-        delete '/administration/services/delete/xyz', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
-      end
-
-      it 'deletes a service' do
-        exampleservice
-        administrator
-
-        expect(@redis.hlen('serviceproviders')).to eq(1)
-        delete '/administration/services/delete/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to eq('http://example.org/administration/services')
-        expect(@redis.hlen('serviceproviders')).to eq(0)
+          it 'redirects to the services list' do
+            run
+            expect(subject).to be_redirect
+            expect(subject.location).to end_with('/administration/services')
+          end
+        end
       end
     end
 
@@ -516,21 +642,18 @@ describe RapidConnect do
 
   shared_examples_for 'export API' do
     context 'export disabled' do
-      before(:each) do
-        Sinatra::Base.set :export, enabled: false
-      end
-
       it '404' do
-        get '/export/services'
-        expect(last_response.status).to eq 404
+        begin
+          Sinatra::Base.set :export, enabled: false
+          get '/export/services'
+          expect(last_response.status).to eq 404
+        ensure
+          Sinatra::Base.set :export, enabled: true
+        end
       end
     end
 
     context 'export enabled' do
-      before(:each) do
-        Sinatra::Base.set :export, enabled: true
-      end
-
       context 'authorize header malformed' do
         it '403 if not supplied' do
           get '/export/services'
@@ -555,6 +678,8 @@ describe RapidConnect do
   end
 
   describe '/export' do
+    before { Sinatra::Base.set :export, enabled: true }
+
     describe '/services' do
       it_behaves_like 'export API'
 
