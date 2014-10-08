@@ -565,7 +565,7 @@ class RapidConnect < Sinatra::Base
           <br><br>
           After reviewing and approving the service, please notify the user.  We suggest the following template:
           <br><hr><br>
-          To: \"#{service.registrant_name}\" <#{service.registrant_mail}><br>
+          To: \"#{service.registrant_name}\" &lt;#{service.registrant_mail}&gt;<br>
           Subject: service registration on #{settings_hostname}<br>
           <br>
           Dear #{service.registrant_name}<br>
