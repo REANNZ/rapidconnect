@@ -6,8 +6,8 @@
 [Build Status]: https://travis-ci.org/ausaccessfed/rapidconnect
 [Coverage Status]: https://coveralls.io/r/ausaccessfed/rapidconnect
 
-[BS img]: https://img.shields.io/travis/ausaccessfed/rapidconnect.svg
-[CS img]: https://img.shields.io/coveralls/ausaccessfed/rapidconnect.svg
+[BS img]: https://img.shields.io/travis/ausaccessfed/rapidconnect/develop.svg
+[CS img]: https://img.shields.io/coveralls/ausaccessfed/rapidconnect/develop.svg
 
 Author: Bradley Beddoes and Shaun Mangelsdorf
 
