@@ -1,5 +1,14 @@
 # AAF Rapid Connect
 
+[![Build Status][BS img]][Build Status]
+[![Coverage Status][CS img]][Coverage Status]
+
+[Build Status]: https://travis-ci.org/ausaccessfed/rapidconnect
+[Coverage Status]: https://coveralls.io/r/ausaccessfed/rapidconnect
+
+[BS img]: https://img.shields.io/travis/ausaccessfed/rapidconnect.svg
+[CS img]: https://img.shields.io/coveralls/ausaccessfed/rapidconnect.svg
+
 Author: Bradley Beddoes and Shaun Mangelsdorf
 
 Copyright 2013, Australian Access Federation
