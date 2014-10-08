@@ -537,7 +537,7 @@ class RapidConnect < Sinatra::Base
     settings_hostname = settings.hostname
     service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{service.identifier}"
     service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{service.identifier}"
-    if approved
+    if service.enabled
          admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
     else
          admin_action = "There is a new registration within AAF Rapid Connect that needs to be enabled."
