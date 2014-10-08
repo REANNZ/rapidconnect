@@ -215,7 +215,10 @@ describe RapidConnect do
       end
 
       context 'in production' do
-        before { RapidConnect.set :federation, 'production' }
+        before { 
+            RapidConnect.set :federation, 'production'
+            RapidConnect.set :auto_approve_in_test, true 
+        }
 
         it 'sends an email' do
           run
@@ -233,17 +236,38 @@ describe RapidConnect do
       end
 
       context 'in test' do
-        before { RapidConnect.set :federation, 'test' }
+        before { 
+            RapidConnect.set :federation, 'test'
+            RapidConnect.set :auto_approve_in_test, true 
+        }
 
-        it 'sends no email' do
+        it 'sends notification email' do
           run
-          is_expected.not_to have_sent_email
+          is_expected.to have_sent_email
         end
 
         it_behaves_like 'a successful registration',
                         enabled: true,
                         message: 'Service Registered and automatically approved'
       end
+
+      context 'in test' do
+        before { 
+            RapidConnect.set :federation, 'test'
+            RapidConnect.set :auto_approve_in_test, false 
+        }
+
+        it 'sends notification email' do
+          run
+          is_expected.to have_sent_email
+        end
+
+        it_behaves_like 'a successful registration',
+                        enabled: false,
+                        message: 'will review it and give final approval'
+      end
+
+
     end
   end
 
