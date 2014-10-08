@@ -5,3 +5,7 @@ before_script:
 language: ruby
 rvm:
   - 2.1.1
+branches:
+  only:
+    - master
+    - develop
