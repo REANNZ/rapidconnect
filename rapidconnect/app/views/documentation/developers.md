@@ -182,19 +182,19 @@ Your application will be **automatically approved**. The completion screen will 
 ## Buttons
 Tuakiri provides buttons in several sizes which your application **should** use to let your users know they can login via Tuakiri. These buttons are used in marketing and help documentation which is provided to end user support desks and makes the process of logging in seem familiar for users across multiple applications.
 
-You may hotlink or rehost these images. Please use in accordance with the [AAF logo use policy](http://www.aaf.edu.au/wp-content/uploads/2010/05/AAF_LogoUsePolicy_05_10.pdf) <small>(PDF)</small>.
+You may hotlink or rehost these images. Please use in accordance with the Tuakiri Logo Policy available at the [Tuakiri logo page policy](https://tuakiri.ac.nz/confluence/display/Tuakiri/Logos).
 
-**110x26** <br>
-![AAF tiny login](/aaf_service_110x26.png "AAF Login")
+**110x42** <br>
+![Tuakiri tiny login](/tuakiri_service_110x42.png "Tuakiri Login")
 		
-**223x54** <br>
-![AAF tiny login](/aaf_service_223x54.png "AAF Login")
+**220x84** <br>
+![Tuakiri small login](/tuakiri_service_220x84.png "Tuakiri Login")
 		
-**439x105** <br>
-![AAF tiny login](/aaf_service_439x105.png "AAF Login")
+**310x82** <br>
+![Tuakiri medium login](/tuakiri_service_310x82.png "Tuakiri Login")
 		
-**866x193** <br>
-![AAF tiny login](/aaf_service_866x193.png "AAF Login")
+**550x209** <br>
+![Tuakiri large login](/tuakiri_service_550x209.png "Tuakiri Login")
 
 ## Help
 To get help with Rapid Connect simply [email Tuakiri support on support@tuakiri.ac.nz](mailto:support@tuakiri.ac.nz?subject=Help with integrating Rapid Connect)
