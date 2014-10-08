@@ -226,7 +226,7 @@ describe RapidConnect do
           expect(last_email.to).to include('support@example.org')
           expect(last_email.from).to include('noreply@example.org')
           expect(last_email.subject)
-            .to eq('New service registration for AAF Rapid Connect')
+            .to eq('New service registration for Tuakiri Rapid Connect')
           expect(last_email.html_part).to contain(@valid_subject[:cn])
         end
 
@@ -623,7 +623,7 @@ describe RapidConnect do
       it 'shows developer guide' do
         get '/developers'
         expect(last_response).to be_ok
-        expect(last_response.body).to contain('Integrating with Tuakiri Rapid Connect')
+        expect(last_response.body).to contain('Integrating with Rapid Connect')
       end
 
       it 'creates a zendesk JWT for active services' do
