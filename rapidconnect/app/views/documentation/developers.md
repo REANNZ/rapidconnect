@@ -154,7 +154,7 @@ By looking at the claim **https://aaf.edu.au/attributes** you will be able to ac
 
 The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/display/Tuakiri/Attributes) **MAY** be available at the discretion of the user's Identity Provider:
 
-1. eduPersonPrincipalName: The "NetID" of the person for the purposes of inter-institutional authentication. 
+1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication. 
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
 
