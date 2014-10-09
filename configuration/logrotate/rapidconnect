@@ -1,8 +1,21 @@
-/opt/rapidconnect/application/logs/*.log {
+/opt/rapidconnect/application/logs/app*.log /opt/rapidconnect/application/logs/unicorn*.log {
   daily
   missingok
   compress
   dateext
   copytruncate
+  size 0
   rotate 60
+}
+
+# specific configuration for audit log
+/opt/rapidconnect/application/logs/audit*.log {
+  daily
+  missingok
+  compress
+  dateext
+  copytruncate
+  size 0
+  # keep a LONG history 
+  rotate 999
 }
