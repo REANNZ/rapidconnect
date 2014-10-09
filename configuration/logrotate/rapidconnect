@@ -4,5 +4,6 @@
   compress
   dateext
   copytruncate
+  size 0
   rotate 60
 }
