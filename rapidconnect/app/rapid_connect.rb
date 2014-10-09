@@ -426,6 +426,7 @@ class RapidConnect < Sinatra::Base
       # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
       @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
       @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
+      @app_logger.debug "#{claim}"
 
       redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
     else
