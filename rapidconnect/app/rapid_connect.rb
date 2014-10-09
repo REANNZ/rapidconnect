@@ -126,7 +126,8 @@ class RapidConnect < Sinatra::Base
           surname: env['HTTP_SN'],
           mail: env['HTTP_MAIL'],
           principal_name: env['HTTP_EPPN'],
-          scoped_affiliation: env['HTTP_AFFILIATION']
+          scoped_affiliation: env['HTTP_AFFILIATION'],
+          o: env['HTTP_O']
         }
 
         session[:subject] = subject
