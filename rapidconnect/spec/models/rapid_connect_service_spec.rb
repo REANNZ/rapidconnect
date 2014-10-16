@@ -142,8 +142,14 @@ describe RapidConnectService do
         expect(subject).to be_valid
       end
 
-      it 'serializes to the same data' do
-        expect(JSON.load(subject.to_json)).to eq(attrs)
+      it 'defaults to "research" type' do
+        expect(subject.type).to eq('research')
+      end
+
+      it 'updates the serialized data' do
+        new_attrs = JSON.load(subject.to_json)
+        expect(new_attrs.delete('type')).to eq('research')
+        expect(new_attrs).to eq(attrs)
       end
     end
   end

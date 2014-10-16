@@ -38,6 +38,8 @@ class RapidConnectService
     unknown = attrs.keys.map(&:to_s) - self.class.attribute_names
     fail("Bad attribute: #{unknown}") unless unknown.empty?
     attrs.each { |k, v| send(:"#{k}=", v) }
+
+    upgrade
   end
 
   def to_s
@@ -46,5 +48,11 @@ class RapidConnectService
 
   class <<self
     attr_reader :attribute_names
+  end
+
+  private
+
+  def upgrade
+    self.type ||= 'research'
   end
 end
