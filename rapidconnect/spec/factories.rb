@@ -4,6 +4,7 @@ FactoryGirl.define do
     audience { Faker::Internet.url }
     endpoint { Faker::Internet.url }
     secret 'abcdefghijklmnopqrstuvwxyz'
+    type 'research'
     enabled true
     organisation { Faker::Company.name }
     registrant_name { Faker::Name.name }

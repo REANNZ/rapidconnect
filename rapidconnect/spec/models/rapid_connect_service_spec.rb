@@ -29,6 +29,11 @@ describe RapidConnectService do
     it { is_expected.to allow_value('http://example.com').for(:endpoint) }
     it { is_expected.to allow_value('https://example.com').for(:endpoint) }
     it { is_expected.not_to allow_value('example.com').for(:endpoint) }
+
+    it { is_expected.to allow_value('research').for(:type) }
+    it { is_expected.to allow_value('auresearch').for(:type) }
+    it { is_expected.to allow_value('zendesk').for(:type) }
+    it { is_expected.not_to allow_value('invalid').for(:type) }
   end
 
   context '#identifier!' do
