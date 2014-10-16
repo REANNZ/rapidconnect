@@ -77,7 +77,6 @@ RSpec.configure do |config|
   config.order = :random
   Kernel.srand config.seed
 
-  config.before(:suite) { FactoryGirl.lint }
   config.include Rack::Test::Methods
   config.include Webrat::Methods
   config.include Webrat::Matchers
