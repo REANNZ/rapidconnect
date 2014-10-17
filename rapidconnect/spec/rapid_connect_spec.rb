@@ -51,12 +51,12 @@ describe RapidConnect do
     @redis.hset('administrators', @valid_subject[:principal], { 'name' => @valid_subject[:cn], 'mail' => @valid_subject[:mail] }.to_json)
   end
 
-  def exampleservice
-    @redis.hset('serviceproviders', '1234abcd', { 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }.to_json)
+  def exampleservice(opts = {})
+    @redis.hset('serviceproviders', '1234abcd', opts.reverse_merge('name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w').to_json)
   end
 
-  def enableexampleservice
-    exampleservice
+  def enableexampleservice(opts = {})
+    exampleservice(opts)
     service_provider = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
     service_provider[:enabled] = true
     @redis.hset('serviceproviders', '1234abcd', service_provider.to_json)
@@ -582,6 +582,35 @@ describe RapidConnect do
         expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
         expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
       end
+
+      it 'records an audit log entry' do
+        Timecop.freeze do
+          allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
+          attrs = %w(cn mail displayname givenname surname edupersontargetedid
+                     edupersonscopedaffiliation edupersonprincipalname)
+
+          expected_str = %W(
+            #{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get
+            1234abcd
+            https://service.com
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso
+            #{RapidConnect.settings.issuer}
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post
+            x
+            #{@valid_subject[:principal]}
+            urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig
+            #{attrs.sort.join(',')}
+            ||
+          ).join('|')
+
+          enableexampleservice
+          get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
+
+          expect(File.readlines(app.settings.audit_logfile).last.strip)
+            .to end_with(expected_str)
+        end
+      end
     end
 
     describe '/authnrequest/zendesk' do
@@ -591,7 +620,7 @@ describe RapidConnect do
       end
 
       it 'sends 403 if service registered for zendesk JWT is not enabled' do
-        exampleservice
+        exampleservice(type: 'zendesk')
         get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response.status).to eq(403)
       end
@@ -603,7 +632,7 @@ describe RapidConnect do
       end
 
       it 'creates a zendesk JWT for active services' do
-        enableexampleservice
+        enableexampleservice(type: 'zendesk')
         get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response.status).to eq(302)
         expect(last_response.location).to contain('jwt=')
@@ -612,6 +641,34 @@ describe RapidConnect do
         expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
         expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
         expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
+      end
+
+      it 'records an audit log entry' do
+        Timecop.freeze do
+          allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
+          attrs = %w(cn mail edupersontargetedid o)
+
+          expected_str = %W(
+            #{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get
+            1234abcd
+            https://service.com
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso
+            #{RapidConnect.settings.issuer}
+            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post
+            x
+            #{@valid_subject[:principal]}
+            urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig
+            #{attrs.sort.join(',')}
+            ||
+          ).join('|')
+
+          enableexampleservice(type: 'zendesk')
+          get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
+
+          expect(File.readlines(app.settings.audit_logfile).last.strip)
+            .to end_with(expected_str)
+        end
       end
     end
   end
@@ -705,32 +762,4 @@ describe RapidConnect do
       end
     end
   end
-
-  describe '#generate_research_claim' do
-    it 'creates a valid claim' do
-      rc = RapidConnect.new
-      claim = rc.helpers.generate_research_claim('http://service.com', @valid_subject)
-      expect(claim[:aud]).to eq('http://service.com')
-      expect(claim[:iss]).to eq('https://rapid.example.org')
-      expect(claim[:sub]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-      expect(claim[:'https://aaf.edu.au/attributes'][:cn]).to eq(@valid_subject[:cn])
-      expect(claim[:'https://aaf.edu.au/attributes'][:mail]).to eq(@valid_subject[:mail])
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersontargetedid]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersonprincipalname]).to eq(@valid_subject[:principal_name])
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersonscopedaffiliation]).to eq(@valid_subject[:scoped_affiliation])
-    end
-  end
-
-  describe '#generate_zendesk_claim' do
-    it 'creates a valid claim' do
-      rc = RapidConnect.new
-      claim = rc.helpers.generate_zendesk_claim('http://service.com', @valid_subject)
-      expect(claim[:aud]).to eq('http://service.com')
-      expect(claim[:iss]).to eq('https://rapid.example.org')
-      expect(claim[:name]).to eq(@valid_subject[:cn])
-      expect(claim[:email]).to eq(@valid_subject[:mail])
-      expect(claim[:external_id]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    end
-  end
-
 end

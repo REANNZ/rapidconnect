@@ -13,6 +13,8 @@ require 'json'
 require 'uri'
 
 require_relative 'models/rapid_connect_service'
+require_relative 'models/claims_set'
+require_relative 'models/attributes_claim'
 
 # The RapidConnect application
 class RapidConnect < Sinatra::Base
@@ -383,56 +385,64 @@ class RapidConnect < Sinatra::Base
     authenticated?
   end
 
-  get '/jwt/authnrequest/research/:identifier' do |identifier|
-    service = load_service(identifier)
-    if service.nil?
+  def binding(*parts)
+    ['urn:mace:aaf.edu.au:rapid.aaf.edu.au', *parts].join(':')
+  end
+
+  # To enable raptor and other tools to report on rapid like we would any other
+  # IdP we create a shibboleth styled audit.log file for each service access.
+  # Fields are on a single line, separated by pipes:
+  #
+  # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|
+  # assertingPartyId|responseBinding|responseId|principalName|authNMethod|
+  # releasedAttributeId1,releasedAttributeId2,|nameIdentifier|
+  # assertion1ID,assertion2ID,|
+  def audit_log(service, subject, claims, attrs)
+    fields = [
+      Time.now.utc.strftime('%Y%m%dT%H%M%SZ'), binding(service.type, 'get'),
+      service.identifier, claims[:aud], binding('jwt', service.type, 'sso'),
+      claims[:iss], binding('jwt', service.type, 'post'), claims[:jti],
+      subject[:principal], 'urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig',
+      attrs.sort.join(','), '', '', ''
+    ]
+
+    @audit_logger.info(fields.join('|'))
+  end
+
+  before '/jwt/authnrequest/:type/:identifier' do |type, identifier|
+    @service = load_service(identifier)
+    if @service.nil? || @service.type != type
       halt 404, 'There is no such endpoint defined please validate the request.'
     end
 
-    if service.enabled
-      subject = session['subject']
-      claim = generate_research_claim(service.audience, subject)
-      @jws = JSON::JWT.new(claim).sign(service.secret)
-      @endpoint = service.endpoint
-
-      # To enable raptor and other tools to report on RC like we would any other
-      # IdP we create a shibboleth styled audit.log file for each service access.
-      # Format:
-      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,displayname,givenname,surname,edupersontargetedid,edupersonscopedaffiliation,edupersonprincipalname|||"
-      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{service.name}(#{service.endpoint})"
-      @app_logger.debug "#{claim}"
-
-      erb :post, layout: :post
-    else
-      halt 403, "The service \"#{service.name}\" is unable to process requests at this time."
+    unless @service.enabled
+      halt 403, "The service \"#{@service.name}\" is unable to process requests at this time."
     end
+
+    iss, aud = settings.issuer, @service.audience
+
+    claim = AttributesClaim.new(iss, aud, session[:subject])
+    @claims_set = ClaimsSet.send(type, iss, aud, claim)
+    @jws = @claims_set.to_jws(@service.secret)
+
+    @endpoint = @service.endpoint
+
+    @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to service #{@service.name} (#{@service.endpoint})"
+    @app_logger.debug @claims_set.claims
   end
 
-  get '/jwt/authnrequest/zendesk/:identifier' do |identifier|
-    service = load_service(identifier)
-    if service.nil?
-      halt 404, 'There is no such zendesk endpoint defined please validate the request.'
-    end
+  get '/jwt/authnrequest/research/*' do
+    attrs = @claims_set.claims[:'https://aaf.edu.au/attributes']
+    audit_log(@service, session['subject'], @claims_set.claims, attrs.keys)
 
-    if service.enabled
-      subject = session['subject']
-      claim = generate_zendesk_claim(service.audience, subject)
-      jws = JSON::JWT.new(claim).sign(service.secret)
-      endpoint = service.endpoint
+    erb :post, layout: :post
+  end
 
-      # To enable raptor and other tools to report on rapid like we would any other
-      # IdP we create a shibboleth styled audit.log file for each service access.
-      # Format:
-      # auditEventTime|requestBinding|requestId|relyingPartyId|messageProfileId|assertingPartyId|responseBinding|responseId|principalName|authNMethod|releasedAttributeId1,releasedAttributeId2,|nameIdentifier|assertion1ID,assertion2ID,|
-      @audit_logger.info "#{Time.now.utc.strftime '%Y%m%dT%H%M%SZ'}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get|#{identifier}|#{claim[:aud]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso|#{claim[:iss]}|urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post|#{claim[:jti]}|#{subject[:principal]}|urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig|cn,mail,edupersontargetedid,o|||"
-      @app_logger.info "Provided details for #{session[:subject][:cn]}(#{session[:subject][:mail]}) to Zendesk"
-      @app_logger.debug "#{claim}"
+  get '/jwt/authnrequest/zendesk/*' do
+    attrs = %w(cn mail edupersontargetedid o)
+    audit_log(@service, session['subject'], @claims_set.claims, attrs)
 
-      redirect "#{endpoint}?jwt=#{jws}&return_to=#{params[:return_to]}"
-    else
-      halt 403, "The zendesk service \"#{service.name}\" is unable to process requests at this time."
-    end
+    redirect "#{@endpoint}?jwt=#{@jws}&return_to=#{params[:return_to]}"
   end
 
   get '/developers' do
@@ -458,68 +468,6 @@ class RapidConnect < Sinatra::Base
     @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
     status 403
     halt erb :'administration/administrators/denied'
-  end
-
-  def generate_research_claim(audience, subject)
-    response_time = Time.now
-    principal = repack_principal(subject, settings.issuer, audience)
-
-    # Research JWT authnresponses support the following attributes
-    # eduPersonTargetedID [pseudonymous identifier and JWT subject identifier]
-    # cn, givenName(optional), surname(optional), mail [personal identifiers]
-    # eduPersonScopedAffiliation [affiliation identifier]
-    # eppn (optional) [subject identifier]
-    {
-      iss: settings.issuer,
-      iat: response_time,
-      jti: SecureRandom.urlsafe_base64(24, false),
-      nbf: 1.minute.ago,
-      exp: 2.minute.from_now,
-      typ: 'authnresponse',
-      aud: audience,
-      sub: principal,
-      :'https://aaf.edu.au/attributes' => {
-        cn: subject[:cn],
-        mail: subject[:mail],
-        displayname: subject[:display_name],
-        givenname: subject[:given_name],
-        surname: subject[:surname],
-        edupersontargetedid: principal,
-        edupersonscopedaffiliation: subject[:scoped_affiliation],
-        edupersonprincipalname: subject[:principal_name]
-      }
-    }
-  end
-
-  # Generate tokens specifically for Zendesk instances which define their own format
-  def generate_zendesk_claim(audience, subject)
-    response_time = Time.now
-
-    { iss: settings.issuer,
-      iat: response_time,
-      jti: SecureRandom.urlsafe_base64(24, false),
-      nbf: 1.minute.ago,
-      exp: 2.minute.from_now,
-      typ: 'authnresponse',
-      aud: audience,
-      name: subject[:cn],
-      email: subject[:mail],
-      external_id: repack_principal(subject, settings.issuer, audience),
-      organization: subject[:o]
-    }
-  end
-
-  # Refine EPTID for each rapid connect service this user visits
-  #
-  # The eduPersonTargetedID value is an opaque string of no more than 256 characters
-  # The format comprises the entity name of the identity provider, the entity name of the service provider, and the opaque string value. These strings are separated by a bang
-  def repack_principal(subject, issuer, audience)
-    parts = subject[:principal].split('!')
-    new_opaque = OpenSSL::Digest::SHA1.base64digest "#{parts[2]} #{subject[:mail]} #{audience}"
-    new_principal = "#{issuer}!#{audience}!#{new_opaque}"
-    @app_logger.info "Translated incoming principal #{subject[:principal]} (#{subject[:cn]}, #{subject[:mail]}) to #{new_principal} for aud #{audience}"
-
-    new_principal
   end
 
   ##
