@@ -5,8 +5,9 @@ class AttributesClaim
 
   def initialize(iss, aud, subject)
     @attributes = {
-      cn: subject[:cn], mail: subject[:mail], surname: subject[:surname],
-      displayname: subject[:display_name], givenname: subject[:given_name],
+      cn: subject[:cn], displayname: subject[:display_name],
+      surname: subject[:surname], givenname: subject[:given_name],
+      mail: subject[:mail], o: subject[:organization],
       auedupersonsharedtoken: subject[:shared_token],
       edupersonscopedaffiliation: subject[:scoped_affiliation],
       edupersonprincipalname: subject[:principal_name],

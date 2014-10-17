@@ -4,20 +4,12 @@ RSpec.describe AttributesClaim do
   let(:iss) { 'https://rapid.example.com' }
   let(:aud) { 'https://service.example.com' }
   let(:auth_subject) do
-    given_name = Faker::Name.first_name
-    surname = Faker::Name.last_name
-
-    {
+    attrs = {
       principal: 'https://idp.example.com!https://rapid.example.com!oooooooooh',
-      cn: "#{given_name} #{surname}",
-      display_name: "#{given_name} #{surname}",
-      given_name: given_name,
-      surname: surname,
-      mail: 'testuser@example.com',
-      principal_name: Faker::Internet.user_name("#{given_name} #{surname}"),
-      scoped_affiliation: 'member@idp.example.com',
-      shared_token: SecureRandom.urlsafe_base64(24)
+      mail: 'testuser@example.com'
     }
+
+    attributes_for(:subject, attrs)
   end
 
   subject { AttributesClaim.new(iss, aud, auth_subject) }
@@ -40,6 +32,10 @@ RSpec.describe AttributesClaim do
 
   it 'sets the givenname attribute' do
     expect(subject.attributes[:givenname]).to eq(auth_subject[:given_name])
+  end
+
+  it 'sets the o attribute' do
+    expect(subject.attributes[:o]).to eq(auth_subject[:organization])
   end
 
   it 'sets the edupersonscopedaffiliation attribute' do
