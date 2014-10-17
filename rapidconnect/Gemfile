@@ -24,6 +24,7 @@ group :test do
   gem 'simplecov'
   gem 'factory_girl'
   gem 'faker'
+  gem 'timecop'
   gem 'shoulda-matchers'
   gem 'rake'
   gem 'coveralls', require: false
