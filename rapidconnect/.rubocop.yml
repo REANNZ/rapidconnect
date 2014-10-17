@@ -5,11 +5,15 @@ AllCops:
 # RC class is singular by design
 # Will be reduced in the future
 # when FR3 takes over admin features.
-ClassLength:
-  Enabled: false
+Metrics/ClassLength:
+  Exclude:
+    - app/rapid_connect.rb
 
-LineLength:
-  Enabled: false
+Metrics/LineLength:
+  Exclude:
+    - app/rapid_connect.rb
+    - spec/rapid_connect_spec.rb
 
-MethodLength:
-  Enabled: false
+Metrics/MethodLength:
+  Exclude:
+    - app/rapid_connect.rb
