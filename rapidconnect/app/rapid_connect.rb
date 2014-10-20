@@ -438,6 +438,13 @@ class RapidConnect < Sinatra::Base
     erb :post, layout: :post
   end
 
+  get '/jwt/authnrequest/auresearch/:identifier' do
+    attrs = @claims_set.claims[:'https://aaf.edu.au/attributes']
+    audit_log(@service, session['subject'], @claims_set.claims, attrs.keys)
+
+    erb :post, layout: :post
+  end
+
   get '/jwt/authnrequest/zendesk/:identifier' do
     attrs = %w(cn mail edupersontargetedid o)
     audit_log(@service, session['subject'], @claims_set.claims, attrs)

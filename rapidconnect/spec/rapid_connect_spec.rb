@@ -650,6 +650,17 @@ describe RapidConnect do
       include_context 'a research service type'
     end
 
+    context '/authnrequest/auresearch' do
+      let(:type) { 'auresearch' }
+      let(:attrs) do
+        %w(cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname
+           auedupersonsharedtoken)
+      end
+
+      include_context 'a research service type'
+    end
+
     context '/authnrequest/zendesk' do
       let(:type) { 'zendesk' }
       let(:attrs) { %w(cn mail edupersontargetedid o) }
