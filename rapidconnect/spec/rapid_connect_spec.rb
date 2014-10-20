@@ -552,31 +552,68 @@ describe RapidConnect do
     end
   end
 
-  describe '/jwt' do
-    it 'directs to login if a jwt url requested when unauthenticated' do
-      allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
-      get '/jwt/xyz'
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/login/1')
+  context '/jwt' do
+    context 'with no authenticated user' do
+      it 'directs to login' do
+        get '/jwt/xyz'
+        expect(last_response).to be_redirect
+        expect(last_response.location)
+          .to start_with('http://example.org/login/')
+      end
     end
 
-    describe '/authnrequest/research' do
-      it 'sends 404 if no service registered for research JWT' do
-        get '/jwt/authnrequest/research/xyz', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+    shared_examples 'a valid service type' do
+      let(:service) { create(:rapid_connect_service, type: type) }
+      let(:identifier) { service.identifier }
+      let(:principal) { @valid_subject[:principal] }
+      let(:env) { { 'rack.session' => { subject: @valid_subject } } }
+
+      def binding(*parts)
+        ['urn:mace:aaf.edu.au:rapid.aaf.edu.au', *parts].join(':')
       end
 
-      it 'sends 403 if service registered for research JWT is not enabled' do
-        exampleservice
-        get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(403)
+      let(:audit_line) do
+        [
+          Time.now.utc.strftime('%Y%m%dT%H%M%SZ'), binding(type, 'get'),
+          service.identifier, service.audience, binding('jwt', type, 'sso'),
+          RapidConnect.settings.issuer, binding('jwt', type, 'post'), 'x',
+          principal, 'urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig',
+          attrs.sort.join(','), '', '', ''
+        ].join('|')
       end
 
-      it 'creates a research JWT for active services' do
-        enableexampleservice
-        get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(200)
-        expect(last_response.body).to contain('AAF Rapid Connect - Redirection')
+      subject { run }
+
+      around { |example| Timecop.freeze { example.run } }
+
+      def run
+        get "/jwt/authnrequest/#{type}/#{identifier}", {}, env
+      end
+
+      context 'for a nonexistent service' do
+        let(:identifier) { 'nonexistent' }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for the wrong service type' do
+        let(:service) { create(:rapid_connect_service, type: 'wrong') }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for a blank identifier' do
+        let(:identifier) { '' }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for a disabled service' do
+        let(:service) do
+          create(:rapid_connect_service, type: type, enabled: false)
+        end
+        it { is_expected.to be_forbidden }
+      end
+
+      it 'creates a session' do
+        run
         expect(last_response.headers).to include('Set-Cookie')
         expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
         expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
@@ -584,90 +621,45 @@ describe RapidConnect do
       end
 
       it 'records an audit log entry' do
-        Timecop.freeze do
-          allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
-          attrs = %w(cn mail displayname givenname surname edupersontargetedid
-                     edupersonscopedaffiliation edupersonprincipalname)
+        allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
+        run
 
-          expected_str = %W(
-            #{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:research:get
-            1234abcd
-            https://service.com
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:sso
-            #{RapidConnect.settings.issuer}
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:research:post
-            x
-            #{@valid_subject[:principal]}
-            urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig
-            #{attrs.sort.join(',')}
-            ||
-          ).join('|')
+        audit_lines = File.readlines(app.settings.audit_logfile)
+        expect(audit_lines.last.strip).to end_with(audit_line)
+      end
+    end
 
-          enableexampleservice
-          get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-
-          expect(File.readlines(app.settings.audit_logfile).last.strip)
-            .to end_with(expected_str)
+    shared_context 'a research service type' do
+      it_behaves_like 'a valid service type' do
+        it 'creates a JWT' do
+          run
+          expect(last_response).to be_successful
+          expect(last_response.body)
+            .to contain('AAF Rapid Connect - Redirection')
         end
       end
     end
 
-    describe '/authnrequest/zendesk' do
-      it 'sends 404 if no service registered for zendesk JWT' do
-        get '/jwt/authnrequest/zendesk/xyz', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+    context '/authnrequest/research' do
+      let(:type) { 'research' }
+      let(:attrs) do
+        %w(cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname)
       end
 
-      it 'sends 403 if service registered for zendesk JWT is not enabled' do
-        exampleservice(type: 'zendesk')
-        get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(403)
-      end
+      include_context 'a research service type'
+    end
 
-      it 'shows developer guide' do
-        get '/developers'
-        expect(last_response).to be_ok
-        expect(last_response.body).to contain('Integrating with AAF Rapid Connect')
-      end
+    context '/authnrequest/zendesk' do
+      let(:type) { 'zendesk' }
+      let(:attrs) { %w(cn mail edupersontargetedid o) }
 
-      it 'creates a zendesk JWT for active services' do
-        enableexampleservice(type: 'zendesk')
-        get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to contain('jwt=')
-        expect(last_response.location).to contain('return_to=')
-        expect(last_response.headers).to include('Set-Cookie')
-        expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
-        expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
-        expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
-      end
-
-      it 'records an audit log entry' do
-        Timecop.freeze do
-          allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
-          attrs = %w(cn mail edupersontargetedid o)
-
-          expected_str = %W(
-            #{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:zendesk:get
-            1234abcd
-            https://service.com
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:sso
-            #{RapidConnect.settings.issuer}
-            urn:mace:aaf.edu.au:rapid.aaf.edu.au:jwt:zendesk:post
-            x
-            #{@valid_subject[:principal]}
-            urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig
-            #{attrs.sort.join(',')}
-            ||
-          ).join('|')
-
-          enableexampleservice(type: 'zendesk')
-          get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-
-          expect(File.readlines(app.settings.audit_logfile).last.strip)
-            .to end_with(expected_str)
+      it_behaves_like 'a valid service type' do
+        it 'creates a JWT' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location)
+            .to match(/#{service.endpoint}\?jwt=.+&return_to=.*/)
         end
       end
     end
