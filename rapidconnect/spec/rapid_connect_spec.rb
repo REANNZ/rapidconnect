@@ -290,7 +290,8 @@ describe RapidConnect do
     end
 
     context '/services' do
-      let!(:service) { build(:rapid_connect_service) }
+      let!(:service) { build(:rapid_connect_service, type: type) }
+      let(:type) { 'research' }
       let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
       let(:url) { '/administration/services' }
       let(:method) { :get }
@@ -329,6 +330,27 @@ describe RapidConnect do
             expect(subject).to contain(service.name)
             expect(subject).to contain('Edit')
             expect(subject).to contain('Delete')
+          end
+
+          shared_context 'endpoint display' do
+            it 'shows the endpoint' do
+              endpoint = "/jwt/authnrequest/#{service.type}/#{identifier}"
+              expect(subject).to contain(endpoint)
+            end
+          end
+
+          context 'for a research service' do
+            include_context 'endpoint display'
+          end
+
+          context 'for an auresearch service' do
+            let(:type) { 'auresearch' }
+            include_context 'endpoint display'
+          end
+
+          context 'for a zendesk service' do
+            let(:type) { 'zendesk' }
+            include_context 'endpoint display'
           end
         end
       end
