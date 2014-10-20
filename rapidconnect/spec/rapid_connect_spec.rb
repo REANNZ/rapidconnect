@@ -75,6 +75,15 @@ describe RapidConnect do
     end
   end
 
+  describe '/developers' do
+    it 'shows developers guide' do
+      get '/developers'
+      expect(last_response).to be_successful
+      expect(last_response.body)
+        .to contain('Integrating with AAF Rapid Connect')
+    end
+  end
+
   describe '/login' do
     it 'redirects to Shibboleth SP SSO on login request' do
       get '/login/1'
