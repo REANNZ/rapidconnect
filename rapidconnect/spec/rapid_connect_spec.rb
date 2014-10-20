@@ -5,6 +5,11 @@ describe RapidConnect do
     hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
   end
 
+  def reload_service
+    json = @redis.hget('serviceproviders', identifier)
+    RapidConnectService.new.from_json(json)
+  end
+
   before :all do
     File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate ['Test Org Name', 'Another Test Org Name']) }
   end
@@ -212,6 +217,12 @@ describe RapidConnect do
           follow_redirect!
           expect(last_response.body).to contain(opts[:message])
         end
+
+        it 'ignores a provided service type' do
+          attrs.merge!(type: 'auresearch')
+          run
+          expect(reload_service.type).to eq('research')
+        end
       end
 
       context 'in production' do
@@ -284,11 +295,6 @@ describe RapidConnect do
 
       def run
         send(method, url, params, rack_env)
-      end
-
-      def reload_service
-        json = @redis.hget('serviceproviders', identifier)
-        RapidConnectService.new.from_json(json)
       end
 
       it 'lists all current services' do
@@ -386,6 +392,12 @@ describe RapidConnect do
 
           expect { run }.to change { reload_service.attributes }
             .from(stringify_keys(old_attrs)).to(stringify_keys(attrs))
+        end
+
+        it 'updates the service type' do
+          params.merge!(type: 'auresearch')
+          expect { run }.to change { reload_service.type }
+            .from('research').to('auresearch')
         end
       end
 

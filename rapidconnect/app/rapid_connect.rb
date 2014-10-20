@@ -199,7 +199,7 @@ class RapidConnect < Sinatra::Base
   def admin_supplied_attrs
     base = { enabled: !params[:enabled].nil? }
 
-    %i(registrant_name registrant_mail).reduce(base) do |map, sym|
+    %i(type registrant_name registrant_mail).reduce(base) do |map, sym|
       map.merge(sym => params[sym])
     end
   end
