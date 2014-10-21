@@ -42,7 +42,8 @@ class ClaimsSet
       iat: Time.now,
       nbf: 1.minute.ago,
       exp: 2.minutes.from_now,
-      jti: SecureRandom.urlsafe_base64(24)
+      jti: SecureRandom.urlsafe_base64(24),
+      typ: 'authnresponse'
     }
   end
 end

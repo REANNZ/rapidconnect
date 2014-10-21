@@ -41,6 +41,10 @@ RSpec.describe ClaimsSet do
       expect(subject.claims[:exp]).to eq(2.minutes.from_now)
     end
 
+    it 'sets the typ claim' do
+      expect(subject.claims[:typ]).to eq('authnresponse')
+    end
+
     context '#to_jws' do
       let(:secret) { 'abcd' }
       let(:jws) { subject.to_jws(secret) }
