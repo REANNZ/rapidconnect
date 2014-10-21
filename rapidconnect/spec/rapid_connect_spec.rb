@@ -28,7 +28,8 @@ describe RapidConnect do
       'HTTP_SN' => 'User',
       'HTTP_MAIL' => 'testuser@example.com',
       'HTTP_EPPN' => 'tuser1@example.com',
-      'HTTP_AFFILIATION' => 'staff@example.com'
+      'HTTP_AFFILIATION' => 'staff@example.com',
+      'HTTP_AUEDUPERSONSHAREDTOKEN' => 'shared_token'
     }
 
     @valid_subject = {
@@ -39,7 +40,8 @@ describe RapidConnect do
       surname: @valid_shibboleth_headers['HTTP_SN'],
       mail: @valid_shibboleth_headers['HTTP_MAIL'],
       principal_name: @valid_shibboleth_headers['HTTP_EPPN'],
-      scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION']
+      scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION'],
+      shared_token: @valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN']
     }
 
     @non_administrator = @valid_subject
@@ -118,6 +120,7 @@ describe RapidConnect do
       expect(session[:subject][:mail]).to eq(@valid_shibboleth_headers['HTTP_MAIL'])
       expect(session[:subject][:principal_name]).to eq(@valid_shibboleth_headers['HTTP_EPPN'])
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
+      expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
     end
   end
 
