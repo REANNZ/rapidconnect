@@ -213,12 +213,19 @@ describe RapidConnect do
       shared_examples 'a successful registration' do |opts|
         before { attrs.merge!(enabled: opts[:enabled]) }
 
+        around { |example| Timecop.freeze { example.run } }
+
         it 'creates the service' do
           expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
           json = @redis.hget('serviceproviders', identifier)
           expect(json).not_to be_nil
 
           expect(JSON.load(json)).to eq(stringify_keys(attrs))
+        end
+
+        it 'sets the timestamp' do
+          run
+          expect(reload_service.created_at).to eq(Time.now.utc.to_i)
         end
 
         it 'redirects to the completed registration page' do

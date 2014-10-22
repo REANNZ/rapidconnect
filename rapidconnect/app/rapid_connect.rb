@@ -217,6 +217,7 @@ class RapidConnect < Sinatra::Base
         erb :'registration/index'
       else
         service.enabled = (settings.federation == 'test')
+        service.created_at = Time.now.utc.to_i
         @redis.hset('serviceproviders', identifier, service.to_json)
 
         if service.enabled

@@ -17,7 +17,7 @@ class RapidConnectService
   validates :secret, presence: true, length: { minimum: 16 }
 
   @attribute_names = %w(
-    name audience endpoint secret enabled type
+    name audience endpoint secret enabled type created_at
     organisation registrant_name registrant_mail
   )
 
