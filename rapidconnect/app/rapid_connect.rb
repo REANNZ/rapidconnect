@@ -423,6 +423,8 @@ class RapidConnect < Sinatra::Base
     iss, aud = settings.issuer, @service.audience
 
     claim = AttributesClaim.new(iss, aud, session[:subject])
+    @app_logger.info("Retargeted principal #{session[:subject][:principal]} " \
+                     "for #{aud} as #{claim.attributes[:edupersontargetedid]}")
     @claims_set = ClaimsSet.send(type, iss, aud, claim)
     @jws = @claims_set.to_jws(@service.secret)
 

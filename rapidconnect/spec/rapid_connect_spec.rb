@@ -666,6 +666,18 @@ describe RapidConnect do
         expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
       end
 
+      it 'records the retargeted eptid' do
+        hash = OpenSSL::Digest::SHA256.hexdigest(principal)
+        aud = service.audience
+        @redis.set("eptid:#{aud}:#{hash}", 'x')
+
+        run
+
+        log_lines = File.readlines(app.settings.app_logfile)
+        expect(log_lines.last(2).first.strip)
+          .to end_with("Retargeted principal #{principal} for #{aud} as x")
+      end
+
       it 'records an audit log entry' do
         allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
         run
