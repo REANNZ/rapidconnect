@@ -12,10 +12,12 @@ class RapidConnectService
             presence: true
   validates :audience, :endpoint,
             presence: true, format: URI.regexp(%w(http https))
+  validates :type, inclusion: { in: %w(research auresearch zendesk),
+                                allow_nil: true }
   validates :secret, presence: true, length: { minimum: 16 }
 
   @attribute_names = %w(
-    name audience endpoint secret enabled
+    name audience endpoint secret enabled type
     organisation registrant_name registrant_mail
   )
 
@@ -36,6 +38,8 @@ class RapidConnectService
     unknown = attrs.keys.map(&:to_s) - self.class.attribute_names
     fail("Bad attribute: #{unknown}") unless unknown.empty?
     attrs.each { |k, v| send(:"#{k}=", v) }
+
+    upgrade
   end
 
   def to_s
@@ -44,5 +48,11 @@ class RapidConnectService
 
   class <<self
     attr_reader :attribute_names
+  end
+
+  private
+
+  def upgrade
+    self.type ||= 'research'
   end
 end
