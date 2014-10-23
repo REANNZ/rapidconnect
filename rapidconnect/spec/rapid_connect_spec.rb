@@ -213,12 +213,19 @@ describe RapidConnect do
       shared_examples 'a successful registration' do |opts|
         before { attrs.merge!(enabled: opts[:enabled]) }
 
+        around { |example| Timecop.freeze { example.run } }
+
         it 'creates the service' do
           expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
           json = @redis.hget('serviceproviders', identifier)
           expect(json).not_to be_nil
 
           expect(JSON.load(json)).to eq(stringify_keys(attrs))
+        end
+
+        it 'sets the timestamp' do
+          run
+          expect(reload_service.created_at).to eq(Time.now.utc.to_i)
         end
 
         it 'redirects to the completed registration page' do
@@ -333,6 +340,22 @@ describe RapidConnect do
             expect(subject).to contain(service.name)
             expect(subject).to contain('Edit')
             expect(subject).to contain('Delete')
+          end
+
+          it 'shows the creation timestamp' do
+            Timecop.freeze do
+              expect(subject).to contain(Time.now.strftime('%F %T %Z'))
+            end
+          end
+
+          context 'with no creation timestamp' do
+            let!(:service) do
+              build(:rapid_connect_service, type: type, created_at: nil)
+            end
+
+            it 'shows a message when no creation timestamp exists' do
+              expect(subject).to contain('No creation time recorded')
+            end
           end
 
           shared_context 'endpoint display' do

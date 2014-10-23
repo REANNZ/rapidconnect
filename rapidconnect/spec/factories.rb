@@ -9,6 +9,7 @@ FactoryGirl.define do
     organisation { Faker::Company.name }
     registrant_name { Faker::Name.name }
     registrant_mail { Faker::Internet.email(registrant_name) }
+    created_at { Time.now.utc.to_i }
 
     to_create do |instance|
       Redis.new.hset('serviceproviders', instance.identifier!, instance.to_json)

@@ -10,6 +10,7 @@ class RapidConnectService
 
   validates :name, :organisation, :registrant_name, :registrant_mail,
             presence: true
+  validates :created_at, numericality: { allow_nil: true }
   validates :audience, :endpoint,
             presence: true, format: URI.regexp(%w(http https))
   validates :type, inclusion: { in: %w(research auresearch zendesk),
@@ -17,7 +18,7 @@ class RapidConnectService
   validates :secret, presence: true, length: { minimum: 16 }
 
   @attribute_names = %w(
-    name audience endpoint secret enabled type
+    name audience endpoint secret enabled type created_at
     organisation registrant_name registrant_mail
   )
 

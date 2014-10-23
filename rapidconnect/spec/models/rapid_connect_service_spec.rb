@@ -34,6 +34,8 @@ describe RapidConnectService do
     it { is_expected.to allow_value('auresearch').for(:type) }
     it { is_expected.to allow_value('zendesk').for(:type) }
     it { is_expected.not_to allow_value('invalid').for(:type) }
+
+    it { is_expected.to validate_numericality_of(:created_at).allow_nil }
   end
 
   context '#identifier!' do
