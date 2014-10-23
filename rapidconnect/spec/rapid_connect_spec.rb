@@ -342,6 +342,22 @@ describe RapidConnect do
             expect(subject).to contain('Delete')
           end
 
+          it 'shows the creation timestamp' do
+            Timecop.freeze do
+              expect(subject).to contain(Time.now.strftime('%F %T %Z'))
+            end
+          end
+
+          context 'with no creation timestamp' do
+            let!(:service) do
+              build(:rapid_connect_service, type: type, created_at: nil)
+            end
+
+            it 'shows a message when no creation timestamp exists' do
+              expect(subject).to contain('No creation time recorded')
+            end
+          end
+
           shared_context 'endpoint display' do
             it 'shows the endpoint' do
               endpoint = "/jwt/authnrequest/#{service.type}/#{identifier}"

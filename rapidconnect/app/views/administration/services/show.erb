@@ -103,6 +103,14 @@
               <td>Enabled</td>
               <td><%= @service.enabled %></td>
             </tr>
+            <tr>
+              <td>Created At</td>
+              <%- if @service.created_at -%>
+                <td><%= Time.at(@service.created_at).strftime('%F %T %Z') %></td>
+              <%- else -%>
+                <td><em>No creation time recorded</em></td>
+              <%- end -%>
+            </tr>
           </tbody>
         </table>
       </div>
