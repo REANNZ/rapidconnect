@@ -22,7 +22,7 @@
           </tr>
         </thead>
         <tbody>
-        <%- @services.sort_by { |k, v| [v.created_at || 0, v.name] }.each do |k, v| -%>
+        <%- @services.sort_by { |_, v| v.name.downcase }.each do |k, v| -%>
           <tr>
             <td><%= v.name %></td>
             <td><%= v.audience %></td>
