@@ -10,7 +10,7 @@
         <label class="control-label" for="name">Organisation</label>
         <div class="controls">
           <div class="span5">
-            <select id="orgselect" name="organisation" class="span5 required">
+            <select id="orgselect" name="organisation" class="span5" required>
               <option></option>
               <% @organisations.each { |org| %>
                 <option value='<%= org %>'><%= org %></option>
@@ -29,7 +29,7 @@
         <label class="control-label" for="name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="name" class="span5 required" placeholder="Our Web Application">
+            <input type="text" name="name" class="span5" placeholder="Our Web Application" required>
           </div>
           <div class="span4 help-block">
             <p>
@@ -57,7 +57,7 @@
         <label class="control-label" for="endpoint">Callback URL</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="endpoint" class="span5 required" placeholder="https://application.com/auth/jwt">
+            <input type="text" name="endpoint" class="span5" placeholder="https://application.com/auth/jwt" required>
           </div>
           <div class="span4 help-block">
             <p>
@@ -71,7 +71,7 @@
         <label class="control-label" for="secret">Secret</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="secret" class="span5 required">
+            <input type="text" name="secret" class="span5" required minlength="16">
           </div>
           <div class="span4 help-block">
             <p>

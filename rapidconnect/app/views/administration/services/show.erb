@@ -7,12 +7,12 @@
     <ul class="breadcrumb">
       <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
       <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
-      <li class="active"><%= @service['name'] %></li>
+      <li class="active"><%= @service.name %></li>
     </ul>
 
-    <h2><%= @service['name'] %></h2>
+    <h2><%= @service.name %></h2>
 
-    <% if !@service['enabled'] %>
+    <% unless @service.enabled %>
       <div class="alert alert-error">
         <h4>Not Enabled</h4>
         This service is not currently enabled. It <strong>will fail</strong> to authenticate regardless of secret being used.
@@ -27,10 +27,10 @@
         </a>
         <ul class="dropdown-menu">
           <li>
-            <% if !@service['enabled'] %>
-              <a href="#" class="toggle-target" data-type="enabled" data-target="toggle-<%= @identifier %>">Enable</a>
-            <% else %>
+            <% if @service.enabled %>
               <a href="#" class="toggle-target" data-type="disabled" data-target="toggle-<%= @identifier %>">Disable</a>
+            <% else %>
+              <a href="#" class="toggle-target" data-type="enabled" data-target="toggle-<%= @identifier %>">Enable</a>
             <% end %>
             <form action="/administration/services/toggle/<%= @identifier %>" method="post" id="toggle-<%= @identifier %>">
               <input name="_method" type="hidden" value="patch" />
@@ -50,13 +50,13 @@
       </li>
     </ul>
 
-    <% if @service['enabled'] %>
+    <% if @service.enabled %>
       <div class="row">
         <div class="span12">
           <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
             <li>Research & Scholarly Applications<br>
-              <% url = "https://#{settings.hostname}/jwt/authnrequest/research/#{@identifier}" %>
+              <% url = "https://#{settings.hostname}/jwt/authnrequest/#{@service.type}/#{@identifier}" %>
               <a href="<%= url %>"><%= url %></a>
             </li>
           </ol>
@@ -76,28 +76,40 @@
               <td><%= @identifier %></td>
             </tr>
             <tr>
+              <td>Type</td>
+              <td><%= @service.type %></td>
+            </tr>
+            <tr>
               <td>Organisation</td>
-              <td><%= @service['organisation'] %></td>
+              <td><%= @service.organisation %></td>
             </tr>
             <tr>
               <td>Name</td>
-              <td><%= @service['name'] %></td>
+              <td><%= @service.name %></td>
             </tr>
             <tr>
               <td>URL</td>
-              <td><%= @service['audience'] %></td>
+              <td><%= @service.audience %></td>
             </tr>
             <tr>
               <td>Callback URL</td>
-              <td><%= @service['endpoint'] %></td>
+              <td><%= @service.endpoint %></td>
             </tr>
             <tr>
               <td>Secret</td>
-              <td><%= @service['secret'] %></td>
+              <td><%= @service.secret %></td>
             </tr>
             <tr>
               <td>Enabled</td>
-              <td><%= @service['enabled'] %></td>
+              <td><%= @service.enabled %></td>
+            </tr>
+            <tr>
+              <td>Created At</td>
+              <%- if @service.created_at -%>
+                <td><%= Time.at(@service.created_at).strftime('%F %T %Z') %></td>
+              <%- else -%>
+                <td><em>No creation time recorded</em></td>
+              <%- end -%>
             </tr>
           </tbody>
         </table>
@@ -109,11 +121,11 @@
           <tbody>
             <tr>
               <td>Name</td>
-              <td><%= @service['registrant_name'] %></td>
+              <td><%= @service.registrant_name %></td>
             </tr>
             <tr>
               <td>Email</td>
-              <td><%= @service['registrant_mail'] %></td>
+              <td><%= @service.registrant_mail %></td>
             </tr>
           </tbody>
         </table>
