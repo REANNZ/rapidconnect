@@ -17,6 +17,8 @@ class RapidConnectService
                                 allow_nil: true }
   validates :secret, presence: true, length: { minimum: 16 }
 
+  validate :uris_can_be_parsed
+
   @attribute_names = %w(
     name audience endpoint secret enabled type created_at
     organisation registrant_name registrant_mail
@@ -55,5 +57,17 @@ class RapidConnectService
 
   def upgrade
     self.type ||= 'research'
+  end
+
+  def uris_can_be_parsed
+    errors.add(:audience, 'is not a valid URI') unless can_parse?(audience)
+    errors.add(:endpoint, 'is not a valid URI') unless can_parse?(endpoint)
+  end
+
+  def can_parse?(uri)
+    URI.parse(uri)
+    true
+  rescue
+    false
   end
 end
