@@ -17,3 +17,7 @@ Metrics/LineLength:
 Metrics/MethodLength:
   Exclude:
     - app/rapid_connect.rb
+
+Metrics/AbcSize:
+  Exclude:
+    - app/rapid_connect.rb
