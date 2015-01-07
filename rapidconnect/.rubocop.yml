@@ -1,6 +1,11 @@
 AllCops:
+  Include:
+    - bin/*
   Exclude:
     - db/schema.rb
+
+Style/Documentation:
+  Enabled: false
 
 # RC class is singular by design
 # Will be reduced in the future

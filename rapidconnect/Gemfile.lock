@@ -203,6 +203,7 @@ DEPENDENCIES
   simplecov
   sinatra
   sinatra-contrib
+  thor
   timecop
   unicorn
   webrat

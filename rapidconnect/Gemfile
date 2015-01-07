@@ -34,3 +34,7 @@ group :test do
   gem 'guard-rubocop'
   gem 'guard-bundler'
 end
+
+group :cli do
+  gem 'thor', require: false
+end

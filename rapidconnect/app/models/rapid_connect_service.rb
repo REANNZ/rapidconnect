@@ -4,6 +4,7 @@ require 'active_model'
 class RapidConnectService
   include ActiveModel::Model
   include ActiveModel::Serializers::JSON
+  include ActiveModel::Dirty
 
   attr_accessor :identifier
   attr_reader :attributes
@@ -26,11 +27,21 @@ class RapidConnectService
 
   @attribute_names.each do |n|
     define_method(n) { @attributes[n.to_s] }
-    define_method(:"#{n}=") { |v| @attributes[n.to_s] = v }
+
+    define_method(:"#{n}=") do |v|
+      send(:"#{n}_will_change!") unless @attributes[n.to_s] == v
+      @attributes[n.to_s] = v
+    end
   end
+
+  define_attribute_methods @attribute_names
 
   def initialize
     @attributes = {}
+  end
+
+  def from_json(*args)
+    super.tap { clear_changes_information }
   end
 
   def identifier!
