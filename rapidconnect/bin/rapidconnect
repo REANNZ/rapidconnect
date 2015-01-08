@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', File.dirname(__FILE__))
+require 'rubygems'
+require 'bundler/setup'
+
+require_relative '../app/rapid_connect'
+
+require 'thor'
+
+class RapidConnectCLI < Thor
+  desc 'register [identifier] [options ...]', 'Create or update a registration'
+  option :name, desc: 'The name of the service'
+  option :org, desc: 'The organisation responsible for the service'
+  option :admin, desc: 'The registrant name'
+  option :mail, desc: 'The registrant contact email address'
+  option :aud, desc: 'The audience of the service'
+  option :url, desc: 'The callback URL to send the JWT POST'
+  option :type, desc: 'The type of service, "research" or "auresearch"'
+  option :secret, desc: 'The secret key for signing JWS'
+  long_desc <<-LONGDESC
+  Registers a new service, or updates an existing service with the provided
+  options.
+
+  For a missing option, the existing value will be left intact.
+
+  All validations are still run, so invalid registrations will fail here.
+  LONGDESC
+  def register(identifier)
+    json = redis.hget('serviceproviders', identifier)
+
+    service = RapidConnectService.new
+    service.from_json(json) if json
+
+    update(identifier, service, option_attributes)
+
+    if json
+      $stderr.puts 'Updated service registration.'
+    else
+      $stderr.puts 'Registered new service successfully.'
+    end
+  end
+
+  private
+
+  def update(identifier, service, attrs)
+    service.attributes = attrs
+
+    service.created_at ||= Time.now.utc.to_i
+    service.enabled = true
+
+    unless service.changed?
+      $stderr.puts('No change required.')
+      exit 0
+    end
+
+    store(identifier, service)
+  end
+
+  def store(identifier, service)
+    if service.valid?
+      redis.hset('serviceproviders', identifier, service.to_json)
+    else
+      $stderr.puts 'Unable to register due to validation errors:'
+      $stderr.puts
+      service.errors.full_messages.each { |s| $stderr.puts(s) }
+      exit 1
+    end
+  end
+
+  def redis
+    @redis ||= Redis.new
+  end
+
+  OPTION_MAPPINGS = {
+    aud: :audience,
+    url: :endpoint,
+    org: :organisation,
+    admin: :registrant_name,
+    mail: :registrant_mail
+  }
+
+  def option_attributes
+    attrs = options.to_h.symbolize_keys.transform_keys do |k|
+      OPTION_MAPPINGS[k] || k
+    end
+
+    attrs.compact
+  end
+end
+
+RapidConnectCLI.start(ARGV) if $PROGRAM_NAME == __FILE__
