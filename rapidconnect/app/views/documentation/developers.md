@@ -37,7 +37,7 @@ The following claims are provided by AAF Rapid Connect:
 * **nbf**: Identifies the time before which the JWT MUST NOT be accepted for processing
 * **exp**: Identifies the expiration time on or after which the JWT MUST NOT be accepted for processing
 * **typ**: Declare a type for the contents of this JWT Claims Set in an application-specific manner in contexts where this is useful to the application
-* **aud**: Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim.
+* **aud**: Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim. For Rapid Connect this is the value of your application's primary URL (provided as part of service registration)
 * **sub**: Identifies the principal that is the subject of the JWT. For Rapid Connect this is the same value supplied as `edupersontargetedid` within *https://aaf.edu.au/attributes* as documented below.
 * **https://aaf.edu.au/attributes**: Contains a set of personally identifiable information associated with *sub* as provided by the remote AAF connected identity provider.
 
@@ -115,6 +115,9 @@ Michael Lynch from EResearch Support Group, Information Technology Division, Uni
     * [http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo](http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo)
     * [https://github.com/carlohamalainen/rapid-connect-yesod-demo](https://github.com/carlohamalainen/rapid-connect-yesod-demo)
 
+###### Dart
+* [https://pub.dartlang.org/packages/jwt](https://pub.dartlang.org/packages/jwt)
+
 ##### 2. Create a secret
 The first step in integrating your code is to compute a secret that will be shared between your applicaition and AAF Rapid Connect for signing and verifying JWT.
 
@@ -125,7 +128,7 @@ Recommended secret generation method on *nix hosts, **32 characters long**:
 This value should never be publicly disclosed. Once created be sure to store it securely. *This value will be required during service registration*.
 
 ##### 3. Provide a web accessible endpoint
-Your application MUST define a https endpoint which accepts *only* a HTTP **POST** request.
+Your application MUST define a https endpoint which accepts a HTTP **POST** request.
 
 The endpoint must acquire the data provided in the parameter **assertion** for further processing.
 
@@ -135,8 +138,8 @@ Should any stage of the below validation fail your application **MUST** discard 
 1. Verify that the signature for the signed JWT you have received is valid by using your locally stored secret value
 2. Ensure that the **iss** claim has the value *https://rapid.aaf.edu.au* when in the production environment, or *https://rapid.test.aaf.edu.au* when in the test environment
 3. Ensure that the **aud** claim has the value of your application's primary URL (provided as part of service registration)
-4. Ensure that the current time is *later* then the time provided in the **nbf** claim
-5. Ensure that the current time is *before* then the time provided in the **exp** claim
+4.The current time MUST be after or equal to the the time provided in the **nbf** claim
+5. The current time MUST be *before* the time provided in the **exp** claim
 6. Ensure that the value of the **jti** claim does not exist in a local storage mechanism of **jti** claim values you have accepted. If it doesn't (this **SHOULD** be the case) add the **jti** claim value to your local storage mechanism for future protection against replay attacks
 
 All applications connecting to the AAF must adhere to all relevant [AAF rules and policies](http://www.aaf.edu.au/about/federation-rules/). Prior to approving the connection of your service to the federation, the AAF may request to review your JWT related code and test your running endpoint to verify that an application's JWT handling conforms to the above requirements.
@@ -162,7 +165,9 @@ You can now use this data to create a local account suitable for internal use by
 
 The JWT claim `sub` and the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field are always identical for Rapid Connect. The same value SHALL be provided for all subsequent visits to your application by each user.
 
-The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** try to split this value based on the delimited bang segments. This value is **not** able to correlate a user between services.
+The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** split this value based on the delimited bang segments. 
+
+The value of `sub`/`edupersontargetedid` is **not** able to correlate a user between services. For more details see [http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid).
 
 ### Register your service
 
