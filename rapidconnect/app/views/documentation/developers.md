@@ -38,7 +38,7 @@ The following claims are provided by AAF Rapid Connect:
 * **exp**: Identifies the expiration time on or after which the JWT MUST NOT be accepted for processing
 * **typ**: Declare a type for the contents of this JWT Claims Set in an application-specific manner in contexts where this is useful to the application
 * **aud**: Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim.
-* **sub**: Identifies the principal that is the subject of the JWT.
+* **sub**: Identifies the principal that is the subject of the JWT. For Rapid Connect this is the same value supplied as `edupersontargetedid` within *https://aaf.edu.au/attributes* as documented below.
 * **https://aaf.edu.au/attributes**: Contains a set of personally identifiable information associated with *sub* as provided by the remote AAF connected identity provider.
 
 Timestamps are defined by the specification as **IntDate** values, which are: *A JSON numeric value representing the number of seconds from 1970-01-01T0:0:0Z UTC until the specified UTC date/time.*
@@ -158,11 +158,15 @@ The following optional [AAF attributes](http://www.aaf.edu.au/technical/aaf-core
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
 
-You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is **highly** recommended that you use the data provided in **edupersontargetedid** to uniquely identify users (the same value will be provided for this attribute for all subsequent vists to your application by this user).
+You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
+
+The JWT claim `sub` and the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field are always identical for Rapid Connect. The same value SHALL be provided for all subsequent visits to your application by each user.
+
+The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** try to split this value based on the delimited bang segments. This value is **not** able to correlate a user between services.
 
 ### Register your service
 
-Access the [AAF Rapid Connect website](/) and click on the button for "Register a service". This is on the right hand side in a blue color under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
+Access the AAF Rapid Connect website in the **[production federation](https://rapid.aaf.edu.au)** or **[test federation](https://rapid.test.aaf.edu.au)** and click on the button for "Register a service" which is *on the right hand side in a blue colour* under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
 
 To complete registration please provide:
 
