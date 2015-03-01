@@ -1,6 +1,11 @@
 AllCops:
+  Include:
+    - bin/*
   Exclude:
     - db/schema.rb
+
+Style/Documentation:
+  Enabled: false
 
 # RC class is singular by design
 # Will be reduced in the future
@@ -15,5 +20,9 @@ Metrics/LineLength:
     - spec/rapid_connect_spec.rb
 
 Metrics/MethodLength:
+  Exclude:
+    - app/rapid_connect.rb
+
+Metrics/AbcSize:
   Exclude:
     - app/rapid_connect.rb

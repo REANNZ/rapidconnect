@@ -28,7 +28,7 @@ class ClaimsSet
 
   def initialize(iss, aud, attrs)
     @claims = base_claims.merge(:'https://aaf.edu.au/attributes' => attrs)
-      .merge(iss: iss, aud: aud, sub: attrs[:edupersontargetedid])
+              .merge(iss: iss, aud: aud, sub: attrs[:edupersontargetedid])
   end
 
   def to_jws(secret)
