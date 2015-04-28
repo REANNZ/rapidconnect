@@ -593,6 +593,6 @@ class RapidConnect < Sinatra::Base
   end
 
   def append_entity_id(url, entity_id)
-    url << "&entityID=#{entity_id}"
+    "#{url}&entityID=#{entity_id}"
   end
 end
