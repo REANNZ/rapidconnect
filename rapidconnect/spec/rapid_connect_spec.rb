@@ -642,7 +642,7 @@ describe RapidConnect do
         get '/jwt/xyz?entityID=https://vho.aaf.edu.au/idp/shibboleth'
         expect(last_response).to be_redirect
         expect(last_response.location)
-            .to start_with('http://example.org/login/')
+          .to start_with('http://example.org/login/')
         expect(last_response.location)
           .to contain('&entityID=https://vho.aaf.edu.au/idp/shibboleth')
       end
