@@ -644,7 +644,7 @@ describe RapidConnect do
         expect(last_response.location)
           .to start_with('http://example.org/login/')
         expect(last_response.location)
-          .to contain('&entityID=https://vho.aaf.edu.au/idp/shibboleth')
+          .to contain('?entityID=https://vho.aaf.edu.au/idp/shibboleth')
       end
     end
 

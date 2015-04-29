@@ -109,8 +109,7 @@ class RapidConnect < Sinatra::Base
   get '/login/:id' do |id|
     shibboleth_login_url = "/Shibboleth.sso/Login?target=/login/shibboleth/#{id}"
     if params[:entityID]
-      shibboleth_login_url = append_entity_id(shibboleth_login_url,
-                                              params[:entityID])
+      shibboleth_login_url = "#{shibboleth_login_url}&entityID=#{params[:entityID]}"
     end
     redirect shibboleth_login_url
   end
@@ -477,7 +476,7 @@ class RapidConnect < Sinatra::Base
 
     login_url = "/login/#{id}"
     if params[:entityID]
-      login_url = append_entity_id(login_url, params[:entityID])
+      login_url = "#{login_url}?entityID=#{params[:entityID]}"
     end
     redirect login_url
   end
@@ -590,9 +589,5 @@ class RapidConnect < Sinatra::Base
   ##
   def load_organisations
     JSON.parse(IO.read(settings.organisations))
-  end
-
-  def append_entity_id(url, entity_id)
-    "#{url}&entityID=#{entity_id}"
   end
 end
