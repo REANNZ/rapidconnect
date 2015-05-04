@@ -73,7 +73,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.2.0'
+    @current_version = '1.3.0'
   end
 
   def check_reopen
@@ -108,6 +108,9 @@ class RapidConnect < Sinatra::Base
   ###
   get '/login/:id' do |id|
     shibboleth_login_url = "/Shibboleth.sso/Login?target=/login/shibboleth/#{id}"
+    if params[:entityID]
+      shibboleth_login_url = "#{shibboleth_login_url}&entityID=#{params[:entityID]}"
+    end
     redirect shibboleth_login_url
   end
 
@@ -470,7 +473,12 @@ class RapidConnect < Sinatra::Base
     id = SecureRandom.urlsafe_base64(24, false)
     session[:target] ||= {}
     session[:target][id] = request.url
-    redirect "/login/#{id}"
+
+    login_url = "/login/#{id}"
+    if params[:entityID]
+      login_url = "#{login_url}?entityID=#{params[:entityID]}"
+    end
+    redirect login_url
   end
 
   def administrator?
