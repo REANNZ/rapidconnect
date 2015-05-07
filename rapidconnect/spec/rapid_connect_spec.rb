@@ -93,6 +93,14 @@ describe RapidConnect do
       expect(last_response.location).to eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth/1')
     end
 
+    it 'redirects to Shibboleth SP SSO with entityID' do
+      get '/login/1?entityID=https://vho.aaf.edu.au/idp/shibboleth'
+      expect(last_response).to be_redirect
+      expect(last_response.location).to eq('http://example.org/Shibboleth.sso' \
+         '/Login?target=/login/shibboleth' \
+         '/1&entityID=https://vho.aaf.edu.au/idp/shibboleth')
+    end
+
     it 'sends a 403 response if Shibboleth SP login response contains no session id' do
       get '/login/shibboleth/1'
       expect(last_response.status).to eq(403)
@@ -121,6 +129,28 @@ describe RapidConnect do
       expect(session[:subject][:principal_name]).to eq(@valid_shibboleth_headers['HTTP_EPPN'])
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
       expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
+    end
+
+    context 'when the attributes contain utf-8 characters' do
+      let(:value) { "\u2713" }
+
+      before do
+        # Shibboleth injects UTF-8 characters into HTTP headers, which are
+        # interpreted as ISO-8859-1 by Rack. We can emulate this by calling
+        # String#b on a string with unicode chars.
+        @valid_shibboleth_headers['HTTP_CN'] = @valid_subject[:cn] = value.b
+      end
+
+      it 'forces the encoding to be correct' do
+        target = 'http://example.org/jwt/authnrequest'
+
+        env = @valid_shibboleth_headers.merge(
+          'rack.session' => { target: { '1' => target } })
+
+        get '/login/shibboleth/1', {}, env
+        expect(last_response).to be_redirect
+        expect(session[:subject][:cn]).to eq(value)
+      end
     end
   end
 
@@ -628,6 +658,15 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location)
           .to start_with('http://example.org/login/')
+      end
+
+      it 'directs to login with entityID included' do
+        get '/jwt/xyz?entityID=https://vho.aaf.edu.au/idp/shibboleth'
+        expect(last_response).to be_redirect
+        expect(last_response.location)
+          .to start_with('http://example.org/login/')
+        expect(last_response.location)
+          .to contain('?entityID=https://vho.aaf.edu.au/idp/shibboleth')
       end
     end
 
