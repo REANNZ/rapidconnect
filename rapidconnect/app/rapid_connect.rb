@@ -74,7 +74,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.3.0'
+    @current_version = '1.3.1'
   end
 
   def check_reopen
