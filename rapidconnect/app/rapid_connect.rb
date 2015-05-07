@@ -28,6 +28,7 @@ class RapidConnect < Sinatra::Base
     use Rack::Session::Pool, expire_in: 3600
   end
 
+  use Rack::UTF8Sanitizer
   use Rack::MethodOverride
   use Rack::Flash, sweep: true
 

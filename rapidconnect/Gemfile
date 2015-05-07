@@ -15,6 +15,7 @@ gem 'rack-flash3'
 gem 'mail'
 
 gem 'rdiscount'
+gem 'rack-utf8_sanitizer'
 
 group :test do
   gem 'rspec'

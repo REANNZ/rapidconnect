@@ -130,6 +130,28 @@ describe RapidConnect do
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
       expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
     end
+
+    context 'when the attributes contain utf-8 characters' do
+      let(:value) { "\u2713" }
+
+      before do
+        # Shibboleth injects UTF-8 characters into HTTP headers, which are
+        # interpreted as ISO-8859-1 by Rack. We can emulate this by calling
+        # String#b on a string with unicode chars.
+        @valid_shibboleth_headers['HTTP_CN'] = @valid_subject[:cn] = value.b
+      end
+
+      it 'forces the encoding to be correct' do
+        target = 'http://example.org/jwt/authnrequest'
+
+        env = @valid_shibboleth_headers.merge(
+          'rack.session' => { target: { '1' => target } })
+
+        get '/login/shibboleth/1', {}, env
+        expect(last_response).to be_redirect
+        expect(session[:subject][:cn]).to eq(value)
+      end
+    end
   end
 
   describe '/logout' do
