@@ -100,6 +100,8 @@ GEM
       rack
     rack-test (0.6.2)
       rack (>= 1.0)
+    rack-utf8_sanitizer (1.3.0)
+      rack (~> 1.0)
     rainbow (2.0.0)
     raindrops (0.13.0)
     rake (10.4.2)
@@ -193,6 +195,7 @@ DEPENDENCIES
   json-jwt
   mail
   rack-flash3
+  rack-utf8_sanitizer
   rake
   rdiscount
   redis
