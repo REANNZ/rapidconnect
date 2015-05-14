@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', File.dirname(__FILE__))
-require 'rubygems'
-require 'bundler/setup'
+File.expand_path('..', File.dirname(__FILE__)).tap do |root|
+  ENV['BUNDLE_GEMFILE'] ||= File.join(root, 'Gemfile')
+  $LOAD_PATH.unshift(root)
+end
 
-require_relative '../app/rapid_connect'
-
+require 'init'
 require 'thor'
 
 class RapidConnectCLI < Thor
