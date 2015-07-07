@@ -589,6 +589,6 @@ class RapidConnect < Sinatra::Base
   # Organisation names via FR
   ##
   def load_organisations
-    JSON.parse(IO.read(settings.organisations))
+    JSON.parse(IO.read(settings.organisations)).sort_by(&:downcase)
   end
 end
