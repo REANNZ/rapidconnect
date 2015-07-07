@@ -177,6 +177,14 @@ describe RapidConnect do
       expect(last_response.body).to contain('Service Registration')
     end
 
+    it 'sorts the organisations correctly' do
+      org_configuration = JSON.generate(['Org C', 'Org A', 'org B'])
+      allow(IO).to receive(:read).with(app.settings.organisations)
+        .and_return(org_configuration)
+      get '/registration', {}, 'rack.session' => { subject: @valid_subject }
+      expect(last_response.body).to match(/Org A.*org B.*Org C/m)
+    end
+
     context '/save' do
       before do
         allow(SecureRandom).to receive(:urlsafe_base64).and_return(identifier)
