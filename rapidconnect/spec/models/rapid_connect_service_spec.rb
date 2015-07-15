@@ -18,7 +18,7 @@ describe RapidConnectService do
     it { is_expected.to validate_presence_of(:registrant_mail) }
 
     it { is_expected.to validate_presence_of(:secret) }
-    it { is_expected.to ensure_length_of(:secret).is_at_least(16) }
+    it { is_expected.to validate_length_of(:secret).is_at_least(16) }
 
     it { is_expected.to validate_presence_of(:audience) }
     it { is_expected.to allow_value('http://example.com').for(:audience) }
@@ -109,7 +109,8 @@ describe RapidConnectService do
 
     it 'fails on an invalid attribute' do
       bad_data = attrs.merge('unknown_attribute' => 'value').to_json
-      expect { RapidConnectService.new.from_json(bad_data) }.to raise_error
+      expect { RapidConnectService.new.from_json(bad_data) }
+        .to raise_error(/Bad attribute/)
     end
 
     # This checks compatibility with the format used by Rapid Connect up to
