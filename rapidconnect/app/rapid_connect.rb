@@ -425,7 +425,8 @@ class RapidConnect < Sinatra::Base
       halt 403, "The service \"#{@service.name}\" is unable to process requests at this time."
     end
 
-    iss, aud = settings.issuer, @service.audience
+    iss = settings.issuer
+    aud = @service.audience
 
     claim = AttributesClaim.new(iss, aud, session[:subject])
     @app_logger.info("Retargeted principal #{session[:subject][:principal]} " \

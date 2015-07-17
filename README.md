@@ -1,17 +1,22 @@
 # AAF Rapid Connect
 
 [![Build Status][BS img]][Build Status]
-[![Coverage Status][CS img]][Coverage Status]
+[![Dependency Status][DS img]][Dependency Status]
+[![Code Climate][CC img]][Code Climate]
+[![Coverage Status][CS img]][Code Climate]
 
-[Build Status]: https://travis-ci.org/ausaccessfed/rapidconnect
-[Coverage Status]: https://coveralls.io/r/ausaccessfed/rapidconnect
+[Build Status]: https://codeship.com/projects/91224
+[Dependency Status]: https://gemnasium.com/ausaccessfed/rapidconnect
+[Code Climate]: https://codeclimate.com/github/ausaccessfed/rapidconnect
 
-[BS img]: https://img.shields.io/travis/ausaccessfed/rapidconnect/develop.svg
-[CS img]: https://img.shields.io/coveralls/ausaccessfed/rapidconnect/develop.svg
+[BS img]: https://img.shields.io/codeship/314a53c0-0cd9-0133-9f8f-7aae0ba3591b/develop.svg
+[DS img]: https://img.shields.io/gemnasium/ausaccessfed/rapidconnect/develop.svg
+[CC img]: https://img.shields.io/codeclimate/github/ausaccessfed/rapidconnect.svg
+[CS img]: https://img.shields.io/codeclimate/coverage/github/ausaccessfed/rapidconnect.svg
 
 Author: Bradley Beddoes and Shaun Mangelsdorf
 
-Copyright 2013, Australian Access Federation
+Copyright 2013-2015, Australian Access Federation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,7 +32,7 @@ limitations under the License.
 
 ## Overview
 
-The AAF Rapid Connect service will allow us to translate SAML assertions which are verified by a standard Shibboleth SP into formats which may be more palitable for use by services with restricted environments or no need to access some of the more advanced parts of the AAF offering.
+The AAF Rapid Connect service will allow us to translate SAML assertions which are verified by a standard Shibboleth SP into formats which may be more palatable for use by services with restricted environments or no need to access some of the more advanced parts of the AAF offering.
 
 ### Benefits
 

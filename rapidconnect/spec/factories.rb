@@ -17,7 +17,7 @@ FactoryGirl.define do
   end
 
   factory :subject, class: 'Hash' do
-    ignore do
+    transient do
       idp_domain { Faker::Internet.domain_name }
       idp_host { "idp.#{idp_domain}" }
       sp_host { "rapid.#{Faker::Internet.domain_name}" }
