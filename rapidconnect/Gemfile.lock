@@ -30,6 +30,7 @@ GEM
       redis (~> 3.0)
     ffi (1.9.10)
     formatador (0.2.5)
+    god (0.13.6)
     guard (2.12.8)
       formatador (>= 0.2.4)
       listen (>= 2.7, <= 4.0)
@@ -173,6 +174,7 @@ DEPENDENCIES
   factory_girl
   faker
   fakeredis
+  god
   guard
   guard-bundler
   guard-rspec
@@ -195,3 +197,6 @@ DEPENDENCIES
   timecop
   unicorn
   webrat
+
+BUNDLED WITH
+   1.10.6
