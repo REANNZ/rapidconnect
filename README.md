@@ -10,7 +10,7 @@
 [Code Climate]: https://codeclimate.com/github/ausaccessfed/rapidconnect
 
 [BS img]: https://img.shields.io/codeship/314a53c0-0cd9-0133-9f8f-7aae0ba3591b/develop.svg
-[DS img]: https://img.shields.io/gemnasium/ausaccessfed/rapidconnect/develop.svg
+[DS img]: https://img.shields.io/gemnasium/ausaccessfed/rapidconnect.svg
 [CC img]: https://img.shields.io/codeclimate/github/ausaccessfed/rapidconnect.svg
 [CS img]: https://img.shields.io/codeclimate/coverage/github/ausaccessfed/rapidconnect.svg
 
