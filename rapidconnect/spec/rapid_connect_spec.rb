@@ -93,6 +93,11 @@ describe RapidConnect do
       expect(last_response.location).to eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth/1')
     end
 
+    it 'forces the response not to be cached' do
+      get '/login/1'
+      expect(last_response['Cache-Control']).to eq('no-cache')
+    end
+
     it 'redirects to Shibboleth SP SSO with entityID' do
       get '/login/1?entityID=https://vho.aaf.edu.au/idp/shibboleth'
       expect(last_response).to be_redirect
@@ -666,6 +671,11 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location)
           .to start_with('http://example.org/login/')
+      end
+
+      it 'forces the response not to be cached' do
+        get '/jwt/xyz'
+        expect(last_response['Cache-Control']).to eq('no-cache')
       end
 
       it 'directs to login with entityID included' do

@@ -104,6 +104,10 @@ class RapidConnect < Sinatra::Base
     erb :welcome, layout: nil
   end
 
+  before %r{\A/(login|jwt)/.+}.freeze do
+    cache_control :no_cache
+  end
+
   ###
   # Session Management
   ###
