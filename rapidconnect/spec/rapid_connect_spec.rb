@@ -47,7 +47,7 @@ describe RapidConnect do
     @non_administrator = @valid_subject
                          .merge(principal: 'https://idp.example.com!-!1234abcd')
 
-    @redis =  Redis.new
+    @redis = Redis.new
   end
 
   after :each do
