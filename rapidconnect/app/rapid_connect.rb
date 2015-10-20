@@ -74,7 +74,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.3.2'
+    @current_version = '1.3.3'
   end
 
   def check_reopen
@@ -102,6 +102,10 @@ class RapidConnect < Sinatra::Base
   ##
   get '/' do
     erb :welcome, layout: nil
+  end
+
+  before %r{\A/(login|jwt)/.+}.freeze do
+    cache_control :no_cache
   end
 
   ###
@@ -425,7 +429,8 @@ class RapidConnect < Sinatra::Base
       halt 403, "The service \"#{@service.name}\" is unable to process requests at this time."
     end
 
-    iss, aud = settings.issuer, @service.audience
+    iss = settings.issuer
+    aud = @service.audience
 
     claim = AttributesClaim.new(iss, aud, session[:subject])
     @app_logger.info("Retargeted principal #{session[:subject][:principal]} " \
@@ -589,6 +594,6 @@ class RapidConnect < Sinatra::Base
   # Organisation names via FR
   ##
   def load_organisations
-    JSON.parse(IO.read(settings.organisations))
+    JSON.parse(IO.read(settings.organisations)).sort_by(&:downcase)
   end
 end

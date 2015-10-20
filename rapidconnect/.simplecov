@@ -1,9 +1,11 @@
-require 'coveralls'
+require 'codeclimate-test-reporter'
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-  SimpleCov::Formatter::HTMLFormatter,
-  Coveralls::SimpleCov::Formatter
-]
+CodeClimate::TestReporter.configure do |config|
+  config.path_prefix = 'rapidconnect'
+  config.git_dir = '../'
+end
+
+CodeClimate::TestReporter.start
 
 SimpleCov.start do
   add_filter('spec')

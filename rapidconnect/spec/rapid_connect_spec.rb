@@ -47,7 +47,7 @@ describe RapidConnect do
     @non_administrator = @valid_subject
                          .merge(principal: 'https://idp.example.com!-!1234abcd')
 
-    @redis =  Redis.new
+    @redis = Redis.new
   end
 
   after :each do
@@ -91,6 +91,11 @@ describe RapidConnect do
       get '/login/1'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth/1')
+    end
+
+    it 'forces the response not to be cached' do
+      get '/login/1'
+      expect(last_response['Cache-Control']).to eq('no-cache')
     end
 
     it 'redirects to Shibboleth SP SSO with entityID' do
@@ -175,6 +180,14 @@ describe RapidConnect do
       get '/registration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response).to be_ok
       expect(last_response.body).to contain('Service Registration')
+    end
+
+    it 'sorts the organisations correctly' do
+      org_configuration = JSON.generate(['Org C', 'Org A', 'org B'])
+      allow(IO).to receive(:read).with(app.settings.organisations)
+        .and_return(org_configuration)
+      get '/registration', {}, 'rack.session' => { subject: @valid_subject }
+      expect(last_response.body).to match(/Org A.*org B.*Org C/m)
     end
 
     context '/save' do
@@ -658,6 +671,11 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location)
           .to start_with('http://example.org/login/')
+      end
+
+      it 'forces the response not to be cached' do
+        get '/jwt/xyz'
+        expect(last_response['Cache-Control']).to eq('no-cache')
       end
 
       it 'directs to login with entityID included' do
