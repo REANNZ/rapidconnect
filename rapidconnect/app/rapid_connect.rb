@@ -552,9 +552,22 @@ class RapidConnect < Sinatra::Base
     { services: services }.to_json
   end
 
+  get '/export/basic' do
+    content_type :json
+
+    services = load_all_services.map do |(id, service)|
+      service_as_json(id, service).tap do |s|
+        s[:rapidconnect].delete(:secret)
+      end
+    end
+
+    { services: services }.to_json
+  end
+
   def service_as_json(id, service)
     { id: id,
       name: service.name,
+      created_at: Time.at(service.created_at).utc.xmlschema,
       contact: {
         name: service.registrant_name,
         email: service.registrant_mail,

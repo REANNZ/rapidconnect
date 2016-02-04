@@ -18,6 +18,8 @@ describe RapidConnect do
     File.delete('/tmp/rspec_organisations.json')
   end
 
+  around { |example| Timecop.freeze { example.run } }
+
   before :each do
     @valid_shibboleth_headers = {
       'HTTP_SHIB_SESSION_ID' => 'abcd1234',
@@ -59,7 +61,7 @@ describe RapidConnect do
   end
 
   def exampleservice(opts = {})
-    @redis.hset('serviceproviders', '1234abcd', opts.reverse_merge('name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w').to_json)
+    @redis.hset('serviceproviders', '1234abcd', opts.reverse_merge('name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w', 'created_at' => Time.now.to_i).to_json)
   end
 
   def enableexampleservice(opts = {})
@@ -256,8 +258,6 @@ describe RapidConnect do
       shared_examples 'a successful registration' do |opts|
         before { attrs.merge!(enabled: opts[:enabled]) }
 
-        around { |example| Timecop.freeze { example.run } }
-
         it 'creates the service' do
           expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
           json = @redis.hget('serviceproviders', identifier)
@@ -386,9 +386,7 @@ describe RapidConnect do
           end
 
           it 'shows the creation timestamp' do
-            Timecop.freeze do
-              expect(subject).to contain(Time.now.strftime('%F %T %Z'))
-            end
+            expect(subject).to contain(Time.now.strftime('%F %T %Z'))
           end
 
           context 'with no creation timestamp' do
@@ -710,8 +708,6 @@ describe RapidConnect do
 
       subject { run }
 
-      around { |example| Timecop.freeze { example.run } }
-
       def run
         get "/jwt/authnrequest/#{type}/#{identifier}", {}, env
       end
@@ -872,6 +868,29 @@ describe RapidConnect do
           json = JSON.parse(response.body)
           expect(json['services'][0]['id']).to eq '1234abcd'
           expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
+          expect(json['services'][0]['created_at']).to eq(Time.now.utc.xmlschema)
+        end
+      end
+    end
+
+    describe '/basic' do
+      it_behaves_like 'export API'
+
+      context 'valid request' do
+        before(:each) do
+          enableexampleservice
+        end
+
+        it '200' do
+          get '/export/basic', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
+          expect(last_response.status).to eq 200
+        end
+
+        it 'provides json' do
+          get '/export/basic', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
+          json = JSON.parse(response.body)
+          expect(json['services'][0]['id']).to eq '1234abcd'
+          expect(json['services'][0]['rapidconnect']).not_to have_key('secret')
         end
       end
     end
