@@ -142,8 +142,12 @@ class RapidConnect < Sinatra::Base
         }
 
         session[:subject] = subject
-        @app_logger.info "Established session for #{subject[:cn]}(#{subject[:principal]})"
-        redirect target
+        if valid_subject?(subject)
+          @app_logger.info "Established session for #{subject[:cn]}(#{subject[:principal]})"
+          redirect target
+        else
+          redirect '/invalidsession'
+        end
       else
         redirect '/serviceunknown'
       end
@@ -162,6 +166,18 @@ class RapidConnect < Sinatra::Base
 
   get '/serviceunknown' do
     erb :serviceunknown
+  end
+
+  get '/invalidsession' do
+    erb :invalidsession
+  end
+
+  def valid_subject?(subject)
+    subject[:principal].present? &&
+      subject[:cn].present? &&
+      subject[:mail].present? &&
+      subject[:display_name].present? &&
+      subject[:scoped_affiliation].present?
   end
 
   ###
