@@ -71,6 +71,12 @@ describe RapidConnect do
     @redis.hset('serviceproviders', '1234abcd', service_provider.to_json)
   end
 
+  def dup_headers_and_remove_exisiting(key)
+    headers = @valid_shibboleth_headers.deep_dup
+    headers.delete(key)
+    headers
+  end
+
   describe '/' do
     it 'shows welcome erb' do
       get '/'
@@ -157,6 +163,59 @@ describe RapidConnect do
         get '/login/shibboleth/1', {}, env
         expect(last_response).to be_redirect
         expect(session[:subject][:cn]).to eq(value)
+      end
+    end
+
+    context 'core attributes are missing' do
+      shared_examples 'halts invalid user session' do
+        it 'halts session, shows user an error' do
+          expect(last_response).to be_redirect
+          expect(last_response.location).to eq(invalid_session_target)
+        end
+      end
+
+      let(:invalid_session_target) { 'http://example.org/invalidsession' }
+      before do
+        target = 'http://example.org/jwt/authnrequest'
+        env = invalid_headers.merge(
+          'rack.session' => { target: { '1' => target } })
+
+        get '/login/shibboleth/1', {}, env
+      end
+
+      context 'missing principal' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_PERSISTENT_ID')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing cn' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_CN')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing mail' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_MAIL')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing displayname' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_DISPLAYNAME')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing edupersonscopedaffiliation' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_AFFILIATION')
+        end
+        include_examples 'halts invalid user session'
       end
     end
   end
