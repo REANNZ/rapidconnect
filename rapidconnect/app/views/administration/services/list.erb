@@ -22,16 +22,16 @@
           </tr>
         </thead>
         <tbody>
-        <% @services.sort.each do |k, v| %>
+        <%- @services.sort_by { |_, v| v.name.downcase }.each do |k, v| -%>
           <tr>
-            <td><%= v['name'] %></td>
-            <td><%= v['audience'] %></td>
-            <td><%= v['enabled'] %></td>
+            <td><%= v.name %></td>
+            <td><%= v.audience %></td>
+            <td><%= v.enabled %></td>
             <td>
               <a href="/administration/services/<%= k %>" class="btn btn-small">Show</a>
             </td>
           </tr>
-        <% end %>
+        <%- end -%>
         </tbody>
       </table>
 

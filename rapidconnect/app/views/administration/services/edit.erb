@@ -6,11 +6,11 @@
     <ul class="breadcrumb">
       <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
       <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
-      <li><a href="/administration/services/<%= @identifier %>"><%= @service['name'] %></a> <span class="divider">/</span></li>
+      <li><a href="/administration/services/<%= @identifier %>"><%= @service.name %></a> <span class="divider">/</span></li>
       <li class="active">Editing</li>
     </ul>
 
-    <h2>Editing <%= @service['name'] %></h2>
+    <h2>Editing <%= @service.name %></h2>
 
     <form method="post" action="/administration/services/update" class="form form-horizontal validate">
 
@@ -23,7 +23,7 @@
         <label class="control-label" for="name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="name" class="span5 required" value="<%= @service['name'] %>">
+            <input type="text" name="name" class="span5 required" value="<%= @service.name %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -34,10 +34,33 @@
       </div>
 
       <div class="control-group">
+        <label class="control-label" for="type">Type</label>
+        <div class="controls">
+          <div class="span5">
+            <select name="type" class="span5 required">
+              <%- %w(research auresearch zendesk).each do |type| -%>
+                <%- if @service.type == type -%>
+                  <option value="<%= type %>" selected><%= type %></option>
+                <%- else -%>
+                  <option value="<%= type %>"><%= type %></option>
+                <%- end -%>
+              <%- end -%>
+            </select>
+          </div>
+          <div class="span4 help-block">
+            <p>
+              The type of service, which helps the application choose the
+              correct attribute set and callback mechanism.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
         <label class="control-label" for="audience">Service URL</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="audience" class="span5 required" value="<%= @service['audience'] %>">
+            <input type="text" name="audience" class="span5 required" value="<%= @service.audience %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -51,11 +74,11 @@
         <label class="control-label" for="endpoint">Callback URL</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="endpoint" class="span5 required" value="<%= @service['endpoint'] %>">
+            <input type="text" name="endpoint" class="span5 required" value="<%= @service.endpoint %>">
           </div>
           <div class="span4 help-block">
             <p>
-              The URL that AAF Fuse should POST responses to.
+              The URL that AAF Rapid Connect should POST responses to.
             </p>
           </div>
         </div>
@@ -65,11 +88,11 @@
         <label class="control-label" for="secret">Secret</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="secret" class="span5 required" value="<%= @service['secret'] %>">
+            <input type="text" name="secret" class="span5 required" value="<%= @service.secret %>">
           </div>
           <div class="span4 help-block">
             <p>
-              Secret used by Fuse and the application to verify JWS.
+              Secret used by AAF Rapid Connect and the application to verify JWS.
             </p>
             <p>
               <strong>Recommended Generation Method</strong><br>
@@ -83,11 +106,11 @@
         <label class="control-label" for="enabled">Enabled</label>
         <div class="controls">
           <div class="span5">
-            <input type="checkbox" name="enabled" class="span5" <%= @service['enabled'] ? "checked" : "" %>>
+            <input type="checkbox" name="enabled" class="span5" <%= @service.enabled ? "checked" : "" %>>
           </div>
           <div class="span4 help-block">
             <p>
-              Determines if this service is able to make authentication requests agains AAF Fuse.
+              Determines if this service is able to make authentication requests agains AAF Rapid Connect.
             </p>
           </div>
         </div>
@@ -103,7 +126,7 @@
             <select name="organisation" class="span5 required">
               <option></option>
               <% @organisations.each { |org| %>
-                <% if org.eql? @service['organisation'] %>
+                <% if org.eql? @service.organisation %>
                   <option value='<%= org %>' selected><%= org %></option>
                 <% else %>
                   <option value='<%= org %>'><%= org %></option>
@@ -123,7 +146,7 @@
         <label class="control-label" for="registrant_name">Name</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="registrant_name" class="span5 required" value="<%= @service['registrant_name'] %>">
+            <input type="text" name="registrant_name" class="span5 required" value="<%= @service.registrant_name %>">
           </div>
           <div class="span4 help-block">
             <p>
@@ -137,7 +160,7 @@
         <label class="control-label" for="registrant_mail">Email</label>
         <div class="controls">
           <div class="span5">
-            <input type="text" name="registrant_mail" class="span5 required" value="<%= @service['registrant_mail'] %>">
+            <input type="text" name="registrant_mail" class="span5 required" value="<%= @service.registrant_mail %>">
           </div>
           <div class="span4 help-block">
             <p>
