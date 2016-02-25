@@ -215,7 +215,10 @@ describe RapidConnect do
         let(:invalid_headers) do
           dup_headers_and_remove_exisiting('HTTP_AFFILIATION')
         end
-        include_examples 'halts invalid user session'
+        it 'does not halt session, continues' do
+          expect(last_response).to be_redirect
+          expect(last_response.location).not_to eq(invalid_session_target)
+        end
       end
     end
   end
