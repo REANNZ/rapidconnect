@@ -176,8 +176,7 @@ class RapidConnect < Sinatra::Base
     subject[:principal].present? &&
       subject[:cn].present? &&
       subject[:mail].present? &&
-      subject[:display_name].present? &&
-      subject[:scoped_affiliation].present?
+      subject[:display_name].present?
   end
 
   ###
