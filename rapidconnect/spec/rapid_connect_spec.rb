@@ -121,6 +121,10 @@ describe RapidConnect do
 
     it 'sends a redirect to service unknown if original target not in session' do
       get '/login/shibboleth/1', {}, @valid_shibboleth_headers
+
+      expect(session[:subject]).not_to be_present
+      expect(session[:target]).not_to be_present
+
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/serviceunknown')
       follow_redirect!
@@ -169,6 +173,10 @@ describe RapidConnect do
     context 'core attributes are missing' do
       shared_examples 'halts invalid user session' do
         it 'halts session, shows user an error' do
+          expect(session[:subject]).not_to be_present
+          expect(session[:invalid_subject]).to be_present
+          expect(session[:target]).not_to be_present
+          expect(session[:invalid_target]).to be_present
           expect(last_response).to be_redirect
           expect(last_response.location).to eq(invalid_session_target)
         end
