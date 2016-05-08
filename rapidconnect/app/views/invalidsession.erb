@@ -14,8 +14,8 @@
 Date: <%= Time.now %>
 Rapid Connect Version: <%= current_version %>
 
-Target: <%= session[:target] %>
-Subject: <%= session[:subject].inspect %>
+Target: <%= session[:invalid_target] %>
+Subject: <%= session[:invalid_subject].inspect %>
 
 <%= Base64.encode64(env.inspect) %>
 
