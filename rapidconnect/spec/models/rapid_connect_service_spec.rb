@@ -18,17 +18,26 @@ describe RapidConnectService do
     it { is_expected.to validate_presence_of(:registrant_mail) }
 
     it { is_expected.to validate_presence_of(:secret) }
-    it { is_expected.to ensure_length_of(:secret).is_at_least(16) }
+    it { is_expected.to validate_length_of(:secret).is_at_least(16) }
 
     it { is_expected.to validate_presence_of(:audience) }
     it { is_expected.to allow_value('http://example.com').for(:audience) }
     it { is_expected.to allow_value('https://example.com').for(:audience) }
+    it { is_expected.not_to allow_value('https://a b.x.com').for(:audience) }
     it { is_expected.not_to allow_value('example.com').for(:audience) }
 
     it { is_expected.to validate_presence_of(:endpoint) }
     it { is_expected.to allow_value('http://example.com').for(:endpoint) }
     it { is_expected.to allow_value('https://example.com').for(:endpoint) }
+    it { is_expected.not_to allow_value('https://a b.x.com').for(:endpoint) }
     it { is_expected.not_to allow_value('example.com').for(:endpoint) }
+
+    it { is_expected.to allow_value('research').for(:type) }
+    it { is_expected.to allow_value('auresearch').for(:type) }
+    it { is_expected.to allow_value('zendesk').for(:type) }
+    it { is_expected.not_to allow_value('invalid').for(:type) }
+
+    it { is_expected.to validate_numericality_of(:created_at).allow_nil }
   end
 
   context '#identifier!' do
@@ -100,7 +109,8 @@ describe RapidConnectService do
 
     it 'fails on an invalid attribute' do
       bad_data = attrs.merge('unknown_attribute' => 'value').to_json
-      expect { RapidConnectService.new.from_json(bad_data) }.to raise_error
+      expect { RapidConnectService.new.from_json(bad_data) }
+        .to raise_error(/Bad attribute/)
     end
 
     # This checks compatibility with the format used by Rapid Connect up to
@@ -137,8 +147,14 @@ describe RapidConnectService do
         expect(subject).to be_valid
       end
 
-      it 'serializes to the same data' do
-        expect(JSON.load(subject.to_json)).to eq(attrs)
+      it 'defaults to "research" type' do
+        expect(subject.type).to eq('research')
+      end
+
+      it 'updates the serialized data' do
+        new_attrs = JSON.load(subject.to_json)
+        expect(new_attrs.delete('type')).to eq('research')
+        expect(new_attrs).to eq(attrs)
       end
     end
   end
