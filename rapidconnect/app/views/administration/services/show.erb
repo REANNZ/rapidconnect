@@ -56,7 +56,7 @@
           <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
             <li>Research & Scholarly Applications<br>
-              <% url = "https://#{settings.hostname}/jwt/authnrequest/research/#{@identifier}" %>
+              <% url = "https://#{settings.hostname}/jwt/authnrequest/#{@service.type}/#{@identifier}" %>
               <a href="<%= url %>"><%= url %></a>
             </li>
             <li>Zendesk (if applicable)<br>
@@ -78,6 +78,10 @@
             <tr>
               <td>Identifier</td>
               <td><%= @identifier %></td>
+            </tr>
+            <tr>
+              <td>Type</td>
+              <td><%= @service.type %></td>
             </tr>
             <tr>
               <td>Organisation</td>
@@ -102,6 +106,14 @@
             <tr>
               <td>Enabled</td>
               <td><%= @service.enabled %></td>
+            </tr>
+            <tr>
+              <td>Created At</td>
+              <%- if @service.created_at -%>
+                <td><%= Time.at(@service.created_at).strftime('%F %T %Z') %></td>
+              <%- else -%>
+                <td><em>No creation time recorded</em></td>
+              <%- end -%>
             </tr>
           </tbody>
         </table>

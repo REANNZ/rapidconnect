@@ -5,6 +5,11 @@ describe RapidConnect do
     hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
   end
 
+  def reload_service
+    json = @redis.hget('serviceproviders', identifier)
+    RapidConnectService.new.from_json(json)
+  end
+
   before :all do
     File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate ['Test Org Name', 'Another Test Org Name']) }
   end
@@ -12,6 +17,8 @@ describe RapidConnect do
   after :all do
     File.delete('/tmp/rspec_organisations.json')
   end
+
+  around { |example| Timecop.freeze { example.run } }
 
   before :each do
     @valid_shibboleth_headers = {
@@ -23,7 +30,8 @@ describe RapidConnect do
       'HTTP_SN' => 'User',
       'HTTP_MAIL' => 'testuser@example.com',
       'HTTP_EPPN' => 'tuser1@example.com',
-      'HTTP_AFFILIATION' => 'staff@example.com'
+      'HTTP_AFFILIATION' => 'staff@example.com',
+      'HTTP_AUEDUPERSONSHAREDTOKEN' => 'shared_token'
     }
 
     @valid_subject = {
@@ -34,13 +42,14 @@ describe RapidConnect do
       surname: @valid_shibboleth_headers['HTTP_SN'],
       mail: @valid_shibboleth_headers['HTTP_MAIL'],
       principal_name: @valid_shibboleth_headers['HTTP_EPPN'],
-      scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION']
+      scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION'],
+      shared_token: @valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN']
     }
 
     @non_administrator = @valid_subject
-      .merge(principal: 'https://idp.example.com!-!1234abcd')
+                         .merge(principal: 'https://idp.example.com!-!1234abcd')
 
-    @redis =  Redis.new
+    @redis = Redis.new
   end
 
   after :each do
@@ -51,15 +60,21 @@ describe RapidConnect do
     @redis.hset('administrators', @valid_subject[:principal], { 'name' => @valid_subject[:cn], 'mail' => @valid_subject[:mail] }.to_json)
   end
 
-  def exampleservice
-    @redis.hset('serviceproviders', '1234abcd', { 'name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w' }.to_json)
+  def exampleservice(opts = {})
+    @redis.hset('serviceproviders', '1234abcd', opts.reverse_merge('name' => 'Our Web App', 'audience' => 'https://service.com', 'endpoint' => 'https://service.com/auth/jwt', 'secret' => 'ykUlP1XMq3RXMd9w', 'created_at' => Time.now.to_i).to_json)
   end
 
-  def enableexampleservice
-    exampleservice
+  def enableexampleservice(opts = {})
+    exampleservice(opts)
     service_provider = JSON.parse(@redis.hget('serviceproviders', '1234abcd'))
     service_provider[:enabled] = true
     @redis.hset('serviceproviders', '1234abcd', service_provider.to_json)
+  end
+
+  def dup_headers_and_remove_exisiting(key)
+    headers = @valid_shibboleth_headers.deep_dup
+    headers.delete(key)
+    headers
   end
 
   describe '/' do
@@ -70,11 +85,33 @@ describe RapidConnect do
     end
   end
 
+  describe '/developers' do
+    it 'shows developers guide' do
+      get '/developers'
+      expect(last_response).to be_successful
+      expect(last_response.body)
+        .to contain('Integrating with AAF Rapid Connect')
+    end
+  end
+
   describe '/login' do
     it 'redirects to Shibboleth SP SSO on login request' do
       get '/login/1'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/Shibboleth.sso/Login?target=/login/shibboleth/1')
+    end
+
+    it 'forces the response not to be cached' do
+      get '/login/1'
+      expect(last_response['Cache-Control']).to eq('no-cache')
+    end
+
+    it 'redirects to Shibboleth SP SSO with entityID' do
+      get '/login/1?entityID=https://vho.aaf.edu.au/idp/shibboleth'
+      expect(last_response).to be_redirect
+      expect(last_response.location).to eq('http://example.org/Shibboleth.sso' \
+         '/Login?target=/login/shibboleth' \
+         '/1&entityID=https://vho.aaf.edu.au/idp/shibboleth')
     end
 
     it 'sends a 403 response if Shibboleth SP login response contains no session id' do
@@ -84,6 +121,10 @@ describe RapidConnect do
 
     it 'sends a redirect to service unknown if original target not in session' do
       get '/login/shibboleth/1', {}, @valid_shibboleth_headers
+
+      expect(session[:subject]).not_to be_present
+      expect(session[:target]).not_to be_present
+
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/serviceunknown')
       follow_redirect!
@@ -104,6 +145,89 @@ describe RapidConnect do
       expect(session[:subject][:mail]).to eq(@valid_shibboleth_headers['HTTP_MAIL'])
       expect(session[:subject][:principal_name]).to eq(@valid_shibboleth_headers['HTTP_EPPN'])
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
+      expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
+    end
+
+    context 'when the attributes contain utf-8 characters' do
+      let(:value) { "\u2713" }
+
+      before do
+        # Shibboleth injects UTF-8 characters into HTTP headers, which are
+        # interpreted as ISO-8859-1 by Rack. We can emulate this by calling
+        # String#b on a string with unicode chars.
+        @valid_shibboleth_headers['HTTP_CN'] = @valid_subject[:cn] = value.b
+      end
+
+      it 'forces the encoding to be correct' do
+        target = 'http://example.org/jwt/authnrequest'
+
+        env = @valid_shibboleth_headers.merge(
+          'rack.session' => { target: { '1' => target } })
+
+        get '/login/shibboleth/1', {}, env
+        expect(last_response).to be_redirect
+        expect(session[:subject][:cn]).to eq(value)
+      end
+    end
+
+    context 'core attributes are missing' do
+      shared_examples 'halts invalid user session' do
+        it 'halts session, shows user an error' do
+          expect(session[:subject]).not_to be_present
+          expect(session[:invalid_subject]).to be_present
+          expect(session[:target]).not_to be_present
+          expect(session[:invalid_target]).to be_present
+          expect(last_response).to be_redirect
+          expect(last_response.location).to eq(invalid_session_target)
+        end
+      end
+
+      let(:invalid_session_target) { 'http://example.org/invalidsession' }
+      before do
+        target = 'http://example.org/jwt/authnrequest'
+        env = invalid_headers.merge(
+          'rack.session' => { target: { '1' => target } })
+
+        get '/login/shibboleth/1', {}, env
+      end
+
+      context 'missing principal' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_PERSISTENT_ID')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing cn' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_CN')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing mail' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_MAIL')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing displayname' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_DISPLAYNAME')
+        end
+        include_examples 'halts invalid user session'
+      end
+
+      context 'missing edupersonscopedaffiliation' do
+        let(:invalid_headers) do
+          dup_headers_and_remove_exisiting('HTTP_AFFILIATION')
+        end
+        it 'does not halt session, continues' do
+          expect(last_response).to be_redirect
+          expect(last_response.location).not_to eq(invalid_session_target)
+        end
+      end
     end
   end
 
@@ -128,6 +252,14 @@ describe RapidConnect do
       get '/registration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response).to be_ok
       expect(last_response.body).to contain('Service Registration')
+    end
+
+    it 'sorts the organisations correctly' do
+      org_configuration = JSON.generate(['Org C', 'Org A', 'org B'])
+      allow(IO).to receive(:read).with(app.settings.organisations)
+        .and_return(org_configuration)
+      get '/registration', {}, 'rack.session' => { subject: @valid_subject }
+      expect(last_response.body).to match(/Org A.*org B.*Org C/m)
     end
 
     context '/save' do
@@ -204,6 +336,11 @@ describe RapidConnect do
           expect(JSON.load(json)).to eq(stringify_keys(attrs))
         end
 
+        it 'sets the timestamp' do
+          run
+          expect(reload_service.created_at).to eq(Time.now.utc.to_i)
+        end
+
         it 'redirects to the completed registration page' do
           run
           expect(last_response).to be_redirect
@@ -211,6 +348,12 @@ describe RapidConnect do
             .to eq('http://example.org/registration/complete')
           follow_redirect!
           expect(last_response.body).to contain(opts[:message])
+        end
+
+        it 'ignores a provided service type' do
+          attrs.merge!(type: 'auresearch')
+          run
+          expect(reload_service.type).to eq('research')
         end
       end
 
@@ -294,7 +437,8 @@ describe RapidConnect do
     end
 
     context '/services' do
-      let!(:service) { build(:rapid_connect_service) }
+      let!(:service) { build(:rapid_connect_service, type: type) }
+      let(:type) { 'research' }
       let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
       let(:url) { '/administration/services' }
       let(:method) { :get }
@@ -308,11 +452,6 @@ describe RapidConnect do
 
       def run
         send(method, url, params, rack_env)
-      end
-
-      def reload_service
-        json = @redis.hget('serviceproviders', identifier)
-        RapidConnectService.new.from_json(json)
       end
 
       it 'lists all current services' do
@@ -338,6 +477,41 @@ describe RapidConnect do
             expect(subject).to contain(service.name)
             expect(subject).to contain('Edit')
             expect(subject).to contain('Delete')
+          end
+
+          it 'shows the creation timestamp' do
+            expect(subject).to contain(Time.now.strftime('%F %T %Z'))
+          end
+
+          context 'with no creation timestamp' do
+            let!(:service) do
+              build(:rapid_connect_service, type: type, created_at: nil)
+            end
+
+            it 'shows a message when no creation timestamp exists' do
+              expect(subject).to contain('No creation time recorded')
+            end
+          end
+
+          shared_context 'endpoint display' do
+            it 'shows the endpoint' do
+              endpoint = "/jwt/authnrequest/#{service.type}/#{identifier}"
+              expect(subject).to contain(endpoint)
+            end
+          end
+
+          context 'for a research service' do
+            include_context 'endpoint display'
+          end
+
+          context 'for an auresearch service' do
+            let(:type) { 'auresearch' }
+            include_context 'endpoint display'
+          end
+
+          context 'for a zendesk service' do
+            let(:type) { 'zendesk' }
+            include_context 'endpoint display'
           end
         end
       end
@@ -410,6 +584,12 @@ describe RapidConnect do
 
           expect { run }.to change { reload_service.attributes }
             .from(stringify_keys(old_attrs)).to(stringify_keys(attrs))
+        end
+
+        it 'updates the service type' do
+          params.merge!(type: 'auresearch')
+          expect { run }.to change { reload_service.type }
+            .from('research').to('auresearch')
         end
       end
 
@@ -576,66 +756,150 @@ describe RapidConnect do
     end
   end
 
-  describe '/jwt' do
-    it 'directs to login if a jwt url requested when unauthenticated' do
-      allow(SecureRandom).to receive(:urlsafe_base64).and_return('1')
-      get '/jwt/xyz'
-      expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/login/1')
+  context '/jwt' do
+    context 'with no authenticated user' do
+      it 'directs to login' do
+        get '/jwt/xyz'
+        expect(last_response).to be_redirect
+        expect(last_response.location)
+          .to start_with('http://example.org/login/')
+      end
+
+      it 'forces the response not to be cached' do
+        get '/jwt/xyz'
+        expect(last_response['Cache-Control']).to eq('no-cache')
+      end
+
+      it 'directs to login with entityID included' do
+        get '/jwt/xyz?entityID=https://vho.aaf.edu.au/idp/shibboleth'
+        expect(last_response).to be_redirect
+        expect(last_response.location)
+          .to start_with('http://example.org/login/')
+        expect(last_response.location)
+          .to contain('?entityID=https://vho.aaf.edu.au/idp/shibboleth')
+      end
     end
 
-    describe '/authnrequest/research' do
-      it 'sends 404 if no service registered for research JWT' do
-        get '/jwt/authnrequest/research/xyz', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+    shared_examples 'a valid service type' do
+      let(:service) { create(:rapid_connect_service, type: type) }
+      let(:identifier) { service.identifier }
+      let(:principal) { @valid_subject[:principal] }
+      let(:env) { { 'rack.session' => { subject: @valid_subject } } }
+
+      def binding(*parts)
+        ['urn:mace:aaf.edu.au:rapid.aaf.edu.au', *parts].join(':')
       end
 
-      it 'sends 403 if service registered for research JWT is not enabled' do
-        exampleservice
-        get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(403)
+      let(:audit_line) do
+        [
+          Time.now.utc.strftime('%Y%m%dT%H%M%SZ'), binding(type, 'get'),
+          service.identifier, service.audience, binding('jwt', type, 'sso'),
+          RapidConnect.settings.issuer, binding('jwt', type, 'post'), 'x',
+          principal, 'urn:oasis:names:tc:SAML:2.0:ac:classes:XMLDSig',
+          attrs.sort.join(','), '', '', ''
+        ].join('|')
       end
 
-      it 'creates a research JWT for active services' do
-        enableexampleservice
-        get '/jwt/authnrequest/research/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(200)
-        expect(last_response.body).to contain('AAF Rapid Connect - Redirection')
+      subject { run }
+
+      def run
+        get "/jwt/authnrequest/#{type}/#{identifier}", {}, env
+      end
+
+      context 'for a nonexistent service' do
+        let(:identifier) { 'nonexistent' }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for the wrong service type' do
+        let(:service) { create(:rapid_connect_service, type: 'wrong') }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for a blank identifier' do
+        let(:identifier) { '' }
+        it { is_expected.to be_not_found }
+      end
+
+      context 'for a disabled service' do
+        let(:service) do
+          create(:rapid_connect_service, type: type, enabled: false)
+        end
+        it { is_expected.to be_forbidden }
+      end
+
+      it 'creates a session' do
+        run
         expect(last_response.headers).to include('Set-Cookie')
         expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
         expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
         expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
       end
+
+      it 'records the retargeted eptid' do
+        hash = OpenSSL::Digest::SHA256.hexdigest(principal)
+        aud = service.audience
+        @redis.set("eptid:#{aud}:#{hash}", 'x')
+
+        run
+
+        log_lines = File.readlines(app.settings.app_logfile)
+        expect(log_lines.last(2).first.strip)
+          .to end_with("Retargeted principal #{principal} for #{aud} as x")
+      end
+
+      it 'records an audit log entry' do
+        allow(SecureRandom).to receive(:urlsafe_base64).and_return('x')
+        run
+
+        audit_lines = File.readlines(app.settings.audit_logfile)
+        expect(audit_lines.last.strip).to end_with(audit_line)
+      end
     end
 
-    describe '/authnrequest/zendesk' do
-      it 'sends 404 if no service registered for zendesk JWT' do
-        get '/jwt/authnrequest/zendesk/xyz', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(404)
+    shared_context 'a research service type' do
+      it_behaves_like 'a valid service type' do
+        it 'creates a JWT' do
+          run
+          expect(last_response).to be_successful
+          expect(last_response.body)
+            .to contain('AAF Rapid Connect - Redirection')
+        end
+      end
+    end
+
+    context '/authnrequest/research' do
+      let(:type) { 'research' }
+      let(:attrs) do
+        %w(cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname)
       end
 
-      it 'sends 403 if service registered for zendesk JWT is not enabled' do
-        exampleservice
-        get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(403)
+      include_context 'a research service type'
+    end
+
+    context '/authnrequest/auresearch' do
+      let(:type) { 'auresearch' }
+      let(:attrs) do
+        %w(cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname
+           auedupersonsharedtoken)
       end
 
-      it 'shows developer guide' do
-        get '/developers'
-        expect(last_response).to be_ok
-        expect(last_response.body).to contain('Integrating with AAF Rapid Connect')
-      end
+      include_context 'a research service type'
+    end
 
-      it 'creates a zendesk JWT for active services' do
-        enableexampleservice
-        get '/jwt/authnrequest/zendesk/1234abcd', {}, 'rack.session' => { subject: @valid_subject }
-        expect(last_response.status).to eq(302)
-        expect(last_response.location).to contain('jwt=')
-        expect(last_response.location).to contain('return_to=')
-        expect(last_response.headers).to include('Set-Cookie')
-        expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
-        expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
-        expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
+    context '/authnrequest/zendesk' do
+      let(:type) { 'zendesk' }
+      let(:attrs) { %w(cn mail edupersontargetedid o) }
+
+      it_behaves_like 'a valid service type' do
+        it 'creates a JWT' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location)
+            .to match(/#{service.endpoint}\?jwt=.+&return_to=.*/)
+        end
       end
     end
   end
@@ -698,6 +962,29 @@ describe RapidConnect do
           json = JSON.parse(response.body)
           expect(json['services'][0]['id']).to eq '1234abcd'
           expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
+          expect(json['services'][0]['created_at']).to eq(Time.now.utc.xmlschema)
+        end
+      end
+    end
+
+    describe '/basic' do
+      it_behaves_like 'export API'
+
+      context 'valid request' do
+        before(:each) do
+          enableexampleservice
+        end
+
+        it '200' do
+          get '/export/basic', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
+          expect(last_response.status).to eq 200
+        end
+
+        it 'provides json' do
+          get '/export/basic', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
+          json = JSON.parse(response.body)
+          expect(json['services'][0]['id']).to eq '1234abcd'
+          expect(json['services'][0]['rapidconnect']).not_to have_key('secret')
         end
       end
     end
@@ -729,32 +1016,4 @@ describe RapidConnect do
       end
     end
   end
-
-  describe '#generate_research_claim' do
-    it 'creates a valid claim' do
-      rc = RapidConnect.new
-      claim = rc.helpers.generate_research_claim('http://service.com', @valid_subject)
-      expect(claim[:aud]).to eq('http://service.com')
-      expect(claim[:iss]).to eq('https://rapid.example.org')
-      expect(claim[:sub]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-      expect(claim[:'https://aaf.edu.au/attributes'][:cn]).to eq(@valid_subject[:cn])
-      expect(claim[:'https://aaf.edu.au/attributes'][:mail]).to eq(@valid_subject[:mail])
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersontargetedid]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersonprincipalname]).to eq(@valid_subject[:principal_name])
-      expect(claim[:'https://aaf.edu.au/attributes'][:edupersonscopedaffiliation]).to eq(@valid_subject[:scoped_affiliation])
-    end
-  end
-
-  describe '#generate_zendesk_claim' do
-    it 'creates a valid claim' do
-      rc = RapidConnect.new
-      claim = rc.helpers.generate_zendesk_claim('http://service.com', @valid_subject)
-      expect(claim[:aud]).to eq('http://service.com')
-      expect(claim[:iss]).to eq('https://rapid.example.org')
-      expect(claim[:name]).to eq(@valid_subject[:cn])
-      expect(claim[:email]).to eq(@valid_subject[:mail])
-      expect(claim[:external_id]).to eq('https://rapid.example.org!http://service.com!MLD5Q9wrjigVSip53095hAW7Xro=')
-    end
-  end
-
 end

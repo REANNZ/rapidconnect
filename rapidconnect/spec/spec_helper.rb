@@ -33,15 +33,8 @@ Sinatra::Base.set :mail, from: 'noreply@example.org', to: 'support@example.org'
 Sinatra::Base.set :export, enabled: true
 Sinatra::Base.set :export, secret: 'test_secret'
 
-legacy_rspec_matchers = [
-  Webrat::Matchers::HasContent,
-  Mail::Matchers::HasSentEmailMatcher
-]
-
-legacy_rspec_matchers.each do |m|
-  m.instance_eval do
-    alias_method :failure_message_when_negated, :negative_failure_message
-  end
+Webrat::Matchers::HasContent.instance_eval do
+  alias_method :failure_message_when_negated, :negative_failure_message
 end
 
 # Supply common framework actions to tests
@@ -70,18 +63,23 @@ end
 
 FactoryGirl.find_definitions
 
+Timecop.safe_mode = true
+
 RSpec.configure do |config|
+  config.before { Redis::Connection::Memory.reset_all_databases }
+
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
 
   config.order = :random
   Kernel.srand config.seed
 
-  config.before(:suite) { FactoryGirl.lint }
   config.include Rack::Test::Methods
   config.include Webrat::Methods
   config.include Webrat::Matchers
   config.include Mail::Matchers
   config.include AppHelper
   config.include FactoryGirl::Syntax::Methods
+
+  RSpec::Matchers.define_negated_matcher :not_change, :change
 end
