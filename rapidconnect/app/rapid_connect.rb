@@ -84,7 +84,7 @@ class RapidConnect < Sinatra::Base
     @redis = Redis.new
 
     @app_logger = Logger.new(settings.app_logfile)
-    @app_logger.level = Logger::DEBUG
+    @app_logger.level = Logger::INFO
     @app_logger.formatter = Logger::Formatter.new
 
     @audit_logger = Logger.new(settings.audit_logfile)
