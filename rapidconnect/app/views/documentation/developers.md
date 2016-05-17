@@ -211,4 +211,4 @@ You may hotlink or rehost these images. Please use in accordance with the Tuakir
 ![Tuakiri large login](/tuakiri_service_550x209.png "Tuakiri Login")
 
 ## Help
-To get help with Rapid Connect simply [email Tuakiri support on support@tuakiri.ac.nz](mailto:support@tuakiri.ac.nz?subject=Help with integrating Rapid Connect)
+To get help with Rapid Connect simply [email Tuakiri support on tuakiri@reannz.co.nz](mailto:tuakiri@reannz.co.nz?subject=Help with integrating Rapid Connect)

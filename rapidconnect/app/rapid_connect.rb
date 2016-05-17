@@ -577,7 +577,7 @@ class RapidConnect < Sinatra::Base
           Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
           <a href=\"#{service_url_zendesk}\">#{service_url_zendesk}</a><br>
           <br>
-          Please contact Tuakiri support at support@tuakiri.ac.nz if you have any questions or need any assistance with connecting your service to Tuakiri RapidConnect.
+          Please contact Tuakiri support at tuakiri@reannz.co.nz if you have any questions or need any assistance with connecting your service to Tuakiri RapidConnect.
         "
       end
     end
