@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <title>Session Error</title>
+  </head>
+  <body>
+    <h2>Session Error</h2>
+    <p>Unfortunately some important details were not provided by your organisation when you logged in.</p>
+    <p>This is a backend technical issue and <strong>has not</strong> been caused by any action you've taken. We're very sorry for the inconvenience.</p>
+    <p>Tuakiri support is available to assist in resolving this error in partnership with technical staff at your organisation. Please contact Tuakiri support on <a href="mailto:tuakiri@reannz.co.nz">tuakiri@reannz.co.nz</a>, and provide a copy of the data shown below so we can assist as quickly as possible.</p>
+
+    <pre>
+----- begin halted session details ------
+
+Date: <%= Time.now %>
+Rapid Connect Version: <%= current_version %>
+
+Target: <%= session[:invalid_target] %>
+Subject: <%= session[:invalid_subject].inspect %>
+
+<%= Base64.encode64(env.inspect) %>
+
+----- end halted session details -----
+    </pre>
+  </body>
+</html>

@@ -277,7 +277,7 @@ header {
   padding-top: 12px;
   padding-bottom: 12px;
   background-color: #FFFFFF;
-  color: #7CAB1D;
+  color: #00B9E4;
 }
 header img {
   float: left;
@@ -306,7 +306,7 @@ header h2 {
 nav {
   margin-bottom: 12px;
   background-color: #FFFFFF;
-  color: #7CAB1D;
+  color: #00B9E4;
 }
 section h2 {
   color: #555555;
@@ -371,7 +371,7 @@ form input[type="text"], input[type="password"]
 
 /* background colour for navigation bar */
 .breadcrumb {
-    background-color: #7FAF1B;
+    background-color: #00B9E4;
 }
 
 /* currently selected page */

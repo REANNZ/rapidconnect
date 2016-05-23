@@ -37,8 +37,8 @@ The following claims are provided by Rapid Connect:
 * **nbf**: Identifies the time before which the JWT MUST NOT be accepted for processing
 * **exp**: Identifies the expiration time on or after which the JWT MUST NOT be accepted for processing
 * **typ**: Declare a type for the contents of this JWT Claims Set in an application-specific manner in contexts where this is useful to the application
-* **aud**: Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim.
-* **sub**: Identifies the principal that is the subject of the JWT.
+* **aud**: Identifies the audiences that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in audience claim. For Rapid Connect this is the value of your application's primary URL (provided as part of service registration)
+* **sub**: Identifies the principal that is the subject of the JWT. For Rapid Connect this is the same value supplied as `edupersontargetedid` within *https://aaf.edu.au/attributes* as documented below.
 * **https://aaf.edu.au/attributes**: Contains a set of personally identifiable information associated with *sub* as provided by the remote AAF connected identity provider.
 
 Timestamps are defined by the specification as **IntDate** values, which are: *A JSON numeric value representing the number of seconds from 1970-01-01T0:0:0Z UTC until the specified UTC date/time.*
@@ -57,7 +57,12 @@ Before you get started with Rapid Connect ensure you **MUST** meet *all* of the 
 2. When authentication is required users need to be directed to a specific URL within Rapid Connect unique to your application which is provided as part of registration. This can be achieved by:
     1. Presenting the unique URL as a link on your authentication page for the user to click on;
     2. Code within your application provides the user's browser with a 302 response directing the browser to the unique URL.
-3. The user will authenticate to their institution's Identity Provider via their usual means. This will sometimes require selecting their Identity Provider from a list of providers at the Tuakiri Discovery Service
+3. The user will authenticate to their institution's Identity Provider via their usual means.
+   If the user's IdP is known in advance, it can be specified by appending its entityID to the unique Rapid Connect URL.
+   
+        https://rapid.example.com/jwt/authnrequest/auresearch/L4FF32123-YXlnb8w?entityID=https://example.org/idp/shibboleth
+
+    If no entityID is specified, the user will select their Identity Provider from a list of providers at the Tuakiri Discovery Service.
 4. Rapid Connect will validate the user's identity information and generate a unique and signed JWT (JWS) for your application using the secret you define when you register your service
 5. The generated JWT (JWS) will be sent via HTTP **POST** to the callback endpoint for your application which you define when you register your service.
 
@@ -115,6 +120,9 @@ Michael Lynch from EResearch Support Group, Information Technology Division, Uni
     * [http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo](http://carlo-hamalainen.net/blog/2014/8/3/haskell-yesod-aaf-rapid-connect-demo)
     * [https://github.com/carlohamalainen/rapid-connect-yesod-demo](https://github.com/carlohamalainen/rapid-connect-yesod-demo)
 
+###### Dart
+* [https://pub.dartlang.org/packages/jwt](https://pub.dartlang.org/packages/jwt)
+
 ##### 2. Create a secret
 The first step in integrating your code is to compute a secret that will be shared between your applicaition and Rapid Connect for signing and verifying JWT.
 
@@ -125,7 +133,7 @@ Recommended secret generation method on *nix hosts, **32 characters long**:
 This value should never be publicly disclosed. Once created be sure to store it securely. *This value will be required during service registration*.
 
 ##### 3. Provide a web accessible endpoint
-Your application MUST define a https endpoint which accepts *only* a HTTP **POST** request.
+Your application MUST define a https endpoint which accepts a HTTP **POST** request.
 
 The endpoint must acquire the data provided in the parameter **assertion** for further processing.
 
@@ -135,8 +143,8 @@ Should any stage of the below validation fail your application **MUST** discard 
 1. Verify that the signature for the signed JWT you have received is valid by using your locally stored secret value
 2. Ensure that the **iss** claim has the value *https://rapid.aaf.edu.au* when in the production environment, or *https://rapid.test.aaf.edu.au* when in the test environment
 3. Ensure that the **aud** claim has the value of your application's primary URL (provided as part of service registration)
-4. Ensure that the current time is *later* then the time provided in the **nbf** claim
-5. Ensure that the current time is *before* then the time provided in the **exp** claim
+4. The current time MUST be after or equal to the the time provided in the **nbf** claim
+5. The current time MUST be *before* the time provided in the **exp** claim
 6. Ensure that the value of the **jti** claim does not exist in a local storage mechanism of **jti** claim values you have accepted. If it doesn't (this **SHOULD** be the case) add the **jti** claim value to your local storage mechanism for future protection against replay attacks
 
 All applications connecting to Tuakiri must adhere to all relevant Tuakiri rules and policies, available at the [Tuakiri website](https://tuakiri.ac.nz/). Prior to approving the connection of your service to the federation, Tuakiri may request to review your JWT related code and test your running endpoint to verify that an application's JWT handling conforms to the above requirements.
@@ -158,11 +166,17 @@ The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/dis
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
 
-You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is **highly** recommended that you use the data provided in **edupersontargetedid** to uniquely identify users (the same value will be provided for this attribute for all subsequent vists to your application by this user).
+You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
+
+The JWT claim `sub` and the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field are always identical for Rapid Connect. The same value SHALL be provided for all subsequent visits to your application by each user.
+
+The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** split this value based on the delimited bang segments. 
+
+The value of `sub`/`edupersontargetedid` is **not** able to correlate a user between services. For more details see [http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid).
 
 ### Register your service
 
-Access the [Rapid Connect website](/) and click on the button for "Register a service". This is on the right hand side in a blue color under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
+Access the Rapid Connect website in the **[production federation](https://rapidconnect.tuakiri.ac.nz)** or **[test federation](https://rapidconnect.staging.tuakiri.ac.nz)** and click on the button for "Register a service" which is *on the right hand side in a blue colour* under the current version information. At that point you will be asked to select your Identity Provider and authenticate. Once this process is complete you will be returned to the service registration page.
 
 To complete registration please provide:
 
@@ -184,17 +198,17 @@ Tuakiri provides buttons in several sizes which your application **should** use 
 
 You may hotlink or rehost these images. Please use in accordance with the Tuakiri Logo Policy available at the [Tuakiri logo page policy](https://tuakiri.ac.nz/confluence/display/Tuakiri/Logos).
 
-**110x42** <br>
-![Tuakiri tiny login](/tuakiri_service_110x42.png "Tuakiri Login")
+**120x42** <br>
+![Tuakiri tiny login](/REANNZ_Tuakiri_service_120x42.png "Tuakiri Login")
 		
-**220x84** <br>
-![Tuakiri small login](/tuakiri_service_220x84.png "Tuakiri Login")
+**234x82** <br>
+![Tuakiri small login](/REANNZ_Tuakiri_service_234x82.png "Tuakiri Login")
 		
-**310x82** <br>
-![Tuakiri medium login](/tuakiri_service_310x82.png "Tuakiri Login")
+**320x112** <br>
+![Tuakiri medium login](/REANNZ_Tuakiri_service_320x112.png "Tuakiri Login")
 		
-**550x209** <br>
-![Tuakiri large login](/tuakiri_service_550x209.png "Tuakiri Login")
+**600x210** <br>
+![Tuakiri large login](/REANNZ_Tuakiri_service_600x210.png "Tuakiri Login")
 
 ## Help
-To get help with Rapid Connect simply [email Tuakiri support on support@tuakiri.ac.nz](mailto:support@tuakiri.ac.nz?subject=Help with integrating Rapid Connect)
+To get help with Rapid Connect simply [email Tuakiri support on tuakiri@reannz.co.nz](mailto:tuakiri@reannz.co.nz?subject=Help with integrating Rapid Connect)

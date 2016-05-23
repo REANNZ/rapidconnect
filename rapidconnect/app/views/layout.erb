@@ -9,7 +9,7 @@
       <div class="container">
         <div class="row">
           <div class="span12">
-            <img alt="Logo" height="82" src="/logo.jpg" width="310" />
+            <img alt="Logo" height="82" src="/logo.jpg" width="234" />
             <h1>Rapid Connect</h1>
           </div>
         </div>
@@ -34,13 +34,13 @@
       <div class="container">
         <p>
           Tuakiri Rapid Connect <strong>version <%= current_version %></strong>
-          <% if session[:subject] %>
+          <% if session[:subject] && session[:subject][:principal] && session[:subject][:cn] %>
             <br>
             Logged in as <em><%= session[:subject][:cn] %></em> ( <%=session[:subject][:principal]%> )
           <% end %>
           <br>
 
-          Developed for the <a href="http://www.aaf.edu.au">Australian Access Federation</a> by <a href="http://bradleybeddoes.com">Bradley Beddoes</a>
+          Developed for the <a href="http://www.aaf.edu.au">Australian Access Federation</a> by <a href="http://bradleybeddoes.com">Bradley Beddoes</a> and <a href="https://github.com/smangelsdorf">Shaun Mangelsdorf</a>
         </p>
       </div>
     </footer>

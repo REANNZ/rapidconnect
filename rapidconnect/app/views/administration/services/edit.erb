@@ -34,6 +34,29 @@
       </div>
 
       <div class="control-group">
+        <label class="control-label" for="type">Type</label>
+        <div class="controls">
+          <div class="span5">
+            <select name="type" class="span5 required">
+              <%- %w(research auresearch zendesk).each do |type| -%>
+                <%- if @service.type == type -%>
+                  <option value="<%= type %>" selected><%= type %></option>
+                <%- else -%>
+                  <option value="<%= type %>"><%= type %></option>
+                <%- end -%>
+              <%- end -%>
+            </select>
+          </div>
+          <div class="span4 help-block">
+            <p>
+              The type of service, which helps the application choose the
+              correct attribute set and callback mechanism.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
         <label class="control-label" for="audience">Service URL</label>
         <div class="controls">
           <div class="span5">
