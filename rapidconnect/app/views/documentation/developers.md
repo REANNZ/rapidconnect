@@ -198,17 +198,17 @@ Tuakiri provides buttons in several sizes which your application **should** use 
 
 You may hotlink or rehost these images. Please use in accordance with the Tuakiri Logo Policy available at the [Tuakiri logo page policy](https://tuakiri.ac.nz/confluence/display/Tuakiri/Logos).
 
-**110x42** <br>
-![Tuakiri tiny login](/tuakiri_service_110x42.png "Tuakiri Login")
+**120x42** <br>
+![Tuakiri tiny login](/REANNZ_Tuakiri_service_120x42.png "Tuakiri Login")
 		
-**220x84** <br>
-![Tuakiri small login](/tuakiri_service_220x84.png "Tuakiri Login")
+**234x82** <br>
+![Tuakiri small login](/REANNZ_Tuakiri_service_234x82.png "Tuakiri Login")
 		
-**310x82** <br>
-![Tuakiri medium login](/tuakiri_service_310x82.png "Tuakiri Login")
+**320x112** <br>
+![Tuakiri medium login](/REANNZ_Tuakiri_service_320x112.png "Tuakiri Login")
 		
-**550x209** <br>
-![Tuakiri large login](/tuakiri_service_550x209.png "Tuakiri Login")
+**600x210** <br>
+![Tuakiri large login](/REANNZ_Tuakiri_service_600x210.png "Tuakiri Login")
 
 ## Help
 To get help with Rapid Connect simply [email Tuakiri support on tuakiri@reannz.co.nz](mailto:tuakiri@reannz.co.nz?subject=Help with integrating Rapid Connect)
