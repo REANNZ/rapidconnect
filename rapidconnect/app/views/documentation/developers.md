@@ -59,7 +59,7 @@ Before you get started with Rapid Connect ensure you **MUST** meet *all* of the 
     2. Code within your application provides the user's browser with a 302 response directing the browser to the unique URL.
 3. The user will authenticate to their institution's Identity Provider via their usual means.
    If the user's IdP is known in advance, it can be specified by appending its entityID to the unique Rapid Connect URL.
-   
+
         https://rapid.example.com/jwt/authnrequest/auresearch/L4FF32123-YXlnb8w?entityID=https://example.org/idp/shibboleth
 
     If no entityID is specified, the user will select their Identity Provider from a list of providers at the Tuakiri Discovery Service.
@@ -94,6 +94,7 @@ To get started with Rapid Connect integration select a suitable JWT library from
 ###### Python
 * [https://github.com/magical/jwt-python](https://github.com/magical/jwt-python)
 * [https://github.com/progrium/pyjwt](https://github.com/progrium/pyjwt)
+* Example authenticator for CKAN contributed by Louis Des Landes at Swinburne University of Technology. [https://pypi.python.org/pypi/ckanext-aaf?](https://pypi.python.org/pypi/ckanext-aaf?)
 
 ###### PHP
 * [https://github.com/cfrett/JWT-PHP](https://github.com/cfrett/JWT-PHP)
@@ -110,7 +111,7 @@ To get started with Rapid Connect integration select a suitable JWT library from
 * [https://github.com/mendsley/gojwt](https://github.com/mendsley/gojwt)
 
 ###### Perl
-* Example Perl code by 
+* Example Perl code by
 Michael Lynch from EResearch Support Group, Information Technology Division, University of Technology, Sydney. [https://github.com/spikelynch/Osiris/blob/master/Osiris/lib/Osiris/AAF.pm](https://github.com/spikelynch/Osiris/blob/master/Osiris/lib/Osiris/AAF.pm)
 
 ###### Haskell
@@ -162,7 +163,7 @@ By looking at the claim **https://aaf.edu.au/attributes** you will be able to ac
 
 The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/display/Tuakiri/Attributes) **MAY** be available at the discretion of the user's Identity Provider:
 
-1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication. 
+1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication.
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
 
@@ -170,7 +171,7 @@ You can now use this data to create a local account suitable for internal use by
 
 The JWT claim `sub` and the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field are always identical for Rapid Connect. The same value SHALL be provided for all subsequent visits to your application by each user.
 
-The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** split this value based on the delimited bang segments. 
+The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** split this value based on the delimited bang segments.
 
 The value of `sub`/`edupersontargetedid` is **not** able to correlate a user between services. For more details see [http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid).
 
@@ -200,13 +201,13 @@ You may hotlink or rehost these images. Please use in accordance with the Tuakir
 
 **120x42** <br>
 ![Tuakiri tiny login](/REANNZ_Tuakiri_service_120x42.png "Tuakiri Login")
-		
+
 **234x82** <br>
 ![Tuakiri small login](/REANNZ_Tuakiri_service_234x82.png "Tuakiri Login")
-		
+
 **320x112** <br>
 ![Tuakiri medium login](/REANNZ_Tuakiri_service_320x112.png "Tuakiri Login")
-		
+
 **600x210** <br>
 ![Tuakiri large login](/REANNZ_Tuakiri_service_600x210.png "Tuakiri Login")
 
