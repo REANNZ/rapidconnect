@@ -55,12 +55,8 @@
         <div class="span12">
           <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
-            <li>Research & Scholarly Applications<br>
+            <li>
               <% url = "https://#{settings.hostname}/jwt/authnrequest/#{@service.type}/#{@identifier}" %>
-              <a href="<%= url %>"><%= url %></a>
-            </li>
-            <li>Zendesk (if applicable)<br>
-              <% url = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{@identifier}" %>
               <a href="<%= url %>"><%= url %></a>
             </li>
           </ol>
