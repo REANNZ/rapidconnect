@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require './app/models/attributes_claim'
 
 RSpec.describe AttributesClaim do

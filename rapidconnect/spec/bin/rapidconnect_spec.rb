@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 load './bin/rapidconnect'
 
 describe RapidConnectCLI do
