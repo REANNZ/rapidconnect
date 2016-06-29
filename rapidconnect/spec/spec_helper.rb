@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'simplecov'
 
 ENV['RACK_ENV'] = 'test'
@@ -7,10 +8,6 @@ Bundler.require :default, :test
 
 require 'rack/test'
 require 'shoulda/matchers'
-
-Webrat.configure do |config|
-  config.mode = :rack
-end
 
 Mail.defaults do
   delivery_method :test
@@ -34,8 +31,8 @@ Sinatra::Base.set :mail, from: 'noreply@example.org', to: 'support@example.org'
 Sinatra::Base.set :export, enabled: true
 Sinatra::Base.set :export, secret: 'test_secret'
 
-Webrat::Matchers::HasContent.instance_eval do
-  alias_method :failure_message_when_negated, :negative_failure_message
+Shoulda::Matchers::ActiveModel::AllowValueMatcher.class_eval do
+  alias_method :failure_message_for_should_not, :failure_message_when_negated
 end
 
 # Supply common framework actions to tests
@@ -76,12 +73,10 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 
   config.include Rack::Test::Methods
-  config.include Webrat::Methods
-  config.include Webrat::Matchers
   config.include Mail::Matchers
   config.include AppHelper
   config.include FactoryGirl::Syntax::Methods
-	config.include(Shoulda::Matchers::ActiveModel, type: :model)
+  config.include(Shoulda::Matchers::ActiveModel, type: :model)
 
   RSpec::Matchers.define_negated_matcher :not_change, :change
 end
@@ -90,5 +85,5 @@ Shoulda::Matchers.configure do |config|
   config.integrate do |with|
     with.test_framework :rspec
     with.library :active_model
-	end
+  end
 end

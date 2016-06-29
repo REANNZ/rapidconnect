@@ -24,7 +24,7 @@ end
 
 group :test, :development do
   gem 'rspec'
-  gem 'webrat'
+  gem 'capybara'
   gem 'fakeredis'
   gem 'rubocop'
   gem 'simplecov'
