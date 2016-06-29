@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_model'
 
 # Represents a registered Rapid Connect service.
@@ -50,7 +51,7 @@ class RapidConnectService
 
   def attributes=(attrs)
     unknown = attrs.keys.map(&:to_s) - self.class.attribute_names
-    fail("Bad attribute: #{unknown}") unless unknown.empty?
+    raise("Bad attribute: #{unknown}") unless unknown.empty?
     attrs.each { |k, v| send(:"#{k}=", v) }
 
     upgrade

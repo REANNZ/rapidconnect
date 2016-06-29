@@ -1,6 +1,7 @@
+# frozen_string_literal: true
 require './app/models/rapid_connect_service'
 
-describe RapidConnectService do
+describe RapidConnectService, type: :model do
   def stringify_keys(hash)
     hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
   end

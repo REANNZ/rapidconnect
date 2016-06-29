@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/config_file'
@@ -104,7 +105,7 @@ class RapidConnect < Sinatra::Base
     erb :welcome, layout: nil
   end
 
-  before %r{\A/(login|jwt)/.+}.freeze do
+  before %r{\A/(login|jwt)/.+} do
     cache_control :no_cache
   end
 
@@ -366,23 +367,21 @@ class RapidConnect < Sinatra::Base
     if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
       erb :'administration/administrators/create'
+    elsif @redis.hexists('administrators', identifier)
+      flash[:error] = 'Administrator already exists'
+      redirect '/administration/administrators'
     else
-      if @redis.hexists('administrators', identifier)
-        flash[:error] = 'Administrator already exists'
+      name = params[:name]
+      mail = params[:mail]
+
+      if name && !name.empty? && mail && !mail.empty?
+        @redis.hset('administrators', identifier, { 'name' => name, 'mail' => mail }.to_json)
+        @app_logger.info "current administrator #{session[:subject][:principal]} #{session[:subject][:cn]} added new administrator #{name}, #{mail}"
+        flash[:success] = 'Administrator added'
         redirect '/administration/administrators'
       else
-        name = params[:name]
-        mail = params[:mail]
-
-        if name && !name.empty? && mail && !mail.empty?
-          @redis.hset('administrators', identifier, { 'name' => name, 'mail' => mail }.to_json)
-          @app_logger.info "Current administrator #{session[:subject][:principal]} #{session[:subject][:cn]} added new administrator #{name}, #{mail}"
-          flash[:success] = 'Administrator added'
-          redirect '/administration/administrators'
-        else
-          flash[:error] = 'Invalid form data'
-          erb :'administration/administrators/create'
-        end
+        flash[:error] = 'Invalid form data'
+        erb :'administration/administrators/create'
       end
     end
   end
@@ -391,18 +390,14 @@ class RapidConnect < Sinatra::Base
     identifier = params[:identifier]
     if identifier.nil? || identifier.empty?
       flash[:error] = 'Invalid form data'
+    elsif identifier == session[:subject][:principal]
+      flash[:error] = 'Removing your own access is not supported'
+    elsif @redis.hexists('administrators', identifier)
+      @redis.hdel('administrators', identifier)
+      @app_logger.info "Current administrator #{session[:subject][:principal]} #{session[:subject][:cn]} deleted administrator #{identifier}"
+      flash[:success] = 'Administrator deleted successfully'
     else
-      if identifier == session[:subject][:principal]
-        flash[:error] = 'Removing your own access is not supported'
-      else
-        if @redis.hexists('administrators', identifier)
-          @redis.hdel('administrators', identifier)
-          @app_logger.info "Current administrator #{session[:subject][:principal]} #{session[:subject][:cn]} deleted administrator #{identifier}"
-          flash[:success] = 'Administrator deleted successfully'
-        else
-          flash[:error] = 'No such administrator'
-        end
-      end
+      flash[:error] = 'No such administrator'
     end
     redirect '/administration/administrators'
   end
