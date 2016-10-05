@@ -363,6 +363,17 @@ describe RapidConnect do
           run
           expect(reload_service.type).to eq('research')
         end
+
+        it 'strips spaces from URIs' do
+          params[:endpoint] = '   http://spaces-rule.com   '
+          attrs[:endpoint] = 'http://spaces-rule.com'
+
+          expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
+          json = @redis.hget('serviceproviders', identifier)
+          expect(json).not_to be_nil
+
+          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+        end
       end
 
       context 'in production' do

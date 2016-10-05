@@ -216,7 +216,13 @@ class RapidConnect < Sinatra::Base
 
   def service_attrs
     %i(organisation name audience endpoint secret).reduce({}) do |map, sym|
-      map.merge(sym => params[sym])
+      param = if RapidConnectService::URI_FIELDS.include?(sym)
+                params[sym].strip
+              else
+                params[sym]
+              end
+
+      map.merge(sym => param)
     end
   end
 
