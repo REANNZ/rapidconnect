@@ -17,7 +17,7 @@ class RapidConnectService
   validates :created_at, numericality: { allow_nil: true }
   validates :audience, :endpoint,
             presence: true, format: URI.regexp(%w(http https))
-  validates :type, inclusion: { in: %w(research auresearch zendesk),
+  validates :type, inclusion: { in: %w(research auresearch zendesk freshdesk),
                                 allow_nil: true }
   validates :secret, presence: true, length: { minimum: 16 }
 

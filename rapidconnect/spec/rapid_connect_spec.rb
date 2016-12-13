@@ -510,6 +510,11 @@ describe RapidConnect do
             let(:type) { 'zendesk' }
             include_context 'endpoint display'
           end
+
+          context 'for a freshdesk service' do
+            let(:type) { 'freshdesk' }
+            include_context 'endpoint display'
+          end
         end
       end
 
@@ -890,6 +895,20 @@ describe RapidConnect do
 
     context '/authnrequest/zendesk' do
       let(:type) { 'zendesk' }
+      let(:attrs) { %w(cn mail edupersontargetedid o) }
+
+      it_behaves_like 'a valid service type' do
+        it 'creates a JWT' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location)
+            .to match(/#{service.endpoint}\?jwt=.+&return_to=.*/)
+        end
+      end
+    end
+
+    context '/authnrequest/freshdesk' do
+      let(:type) { 'freshdesk' }
       let(:attrs) { %w(cn mail edupersontargetedid o) }
 
       it_behaves_like 'a valid service type' do

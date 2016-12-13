@@ -485,6 +485,13 @@ class RapidConnect < Sinatra::Base
     redirect "#{@endpoint}?jwt=#{@jws}&return_to=#{params[:return_to]}"
   end
 
+  get '/jwt/authnrequest/freshdesk/:identifier' do
+    attrs = %w(cn mail edupersontargetedid o)
+    audit_log(@service, session['subject'], @claims_set.claims, attrs)
+
+    redirect "#{@endpoint}?jwt=#{@jws}&return_to=#{params[:return_to]}"
+  end
+
   get '/developers' do
     erb :developers, locals: { text: markdown(:'documentation/developers') }
   end
