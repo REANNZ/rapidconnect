@@ -498,7 +498,7 @@ class RapidConnect < Sinatra::Base
     company = claims[:o]
     timestamp = Time.now.utc.to_i.to_s
     secret = @service.secret
-    digest = OpenSSL::Digest.new('MD5')
+    digest = OpenSSL::Digest::MD5.new
     message = name + secret + email + timestamp
     hash = OpenSSL::HMAC.hexdigest(digest, secret, message)
 
