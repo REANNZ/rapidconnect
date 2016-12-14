@@ -36,6 +36,7 @@ describe RapidConnectService, type: :model do
     it { is_expected.to allow_value('research').for(:type) }
     it { is_expected.to allow_value('auresearch').for(:type) }
     it { is_expected.to allow_value('zendesk').for(:type) }
+    it { is_expected.to allow_value('freshdesk').for(:type) }
     it { is_expected.not_to allow_value('invalid').for(:type) }
 
     it { is_expected.to validate_numericality_of(:created_at).allow_nil }

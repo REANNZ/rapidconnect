@@ -25,6 +25,17 @@ class ClaimsSet
         claims.delete(:'https://aaf.edu.au/attributes')
       end
     end
+
+    def freshdesk(iss, aud, attributes_claim)
+      attrs = attributes_claim.attributes
+
+      new(iss, aud, attrs).tap do |claims_set|
+        claims = claims_set.claims
+        claims.transform_keys! { |k| k == :sub ? :external_id : k }
+        claims.merge!(email: attrs[:mail], o: attrs[:o], name: attrs[:cn])
+        claims.delete(:'https://aaf.edu.au/attributes')
+      end
+    end
   end
 
   def initialize(iss, aud, attrs)

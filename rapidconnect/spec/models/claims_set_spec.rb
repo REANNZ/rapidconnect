@@ -132,4 +132,30 @@ RSpec.describe ClaimsSet do
       expect(subject.claims).not_to have_key(:'https://aaf.edu.au/attributes')
     end
   end
+
+  context 'for freshdesk services' do
+    let(:type) { :freshdesk }
+    it_behaves_like 'a jwt claims set'
+
+    it 'sets the name claim' do
+      expect(subject.claims[:name]).to eq(attributes_claim.attributes[:cn])
+    end
+
+    it 'sets the email claim' do
+      expect(subject.claims[:email]).to eq(attributes_claim.attributes[:mail])
+    end
+
+    it 'sets the external_id claim' do
+      expect(subject.claims[:external_id])
+        .to eq(attributes_claim.attributes[:edupersontargetedid])
+    end
+
+    it 'sets the o claim' do
+      expect(subject.claims[:o]).to eq(attributes_claim.attributes[:o])
+    end
+
+    it 'has no attributes claim' do
+      expect(subject.claims).not_to have_key(:'https://aaf.edu.au/attributes')
+    end
+  end
 end
