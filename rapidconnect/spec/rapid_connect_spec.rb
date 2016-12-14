@@ -909,14 +909,16 @@ describe RapidConnect do
 
     context '/authnrequest/freshdesk' do
       let(:type) { 'freshdesk' }
-      let(:attrs) { %w(cn mail edupersontargetedid o) }
+      let(:attrs) { %w(cn mail o) }
+      let(:freshdesk_location) do
+        /#{service.endpoint}\?name=.*&email=.*&company=.*&timestamp=.*&hash=.*/
+      end
 
       it_behaves_like 'a valid service type' do
-        it 'creates a JWT' do
+        it 'redirects to freshdesk in name+val format they define' do
           run
           expect(last_response).to be_redirect
-          expect(last_response.location)
-            .to match(/#{service.endpoint}\?jwt=.+&return_to=.*/)
+          expect(last_response.location).to match(freshdesk_location)
         end
       end
     end

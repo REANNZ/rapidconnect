@@ -486,10 +486,24 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/jwt/authnrequest/freshdesk/:identifier' do
-    attrs = %w(cn mail edupersontargetedid o)
+    attrs = %w(cn mail o)
     audit_log(@service, session['subject'], @claims_set.claims, attrs)
 
-    redirect "#{@endpoint}?jwt=#{@jws}&return_to=#{params[:return_to]}"
+    redirect freshdesk_redirect(@claims_set.claims)
+  end
+
+  def freshdesk_redirect(claims)
+    name = claims[:name]
+    email = claims[:email]
+    company = claims[:o]
+    timestamp = Time.now.utc.to_i.to_s
+    secret = @service.secret
+    digest = OpenSSL::Digest.new('MD5')
+    message = name + secret + email + timestamp
+    hash = OpenSSL::HMAC.hexdigest(digest, secret, message)
+
+    "#{@endpoint}?name=#{name}&email=#{email}&company=#{company}" \
+    "&timestamp=#{timestamp}&hash=#{hash}"
   end
 
   get '/developers' do
