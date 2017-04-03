@@ -23,6 +23,9 @@ group :test do
 end
 
 group :test, :development do
+  gem 'aaf-gumboot', git: 'https://github.com/ausaccessfed/aaf-gumboot',
+                     branch: 'develop'
+
   gem 'rspec'
   gem 'capybara'
   gem 'fakeredis'
