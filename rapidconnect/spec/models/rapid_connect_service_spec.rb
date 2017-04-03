@@ -89,11 +89,11 @@ describe RapidConnectService, type: :model do
 
   context '#to_json' do
     it 'creates valid json' do
-      expect { JSON.load(subject.to_json) }.not_to raise_error
+      expect { JSON.parse(subject.to_json) }.not_to raise_error
     end
 
     it 'contains the attributes' do
-      expect(JSON.load(subject.to_json)).to eq(attrs)
+      expect(JSON.parse(subject.to_json)).to eq(attrs)
     end
   end
 
@@ -155,7 +155,7 @@ describe RapidConnectService, type: :model do
       end
 
       it 'updates the serialized data' do
-        new_attrs = JSON.load(subject.to_json)
+        new_attrs = JSON.parse(subject.to_json)
         expect(new_attrs.delete('type')).to eq('research')
         expect(new_attrs).to eq(attrs)
       end

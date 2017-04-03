@@ -26,3 +26,12 @@ Metrics/MethodLength:
 Metrics/AbcSize:
   Exclude:
     - app/rapid_connect.rb
+
+Metrics/BlockLength:
+  Exclude:
+    - app/rapid_connect.rb
+    - spec/**/*.rb
+
+Style/MixinGrouping:
+  Exclude:
+    - spec/spec_helper.rb

@@ -160,7 +160,7 @@ describe RapidConnectCLI do
       end
 
       it 'does not update the created_at timestamp' do
-        expect(subject).not_to change { service.created_at }
+        expect(subject).not_to(change { service.created_at })
       end
 
       context 'existing service is disabled' do
@@ -182,7 +182,7 @@ describe RapidConnectCLI do
 
       shared_context 'leave attribute intact' do |attr:|
         it 'leaves the existing value intact' do
-          expect(subject).not_to change { service.attributes[attr.to_s] }
+          expect(subject).not_to(change { service.attributes[attr.to_s] })
         end
       end
 

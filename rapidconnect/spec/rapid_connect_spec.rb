@@ -302,7 +302,7 @@ describe RapidConnect do
         end
 
         it 'does not create a service' do
-          expect { run }.not_to change { @redis.hlen('serviceproviders') }
+          expect { run }.not_to(change { @redis.hlen('serviceproviders') })
         end
       end
 
@@ -341,7 +341,7 @@ describe RapidConnect do
           json = @redis.hget('serviceproviders', identifier)
           expect(json).not_to be_nil
 
-          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+          expect(JSON.parse(json)).to eq(stringify_keys(attrs))
         end
 
         it 'sets the timestamp' do
@@ -373,7 +373,7 @@ describe RapidConnect do
           json = @redis.hget('serviceproviders', identifier)
           expect(json).not_to be_nil
 
-          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+          expect(JSON.parse(json)).to eq(stringify_keys(attrs))
         end
       end
 
@@ -553,7 +553,7 @@ describe RapidConnect do
           end
 
           it 'does not create a service' do
-            expect { run }.not_to change { @redis.hlen('serviceproviders') }
+            expect { run }.not_to(change { @redis.hlen('serviceproviders') })
           end
         end
 

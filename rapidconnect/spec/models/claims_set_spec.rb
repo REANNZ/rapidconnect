@@ -61,7 +61,7 @@ RSpec.describe ClaimsSet do
           exp: subject.claims[:exp].to_i,
           nbf: subject.claims[:nbf].to_i
         )
-        expected = JSON.load(JSON.dump(claims))
+        expected = JSON.parse(JSON.dump(claims))
 
         expect(JSON::JWT.decode(jws, secret)).to eq(expected)
       end
