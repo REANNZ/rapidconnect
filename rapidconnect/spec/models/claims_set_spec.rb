@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require './app/models/claims_set'
 require './app/models/attributes_claim'
 

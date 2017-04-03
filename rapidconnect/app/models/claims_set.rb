@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # require 'active_model'
 
 # A JWT Claims Set, and logic to generate a JWS.

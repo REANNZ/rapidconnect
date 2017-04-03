@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/config_file'
@@ -511,7 +512,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def flash_types
-    [:success, :warning, :error]
+    %i(success warning error)
   end
 
   def authenticated?

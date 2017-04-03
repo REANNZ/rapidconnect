@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require './app/models/rapid_connect_service'
 
 describe RapidConnectService, type: :model do
