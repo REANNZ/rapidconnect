@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'active_model'
 
 # Represents a registered Rapid Connect service.
@@ -10,7 +11,7 @@ class RapidConnectService
   attr_accessor :identifier
   attr_reader :attributes
 
-  URI_FIELDS = [:audience, :endpoint].freeze
+  URI_FIELDS = %i(audience endpoint).freeze
 
   validates :name, :organisation, :registrant_name, :registrant_mail,
             presence: true
