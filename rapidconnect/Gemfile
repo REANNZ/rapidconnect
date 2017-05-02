@@ -1,40 +1,49 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
-gem 'unicorn', require: false
 gem 'god', require: false
+gem 'unicorn', require: false
 
+gem 'erubis'
 gem 'sinatra'
 gem 'sinatra-contrib'
-gem 'erubis'
 
+gem 'activemodel', '~> 4.2', require: 'active_model'
+gem 'json-jwt'
 gem 'redis'
 gem 'redis-rack'
-gem 'json-jwt'
-gem 'activemodel', require: 'active_model'
 
-gem 'rack-flash3'
 gem 'mail'
+gem 'rack-flash3'
 
-gem 'rdiscount'
 gem 'rack-utf8_sanitizer'
+gem 'rdiscount'
 
 group :test do
-  gem 'rspec'
-  gem 'webrat'
-  gem 'fakeredis'
-  gem 'rubocop'
-  gem 'simplecov'
+  gem 'shoulda-matchers', require: false
+end
+
+group :test, :development do
+  gem 'aaf-gumboot', git: 'https://github.com/ausaccessfed/aaf-gumboot',
+                     branch: 'develop'
+
+  gem 'capybara'
   gem 'factory_girl'
   gem 'faker'
+  gem 'fakeredis'
+  gem 'rspec'
+  gem 'rubocop'
+  gem 'simplecov'
   gem 'timecop'
-  gem 'shoulda-matchers'
-  gem 'rake', require: false
+
   gem 'codeclimate-test-reporter', require: false
+  gem 'rake', require: false
 
   gem 'guard', require: false
+  gem 'guard-bundler', require: false
   gem 'guard-rspec', require: false
   gem 'guard-rubocop', require: false
-  gem 'guard-bundler', require: false
 end
 
 group :cli do

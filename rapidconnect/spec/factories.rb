@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryGirl.define do
   factory :rapid_connect_service do
     name { Faker::Company.name }

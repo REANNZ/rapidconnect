@@ -1,11 +1,11 @@
-AllCops:
-  Include:
-    - bin/*
-  Exclude:
-    - db/schema.rb
+inherit_gem:
+  aaf-gumboot: aaf-rubocop.yml
 
-Style/Documentation:
+Rails:
   Enabled: false
+
+AllCops:
+  TargetRubyVersion: 2.3
 
 # RC class is singular by design
 # Will be reduced in the future
@@ -26,3 +26,12 @@ Metrics/MethodLength:
 Metrics/AbcSize:
   Exclude:
     - app/rapid_connect.rb
+
+Metrics/BlockLength:
+  Exclude:
+    - app/rapid_connect.rb
+    - spec/**/*.rb
+
+Style/MixinGrouping:
+  Exclude:
+    - spec/spec_helper.rb
