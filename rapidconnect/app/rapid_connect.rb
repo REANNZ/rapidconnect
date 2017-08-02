@@ -106,7 +106,7 @@ class RapidConnect < Sinatra::Base
     erb :welcome, layout: nil
   end
 
-  before %r{\A/(login|jwt)/.+} do
+  before %r{\A/(login|jwt)/.+}, mustermann_opts: { check_anchors: false } do
     cache_control :no_cache
   end
 
