@@ -33,6 +33,7 @@ describe RapidConnect do
       'HTTP_MAIL' => 'testuser@example.com',
       'HTTP_EPPN' => 'tuser1@example.com',
       'HTTP_AFFILIATION' => 'staff@example.com',
+      'HTTP_EDUPERSONORCID' => 'http://orcid.org/0000-0002-1825-0097',
       'HTTP_AUEDUPERSONSHAREDTOKEN' => 'shared_token'
     }
 
@@ -45,6 +46,7 @@ describe RapidConnect do
       mail: @valid_shibboleth_headers['HTTP_MAIL'],
       principal_name: @valid_shibboleth_headers['HTTP_EPPN'],
       scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION'],
+      orcid: @valid_shibboleth_headers['HTTP_EDUPERSONORCID'],
       shared_token: @valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN']
     }
 
@@ -149,6 +151,7 @@ describe RapidConnect do
       expect(session[:subject][:mail]).to eq(@valid_shibboleth_headers['HTTP_MAIL'])
       expect(session[:subject][:principal_name]).to eq(@valid_shibboleth_headers['HTTP_EPPN'])
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
+      expect(session[:subject][:orcid]).to eq(@valid_shibboleth_headers['HTTP_EDUPERSONORCID'])
       expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
     end
 
@@ -877,7 +880,7 @@ describe RapidConnect do
       let(:type) { 'research' }
       let(:attrs) do
         %w[cn mail displayname givenname surname edupersontargetedid
-           edupersonscopedaffiliation edupersonprincipalname]
+           edupersonorcid edupersonscopedaffiliation edupersonprincipalname]
       end
 
       include_context 'a research service type'
@@ -887,7 +890,7 @@ describe RapidConnect do
       let(:type) { 'auresearch' }
       let(:attrs) do
         %w[cn mail displayname givenname surname edupersontargetedid
-           edupersonscopedaffiliation edupersonprincipalname
+           edupersonscopedaffiliation edupersonprincipalname edupersonorcid
            auedupersonsharedtoken]
       end
 
