@@ -11,4 +11,4 @@ task :mkdirs do
   Dir.mkdir('tmp') unless Dir.exist?('tmp')
 end
 
-task default: %i(mkdirs spec rubocop)
+task default: %i[mkdirs spec rubocop]
