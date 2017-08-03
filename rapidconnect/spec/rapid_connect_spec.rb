@@ -264,7 +264,7 @@ describe RapidConnect do
     it 'sorts the organisations correctly' do
       org_configuration = JSON.generate(['Org C', 'Org A', 'org B'])
       allow(IO).to receive(:read).with(app.settings.organisations)
-        .and_return(org_configuration)
+                                 .and_return(org_configuration)
       get '/registration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response.body).to match(/Org A.*org B.*Org C/m)
     end
@@ -282,7 +282,7 @@ describe RapidConnect do
 
       let(:params) do
         attrs.select do |k, _|
-          %i(name audience endpoint secret organisation).include?(k)
+          %i[name audience endpoint secret organisation].include?(k)
         end
       end
 
@@ -876,8 +876,8 @@ describe RapidConnect do
     context '/authnrequest/research' do
       let(:type) { 'research' }
       let(:attrs) do
-        %w(cn mail displayname givenname surname edupersontargetedid
-           edupersonscopedaffiliation edupersonprincipalname)
+        %w[cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname]
       end
 
       include_context 'a research service type'
@@ -886,9 +886,9 @@ describe RapidConnect do
     context '/authnrequest/auresearch' do
       let(:type) { 'auresearch' }
       let(:attrs) do
-        %w(cn mail displayname givenname surname edupersontargetedid
+        %w[cn mail displayname givenname surname edupersontargetedid
            edupersonscopedaffiliation edupersonprincipalname
-           auedupersonsharedtoken)
+           auedupersonsharedtoken]
       end
 
       include_context 'a research service type'
@@ -896,7 +896,7 @@ describe RapidConnect do
 
     context '/authnrequest/zendesk' do
       let(:type) { 'zendesk' }
-      let(:attrs) { %w(cn mail edupersontargetedid o) }
+      let(:attrs) { %w[cn mail edupersontargetedid o] }
 
       it_behaves_like 'a valid service type' do
         it 'creates a JWT' do
@@ -910,7 +910,7 @@ describe RapidConnect do
 
     context '/authnrequest/freshdesk' do
       let(:type) { 'freshdesk' }
-      let(:attrs) { %w(cn mail o) }
+      let(:attrs) { %w[cn mail o] }
       let(:freshdesk_location) do
         /#{service.endpoint}\?name=.*&email=.*&company=.*&timestamp=.*&hash=.*/
       end

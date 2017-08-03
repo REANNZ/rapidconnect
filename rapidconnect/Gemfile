@@ -25,8 +25,7 @@ group :test do
 end
 
 group :test, :development do
-  gem 'aaf-gumboot', git: 'https://github.com/ausaccessfed/aaf-gumboot',
-                     branch: 'develop'
+  gem 'aaf-gumboot'
 
   gem 'capybara'
   gem 'factory_girl'
