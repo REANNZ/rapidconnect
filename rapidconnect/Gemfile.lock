@@ -1,14 +1,8 @@
-GIT
-  remote: https://github.com/ausaccessfed/aaf-gumboot
-  revision: bfdba6d0156d5a4248fe366f144a10f405d858ad
-  branch: develop
-  specs:
-    aaf-gumboot (1.1.0)
-      accession (~> 1.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
+    aaf-gumboot (1.1.0)
+      accession (~> 1.0)
     accession (1.0.0)
     activemodel (4.2.9)
       activesupport (= 4.2.9)
@@ -191,7 +185,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aaf-gumboot!
+  aaf-gumboot
   activemodel (~> 4.2)
   capybara
   codeclimate-test-reporter
@@ -223,4 +217,4 @@ DEPENDENCIES
   unicorn
 
 BUNDLED WITH
-   1.15.2
+   1.15.3
