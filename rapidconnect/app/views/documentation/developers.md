@@ -166,6 +166,7 @@ The following optional AAF attributes **MAY** be available at the discretion of 
 1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication.
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
+4. edupersonorcid: A person's [ORCID](http://orcid.org) identifier, if they have provided one
 
 You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
 
