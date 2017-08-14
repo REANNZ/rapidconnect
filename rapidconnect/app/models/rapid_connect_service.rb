@@ -11,23 +11,23 @@ class RapidConnectService
   attr_accessor :identifier
   attr_reader :attributes
 
-  URI_FIELDS = %i(audience endpoint).freeze
+  URI_FIELDS = %i[audience endpoint].freeze
 
   validates :name, :organisation, :registrant_name, :registrant_mail,
             presence: true
   validates :created_at, numericality: { allow_nil: true }
   validates :audience, :endpoint,
-            presence: true, format: URI.regexp(%w(http https))
-  validates :type, inclusion: { in: %w(research auresearch zendesk freshdesk),
+            presence: true, format: URI.regexp(%w[http https])
+  validates :type, inclusion: { in: %w[research auresearch zendesk freshdesk],
                                 allow_nil: true }
   validates :secret, presence: true, length: { minimum: 16 }
 
   validate :uris_can_be_parsed
 
-  @attribute_names = %w(
+  @attribute_names = %w[
     name audience endpoint secret enabled type created_at
     organisation registrant_name registrant_mail
-  )
+  ]
 
   @attribute_names.each do |n|
     define_method(n) { @attributes[n.to_s] }

@@ -11,6 +11,7 @@ class AttributesClaim
       surname: subject[:surname], givenname: subject[:given_name],
       mail: subject[:mail], o: subject[:organization],
       auedupersonsharedtoken: subject[:shared_token],
+      edupersonorcid: subject[:orcid],
       edupersonscopedaffiliation: subject[:scoped_affiliation],
       edupersonprincipalname: subject[:principal_name],
       edupersontargetedid: retarget_id(iss, aud, subject)

@@ -88,8 +88,8 @@ RSpec.describe ClaimsSet do
   context 'for research services' do
     let(:type) { :research }
     let(:expected_attrs) do
-      %i(cn mail displayname edupersontargetedid givenname surname
-         edupersonscopedaffiliation edupersonprincipalname)
+      %i[cn mail displayname edupersontargetedid givenname surname
+         edupersonorcid edupersonscopedaffiliation edupersonprincipalname]
     end
 
     it_behaves_like 'a jwt claims set'
@@ -99,9 +99,9 @@ RSpec.describe ClaimsSet do
   context 'for auresearch services' do
     let(:type) { :auresearch }
     let(:expected_attrs) do
-      %i(cn mail displayname edupersontargetedid givenname surname
-         edupersonscopedaffiliation edupersonprincipalname
-         auedupersonsharedtoken)
+      %i[cn mail displayname edupersontargetedid givenname surname
+         edupersonscopedaffiliation edupersonprincipalname edupersonorcid
+         auedupersonsharedtoken]
     end
 
     it_behaves_like 'a jwt claims set'

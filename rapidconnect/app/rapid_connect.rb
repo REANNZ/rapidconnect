@@ -106,7 +106,7 @@ class RapidConnect < Sinatra::Base
     erb :welcome, layout: nil
   end
 
-  before %r{\A/(login|jwt)/.+} do
+  before %r{\A/(login|jwt)/.+}, mustermann_opts: { check_anchors: false } do
     cache_control :no_cache
   end
 
@@ -140,6 +140,7 @@ class RapidConnect < Sinatra::Base
           principal_name: env['HTTP_EPPN'],
           scoped_affiliation: env['HTTP_AFFILIATION'],
           o: env['HTTP_O'],
+          orcid: env['HTTP_EDUPERSONORCID'],
           shared_token: env['HTTP_AUEDUPERSONSHAREDTOKEN']
         }
 
@@ -216,7 +217,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def service_attrs
-    %i(organisation name audience endpoint secret).reduce({}) do |map, sym|
+    %i[organisation name audience endpoint secret].reduce({}) do |map, sym|
       param = if RapidConnectService::URI_FIELDS.include?(sym)
                 params[sym].strip
               else
@@ -235,7 +236,7 @@ class RapidConnect < Sinatra::Base
   def admin_supplied_attrs
     base = { enabled: !params[:enabled].nil? }
 
-    %i(type registrant_name registrant_mail).reduce(base) do |map, sym|
+    %i[type registrant_name registrant_mail].reduce(base) do |map, sym|
       map.merge(sym => params[sym])
     end
   end
@@ -480,14 +481,14 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/jwt/authnrequest/zendesk/:identifier' do
-    attrs = %w(cn mail edupersontargetedid o)
+    attrs = %w[cn mail edupersontargetedid o]
     audit_log(@service, session['subject'], @claims_set.claims, attrs)
 
     redirect "#{@endpoint}?jwt=#{@jws}&return_to=#{params[:return_to]}"
   end
 
   get '/jwt/authnrequest/freshdesk/:identifier' do
-    attrs = %w(cn mail o)
+    attrs = %w[cn mail o]
     audit_log(@service, session['subject'], @claims_set.claims, attrs)
 
     redirect freshdesk_redirect(@claims_set.claims)
@@ -512,7 +513,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def flash_types
-    %i(success warning error)
+    %i[success warning error]
   end
 
   def authenticated?
