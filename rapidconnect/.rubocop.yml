@@ -4,9 +4,6 @@ inherit_gem:
 Rails:
   Enabled: false
 
-AllCops:
-  TargetRubyVersion: 2.3
-
 # RC class is singular by design
 # Will be reduced in the future
 # when FR3 takes over admin features.
@@ -35,3 +32,7 @@ Metrics/BlockLength:
 Style/MixinGrouping:
   Exclude:
     - spec/spec_helper.rb
+
+Lint/RescueWithoutErrorClass:
+  Exclude:
+    - app/models/rapid_connect_service.rb

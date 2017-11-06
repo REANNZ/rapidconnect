@@ -36,9 +36,9 @@ class RapidConnectCLI < Thor
     update(identifier, service, option_attributes)
 
     if json
-      $stderr.puts 'Updated service registration.'
+      warn 'Updated service registration.'
     else
-      $stderr.puts 'Registered new service successfully.'
+      warn 'Registered new service successfully.'
     end
   end
 
@@ -51,7 +51,7 @@ class RapidConnectCLI < Thor
     service.enabled = true
 
     unless service.changed?
-      $stderr.puts('No change required.')
+      warn('No change required.')
       exit 0
     end
 
@@ -62,9 +62,9 @@ class RapidConnectCLI < Thor
     if service.valid?
       redis.hset('serviceproviders', identifier, service.to_json)
     else
-      $stderr.puts 'Unable to register due to validation errors:'
-      $stderr.puts
-      service.errors.full_messages.each { |s| $stderr.puts(s) }
+      warn 'Unable to register due to validation errors:'
+      warn
+      service.errors.full_messages.each { |s| warn(s) }
       exit 1
     end
   end
