@@ -33,6 +33,6 @@ Style/MixinGrouping:
   Exclude:
     - spec/spec_helper.rb
 
-Lint/RescueWithoutErrorClass:
+Style/RescueStandardError:
   Exclude:
     - app/models/rapid_connect_service.rb
