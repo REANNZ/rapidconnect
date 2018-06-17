@@ -195,7 +195,7 @@ Once submitted the Tuakiri will review and contact you with any questions. You s
 #### If you're registering in the test federation
 Your application will be **automatically approved**. The completion screen will show the unique URL for your application to initiate login. You can use this immediently with your application to start the authentication process as we discussed in *Standard Flow* above.
 
-## Buttons
+## <a name="logo-images"></a> Buttons
 Tuakiri provides buttons in several sizes which your application **should** use to let your users know they can login via Tuakiri. These buttons are used in marketing and help documentation which is provided to end user support desks and makes the process of logging in seem familiar for users across multiple applications.
 
 You may hotlink or rehost these images. Please use in accordance with the Tuakiri Logo Policy available at the [Tuakiri logo page policy](https://tuakiri.ac.nz/confluence/display/Tuakiri/Logos).
