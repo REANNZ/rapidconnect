@@ -38,7 +38,7 @@
         <div class="controls">
           <div class="span5">
             <select name="type" class="span5 required">
-              <%- %w(research auresearch zendesk).each do |type| -%>
+              <%- %w(research auresearch zendesk freshdesk).each do |type| -%>
                 <%- if @service.type == type -%>
                   <option value="<%= type %>" selected><%= type %></option>
                 <%- else -%>

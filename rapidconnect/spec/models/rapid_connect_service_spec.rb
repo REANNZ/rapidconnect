@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require './app/models/rapid_connect_service'
 
-describe RapidConnectService do
+describe RapidConnectService, type: :model do
   def stringify_keys(hash)
     hash.reduce({}) { |a, (k, v)| a.merge(k.to_s => v) }
   end
@@ -35,6 +37,7 @@ describe RapidConnectService do
     it { is_expected.to allow_value('research').for(:type) }
     it { is_expected.to allow_value('auresearch').for(:type) }
     it { is_expected.to allow_value('zendesk').for(:type) }
+    it { is_expected.to allow_value('freshdesk').for(:type) }
     it { is_expected.not_to allow_value('invalid').for(:type) }
 
     it { is_expected.to validate_numericality_of(:created_at).allow_nil }
@@ -86,11 +89,11 @@ describe RapidConnectService do
 
   context '#to_json' do
     it 'creates valid json' do
-      expect { JSON.load(subject.to_json) }.not_to raise_error
+      expect { JSON.parse(subject.to_json) }.not_to raise_error
     end
 
     it 'contains the attributes' do
-      expect(JSON.load(subject.to_json)).to eq(attrs)
+      expect(JSON.parse(subject.to_json)).to eq(attrs)
     end
   end
 
@@ -152,7 +155,7 @@ describe RapidConnectService do
       end
 
       it 'updates the serialized data' do
-        new_attrs = JSON.load(subject.to_json)
+        new_attrs = JSON.parse(subject.to_json)
         expect(new_attrs.delete('type')).to eq('research')
         expect(new_attrs).to eq(attrs)
       end
