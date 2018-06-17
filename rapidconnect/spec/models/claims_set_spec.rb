@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './app/models/claims_set'
 require './app/models/attributes_claim'
 
@@ -59,7 +61,7 @@ RSpec.describe ClaimsSet do
           exp: subject.claims[:exp].to_i,
           nbf: subject.claims[:nbf].to_i
         )
-        expected = JSON.load(JSON.dump(claims))
+        expected = JSON.parse(JSON.dump(claims))
 
         expect(JSON::JWT.decode(jws, secret)).to eq(expected)
       end
@@ -86,8 +88,8 @@ RSpec.describe ClaimsSet do
   context 'for research services' do
     let(:type) { :research }
     let(:expected_attrs) do
-      %i(cn mail displayname edupersontargetedid givenname surname
-         edupersonscopedaffiliation edupersonprincipalname)
+      %i[cn mail displayname edupersontargetedid givenname surname
+         edupersonorcid edupersonscopedaffiliation edupersonprincipalname]
     end
 
     it_behaves_like 'a jwt claims set'
@@ -97,9 +99,9 @@ RSpec.describe ClaimsSet do
   context 'for auresearch services' do
     let(:type) { :auresearch }
     let(:expected_attrs) do
-      %i(cn mail displayname edupersontargetedid givenname surname
-         edupersonscopedaffiliation edupersonprincipalname
-         auedupersonsharedtoken)
+      %i[cn mail displayname edupersontargetedid givenname surname
+         edupersonscopedaffiliation edupersonprincipalname edupersonorcid
+         auedupersonsharedtoken]
     end
 
     it_behaves_like 'a jwt claims set'
@@ -108,6 +110,32 @@ RSpec.describe ClaimsSet do
 
   context 'for zendesk services' do
     let(:type) { :zendesk }
+    it_behaves_like 'a jwt claims set'
+
+    it 'sets the name claim' do
+      expect(subject.claims[:name]).to eq(attributes_claim.attributes[:cn])
+    end
+
+    it 'sets the email claim' do
+      expect(subject.claims[:email]).to eq(attributes_claim.attributes[:mail])
+    end
+
+    it 'sets the external_id claim' do
+      expect(subject.claims[:external_id])
+        .to eq(attributes_claim.attributes[:edupersontargetedid])
+    end
+
+    it 'sets the o claim' do
+      expect(subject.claims[:o]).to eq(attributes_claim.attributes[:o])
+    end
+
+    it 'has no attributes claim' do
+      expect(subject.claims).not_to have_key(:'https://aaf.edu.au/attributes')
+    end
+  end
+
+  context 'for freshdesk services' do
+    let(:type) { :freshdesk }
     it_behaves_like 'a jwt claims set'
 
     it 'sets the name claim' do

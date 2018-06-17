@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
 
@@ -9,4 +11,4 @@ task :mkdirs do
   Dir.mkdir('tmp') unless Dir.exist?('tmp')
 end
 
-task default: [:mkdirs, :spec, :rubocop]
+task default: %i[mkdirs spec rubocop]

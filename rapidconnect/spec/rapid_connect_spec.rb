@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require './app/rapid_connect'
 
 describe RapidConnect do
@@ -11,7 +13,7 @@ describe RapidConnect do
   end
 
   before :all do
-    File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate ['Test Org Name', 'Another Test Org Name']) }
+    File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate(['Test Org Name', 'Another Test Org Name'])) }
   end
 
   after :all do
@@ -31,6 +33,7 @@ describe RapidConnect do
       'HTTP_MAIL' => 'testuser@example.com',
       'HTTP_EPPN' => 'tuser1@example.com',
       'HTTP_AFFILIATION' => 'staff@example.com',
+      'HTTP_EDUPERSONORCID' => 'http://orcid.org/0000-0002-1825-0097',
       'HTTP_AUEDUPERSONSHAREDTOKEN' => 'shared_token'
     }
 
@@ -43,6 +46,7 @@ describe RapidConnect do
       mail: @valid_shibboleth_headers['HTTP_MAIL'],
       principal_name: @valid_shibboleth_headers['HTTP_EPPN'],
       scoped_affiliation: @valid_shibboleth_headers['HTTP_AFFILIATION'],
+      orcid: @valid_shibboleth_headers['HTTP_EDUPERSONORCID'],
       shared_token: @valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN']
     }
 
@@ -81,7 +85,8 @@ describe RapidConnect do
     it 'shows welcome erb' do
       get '/'
       expect(last_response).to be_ok
-      expect(last_response.body).to contain('Welcome to AAF Rapid Connect')
+      expect(Capybara.string(last_response.body))
+        .to have_content('Welcome to AAF Rapid Connect')
     end
   end
 
@@ -89,8 +94,8 @@ describe RapidConnect do
     it 'shows developers guide' do
       get '/developers'
       expect(last_response).to be_successful
-      expect(last_response.body)
-        .to contain('Integrating with AAF Rapid Connect')
+      expect(Capybara.string(last_response.body))
+        .to have_content('Integrating with AAF Rapid Connect')
     end
   end
 
@@ -128,7 +133,8 @@ describe RapidConnect do
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/serviceunknown')
       follow_redirect!
-      expect(last_response.body).to contain('Service Unknown')
+      expect(Capybara.string(last_response.body))
+        .to have_content('Service Unknown')
     end
 
     it 'sends a redirect to the original target and populates subject into session when there is a valid Shibboleth SP response' do
@@ -145,6 +151,7 @@ describe RapidConnect do
       expect(session[:subject][:mail]).to eq(@valid_shibboleth_headers['HTTP_MAIL'])
       expect(session[:subject][:principal_name]).to eq(@valid_shibboleth_headers['HTTP_EPPN'])
       expect(session[:subject][:scoped_affiliation]).to eq(@valid_shibboleth_headers['HTTP_AFFILIATION'])
+      expect(session[:subject][:orcid]).to eq(@valid_shibboleth_headers['HTTP_EDUPERSONORCID'])
       expect(session[:subject][:shared_token]).to eq(@valid_shibboleth_headers['HTTP_AUEDUPERSONSHAREDTOKEN'])
     end
 
@@ -162,7 +169,8 @@ describe RapidConnect do
         target = 'http://example.org/jwt/authnrequest'
 
         env = @valid_shibboleth_headers.merge(
-          'rack.session' => { target: { '1' => target } })
+          'rack.session' => { target: { '1' => target } }
+        )
 
         get '/login/shibboleth/1', {}, env
         expect(last_response).to be_redirect
@@ -186,7 +194,8 @@ describe RapidConnect do
       before do
         target = 'http://example.org/jwt/authnrequest'
         env = invalid_headers.merge(
-          'rack.session' => { target: { '1' => target } })
+          'rack.session' => { target: { '1' => target } }
+        )
 
         get '/login/shibboleth/1', {}, env
       end
@@ -251,13 +260,14 @@ describe RapidConnect do
     it 'shows the registration screen' do
       get '/registration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response).to be_ok
-      expect(last_response.body).to contain('Service Registration')
+      expect(Capybara.string(last_response.body))
+        .to have_content('Service Registration')
     end
 
     it 'sorts the organisations correctly' do
       org_configuration = JSON.generate(['Org C', 'Org A', 'org B'])
       allow(IO).to receive(:read).with(app.settings.organisations)
-        .and_return(org_configuration)
+                                 .and_return(org_configuration)
       get '/registration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response.body).to match(/Org A.*org B.*Org C/m)
     end
@@ -275,7 +285,7 @@ describe RapidConnect do
 
       let(:params) do
         attrs.select do |k, _|
-          %i(name audience endpoint secret organisation).include?(k)
+          %i[name audience endpoint secret organisation].include?(k)
         end
       end
 
@@ -288,13 +298,14 @@ describe RapidConnect do
       shared_examples 'a failed registration' do |opts = {}|
         it 'is rejected' do
           run
-          expect(last_response.body).to contain('Service Registration')
-          expect(last_response.body)
-            .to contain(opts[:message] || 'Invalid data supplied')
+          expect(Capybara.string(last_response.body))
+            .to have_content('Service Registration')
+          expect(Capybara.string(last_response.body))
+            .to have_content(opts[:message] || 'Invalid data supplied')
         end
 
         it 'does not create a service' do
-          expect { run }.not_to change { @redis.hlen('serviceproviders') }
+          expect { run }.not_to(change { @redis.hlen('serviceproviders') })
         end
       end
 
@@ -333,7 +344,7 @@ describe RapidConnect do
           json = @redis.hget('serviceproviders', identifier)
           expect(json).not_to be_nil
 
-          expect(JSON.load(json)).to eq(stringify_keys(attrs))
+          expect(JSON.parse(json)).to eq(stringify_keys(attrs))
         end
 
         it 'sets the timestamp' do
@@ -347,13 +358,25 @@ describe RapidConnect do
           expect(last_response.location)
             .to eq('http://example.org/registration/complete')
           follow_redirect!
-          expect(last_response.body).to contain(opts[:message])
+          expect(Capybara.string(last_response.body))
+            .to have_content(opts[:message])
         end
 
         it 'ignores a provided service type' do
-          attrs.merge!(type: 'auresearch')
+          attrs[:type] = 'auresearch'
           run
           expect(reload_service.type).to eq('research')
+        end
+
+        it 'strips spaces from URIs' do
+          params[:endpoint] = '   http://spaces-rule.com   '
+          attrs[:endpoint] = 'http://spaces-rule.com'
+
+          expect { run }.to change { @redis.hlen('serviceproviders') }.by(1)
+          json = @redis.hget('serviceproviders', identifier)
+          expect(json).not_to be_nil
+
+          expect(JSON.parse(json)).to eq(stringify_keys(attrs))
         end
       end
 
@@ -370,7 +393,8 @@ describe RapidConnect do
           expect(last_email.from).to include('noreply@example.org')
           expect(last_email.subject)
             .to eq('New service registration for AAF Rapid Connect')
-          expect(last_email.html_part).to contain(@valid_subject[:cn])
+          expect(Capybara.string(last_email.html_part.to_s))
+            .to have_content(@valid_subject[:cn])
         end
 
         it_behaves_like 'a successful registration',
@@ -433,7 +457,7 @@ describe RapidConnect do
       administrator
       get '/administration', {}, 'rack.session' => { subject: @valid_subject }
       expect(last_response).to be_ok
-      expect(last_response.body).to contain('Administration')
+      expect(Capybara.string(last_response.body)).to have_content('Administration')
     end
 
     context '/services' do
@@ -446,6 +470,7 @@ describe RapidConnect do
       let(:identifier) { '1234abcd' }
       let(:base_attrs) { attributes_for(:rapid_connect_service) }
       let(:attrs) { base_attrs }
+      let(:markup) { Capybara.string(last_response.body) }
 
       before { @redis.hset('serviceproviders', identifier, service.to_json) }
       subject { last_response }
@@ -457,8 +482,8 @@ describe RapidConnect do
       it 'lists all current services' do
         run
         expect(subject).to be_successful
-        expect(subject).to contain(service.name)
-        expect(subject).to contain('Show')
+        expect(markup).to have_content(service.name)
+        expect(markup).to have_content('Show')
       end
 
       context '/:identifier' do
@@ -474,13 +499,13 @@ describe RapidConnect do
 
           it 'shows a specific service' do
             expect(subject).to be_successful
-            expect(subject).to contain(service.name)
-            expect(subject).to contain('Edit')
-            expect(subject).to contain('Delete')
+            expect(markup).to have_content(service.name)
+            expect(markup).to have_content('Edit')
+            expect(markup).to have_content('Delete')
           end
 
           it 'shows the creation timestamp' do
-            expect(subject).to contain(Time.now.strftime('%F %T %Z'))
+            expect(markup).to have_content(Time.now.strftime('%F %T %Z'))
           end
 
           context 'with no creation timestamp' do
@@ -489,14 +514,14 @@ describe RapidConnect do
             end
 
             it 'shows a message when no creation timestamp exists' do
-              expect(subject).to contain('No creation time recorded')
+              expect(markup).to have_content('No creation time recorded')
             end
           end
 
           shared_context 'endpoint display' do
             it 'shows the endpoint' do
               endpoint = "/jwt/authnrequest/#{service.type}/#{identifier}"
-              expect(subject).to contain(endpoint)
+              expect(markup).to have_content(endpoint)
             end
           end
 
@@ -511,6 +536,11 @@ describe RapidConnect do
 
           context 'for a zendesk service' do
             let(:type) { 'zendesk' }
+            include_context 'endpoint display'
+          end
+
+          context 'for a freshdesk service' do
+            let(:type) { 'freshdesk' }
             include_context 'endpoint display'
           end
         end
@@ -529,9 +559,9 @@ describe RapidConnect do
 
           it 'shows a specific service' do
             expect(subject).to be_successful
-            expect(subject).to contain("Editing #{service.name}")
-            expect(subject).to contain('Update Service')
-            expect(subject).to contain('Cancel')
+            expect(markup).to have_content("Editing #{service.name}")
+            expect(markup).to have_content('Update Service')
+            expect(markup).to have_content('Cancel')
           end
         end
       end
@@ -550,7 +580,7 @@ describe RapidConnect do
           end
 
           it 'does not create a service' do
-            expect { run }.not_to change { @redis.hlen('serviceproviders') }
+            expect { run }.not_to(change { @redis.hlen('serviceproviders') })
           end
         end
 
@@ -587,7 +617,7 @@ describe RapidConnect do
         end
 
         it 'updates the service type' do
-          params.merge!(type: 'auresearch')
+          params[:type] = 'auresearch'
           expect { run }.to change { reload_service.type }
             .from('research').to('auresearch')
         end
@@ -664,26 +694,28 @@ describe RapidConnect do
     end
 
     describe '/administrators' do
+      let(:markup) { Capybara.string(last_response.body) }
+
       it 'lists all current administrators' do
         administrator
         get '/administration/administrators', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response).to be_ok
-        expect(last_response.body).to contain(@valid_subject[:principal])
-        expect(last_response.body).to contain('Delete')
+        expect(markup).to have_content(@valid_subject[:principal])
+        expect(markup).to have_content('Delete')
       end
 
       it 'allows administrators to be created' do
         administrator
         get '/administration/administrators/create', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response).to be_ok
-        expect(last_response.body).to contain('Create Administrator')
+        expect(markup).to have_content('Create Administrator')
       end
 
       it 'prevents new administrator if no identifier' do
         administrator
         post '/administration/administrators/save', {}, 'rack.session' => { subject: @valid_subject }
         expect(last_response).to be_ok
-        expect(last_response.body).to contain('Invalid form data')
+        expect(markup).to have_content('Invalid form data')
       end
 
       it 'prevents duplicate administrators from being saved' do
@@ -694,14 +726,14 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location).to eq('http://example.org/administration/administrators')
         follow_redirect!
-        expect(last_response.body).to contain('Administrator already exists')
+        expect(markup).to have_content('Administrator already exists')
       end
 
       it 'prevents new administrator if name and mail not supplied' do
         administrator
         post '/administration/administrators/save', { 'identifier' => 'https://idp.example.com!https://sp.example.com!dummy', 'name' => '' }, 'rack.session' => { subject: @valid_subject }
         expect(last_response).to be_ok
-        expect(last_response.body).to contain('Invalid form data')
+        expect(markup).to have_content('Invalid form data')
       end
 
       it 'creates new administrator' do
@@ -711,7 +743,7 @@ describe RapidConnect do
         expect(@redis.hlen('administrators')).to eq(2)
         expect(last_response).to be_redirect
         follow_redirect!
-        expect(last_response.body).to contain('Administrator added')
+        expect(markup).to have_content('Administrator added')
       end
 
       it 'prevents administrator delete if no identifier' do
@@ -720,7 +752,7 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location).to eq('http://example.org/administration/administrators')
         follow_redirect!
-        expect(last_response.body).to contain('Invalid form data')
+        expect(markup).to have_content('Invalid form data')
       end
 
       it 'prevents administrator delete if identifier matches current administrator' do
@@ -729,7 +761,7 @@ describe RapidConnect do
         expect(last_response).to be_redirect
         expect(last_response.location).to eq('http://example.org/administration/administrators')
         follow_redirect!
-        expect(last_response.body).to contain('Removing your own access is not supported')
+        expect(markup).to have_content('Removing your own access is not supported')
       end
 
       it 'provides an error when no such administrator is requested to be deleted' do
@@ -739,7 +771,7 @@ describe RapidConnect do
         expect(last_response.location).to eq('http://example.org/administration/administrators')
         expect(@redis.hlen('administrators')).to eq(1)
         follow_redirect!
-        expect(last_response.body).to contain('No such administrator')
+        expect(markup).to have_content('No such administrator')
       end
 
       it 'deletes a current administrator' do
@@ -751,7 +783,7 @@ describe RapidConnect do
         expect(last_response.location).to eq('http://example.org/administration/administrators')
         expect(@redis.hlen('administrators')).to eq(1)
         follow_redirect!
-        expect(last_response.body).to contain('Administrator deleted successfully')
+        expect(markup).to have_content('Administrator deleted successfully')
       end
     end
   end
@@ -776,7 +808,7 @@ describe RapidConnect do
         expect(last_response.location)
           .to start_with('http://example.org/login/')
         expect(last_response.location)
-          .to contain('?entityID=https://vho.aaf.edu.au/idp/shibboleth')
+          .to match(%r{\?entityID=https://vho.aaf.edu.au/idp/shibboleth})
       end
     end
 
@@ -862,8 +894,8 @@ describe RapidConnect do
         it 'creates a JWT' do
           run
           expect(last_response).to be_successful
-          expect(last_response.body)
-            .to contain('AAF Rapid Connect - Redirection')
+          expect(Capybara.string(last_response.body))
+            .to have_content('AAF Rapid Connect - Redirection')
         end
       end
     end
@@ -871,8 +903,8 @@ describe RapidConnect do
     context '/authnrequest/research' do
       let(:type) { 'research' }
       let(:attrs) do
-        %w(cn mail displayname givenname surname edupersontargetedid
-           edupersonscopedaffiliation edupersonprincipalname)
+        %w[cn mail displayname givenname surname edupersontargetedid
+           edupersonorcid edupersonscopedaffiliation edupersonprincipalname]
       end
 
       include_context 'a research service type'
@@ -881,9 +913,9 @@ describe RapidConnect do
     context '/authnrequest/auresearch' do
       let(:type) { 'auresearch' }
       let(:attrs) do
-        %w(cn mail displayname givenname surname edupersontargetedid
-           edupersonscopedaffiliation edupersonprincipalname
-           auedupersonsharedtoken)
+        %w[cn mail displayname givenname surname edupersontargetedid
+           edupersonscopedaffiliation edupersonprincipalname edupersonorcid
+           auedupersonsharedtoken]
       end
 
       include_context 'a research service type'
@@ -891,7 +923,7 @@ describe RapidConnect do
 
     context '/authnrequest/zendesk' do
       let(:type) { 'zendesk' }
-      let(:attrs) { %w(cn mail edupersontargetedid o) }
+      let(:attrs) { %w[cn mail edupersontargetedid o] }
 
       it_behaves_like 'a valid service type' do
         it 'creates a JWT' do
@@ -899,6 +931,22 @@ describe RapidConnect do
           expect(last_response).to be_redirect
           expect(last_response.location)
             .to match(/#{service.endpoint}\?jwt=.+&return_to=.*/)
+        end
+      end
+    end
+
+    context '/authnrequest/freshdesk' do
+      let(:type) { 'freshdesk' }
+      let(:attrs) { %w[cn mail o] }
+      let(:freshdesk_location) do
+        /#{service.endpoint}\?name=.*&email=.*&company=.*&timestamp=.*&hash=.*/
+      end
+
+      it_behaves_like 'a valid service type' do
+        it 'redirects to freshdesk in name+val format they define' do
+          run
+          expect(last_response).to be_redirect
+          expect(last_response.location).to match(freshdesk_location)
         end
       end
     end
@@ -959,7 +1007,7 @@ describe RapidConnect do
 
         it 'provides json' do
           get '/export/services', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
-          json = JSON.parse(response.body)
+          json = JSON.parse(last_response.body)
           expect(json['services'][0]['id']).to eq '1234abcd'
           expect(json['services'][0]['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
           expect(json['services'][0]['created_at']).to eq(Time.now.utc.xmlschema)
@@ -982,7 +1030,7 @@ describe RapidConnect do
 
         it 'provides json' do
           get '/export/basic', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
-          json = JSON.parse(response.body)
+          json = JSON.parse(last_response.body)
           expect(json['services'][0]['id']).to eq '1234abcd'
           expect(json['services'][0]['rapidconnect']).not_to have_key('secret')
         end
@@ -1009,7 +1057,7 @@ describe RapidConnect do
         end
         it 'provides json' do
           get '/export/service/1234abcd', nil, 'HTTP_AUTHORIZATION' => 'AAF-RAPID-EXPORT service="test", key="test_secret"'
-          json = JSON.parse(response.body)
+          json = JSON.parse(last_response.body)
           expect(json['service']['id']).to eq '1234abcd'
           expect(json['service']['rapidconnect']['secret']).to eq 'ykUlP1XMq3RXMd9w'
         end

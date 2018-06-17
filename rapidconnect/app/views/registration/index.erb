@@ -84,7 +84,7 @@
             </p>
             <p>
               <strong>Recommended Generation Method</strong><br>
-              <code>tr -dc '[[:alnum:][:punct:]]' < /dev/urandom | head -c32 ;echo</code>
+              <code>LC_CTYPE=C tr -dc '[[:alnum:][:punct:]]' < /dev/urandom | head -c32 ;echo</code>
             </p>
           </div>
         </div>

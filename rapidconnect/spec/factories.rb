@@ -1,4 +1,6 @@
-FactoryGirl.define do
+# frozen_string_literal: true
+
+FactoryBot.define do
   factory :rapid_connect_service do
     name { Faker::Company.name }
     audience { Faker::Internet.url }
@@ -34,6 +36,7 @@ FactoryGirl.define do
     mail { "#{principal_name}@#{idp_domain}" }
     principal { "#{idp_entity_id}!#{sp_entity_id}!#{SecureRandom.base64(21)}" }
     scoped_affiliation { "member@#{idp_domain}" }
+    orcid { Faker::Base.bothify('http://orcid.org/0000-?000-####-####') }
     shared_token { SecureRandom.urlsafe_base64(24) }
 
     initialize_with { attributes.dup }

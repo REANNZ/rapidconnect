@@ -148,12 +148,12 @@ Should any stage of the below validation fail your application **MUST** discard 
 5. The current time MUST be *before* the time provided in the **exp** claim
 6. Ensure that the value of the **jti** claim does not exist in a local storage mechanism of **jti** claim values you have accepted. If it doesn't (this **SHOULD** be the case) add the **jti** claim value to your local storage mechanism for future protection against replay attacks
 
-All applications connecting to the AAF must adhere to all relevant [AAF rules and policies](http://www.aaf.edu.au/about/federation-rules/). Prior to approving the connection of your service to the federation, the AAF may request to review your JWT related code and test your running endpoint to verify that an application's JWT handling conforms to the above requirements.
+All applications connecting to the AAF must adhere to all relevant [AAF rules and policies](https://aaf.edu.au/about/federation-rules.html). Prior to approving the connection of your service to the federation, the AAF may request to review your JWT related code and test your running endpoint to verify that an application's JWT handling conforms to the above requirements.
 
 ##### 5. Make use of the user's personal information
 Your application now has a fully verified JWT provided by AAF Rapid Connect.
 
-By looking at the claim **https://aaf.edu.au/attributes** you will be able to access information about the user which most Research and Scholarly applications require. The following core [AAF attributes](http://www.aaf.edu.au/technical/aaf-core-attributes/) **SHOULD** be available:
+By looking at the claim **https://aaf.edu.au/attributes** you will be able to access information about the user which most Research and Scholarly applications require. The following core AAF attributes **SHOULD** be available:
 
 1. [cn](http://wiki.aaf.edu.au/tech-info/attributes/cn)
 2. [mail](http://wiki.aaf.edu.au/tech-info/attributes/mail)
@@ -161,11 +161,12 @@ By looking at the claim **https://aaf.edu.au/attributes** you will be able to ac
 4. [edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid)
 5. [edupersonscopedaffiliation](http://wiki.aaf.edu.au/tech-info/attributes/edupersonscopedaffiliation)
 
-The following optional [AAF attributes](http://www.aaf.edu.au/technical/aaf-core-attributes/) **MAY** be available at the discretion of the user's Identity Provider:
+The following optional AAF attributes **MAY** be available at the discretion of the user's Identity Provider:
 
 1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication.
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
+4. edupersonorcid: A person's [ORCID](http://orcid.org) identifier, if they have provided one
 
 You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
 
@@ -197,7 +198,7 @@ Your application will be **automatically approved**. The completion screen will 
 ## Buttons
 The AAF provides buttons in several sizes which your application **should** use to let your users know they can login via the AAF. These buttons are used in marketing and help documentation which is provided to end user support desks and makes the process of logging in seem familiar for users across multiple applications.
 
-You may hotlink or rehost these images. Please use in accordance with the [AAF logo use policy](http://www.aaf.edu.au/wp-content/uploads/2010/05/AAF_LogoUsePolicy_05_10.pdf) <small>(PDF)</small>.
+You may hotlink or rehost these images. Please use in accordance with the [AAF logo use policy](https://aaf.edu.au/about/brand.html) <small>(PDF)</small>.
 
 **110x26** <br>
 ![AAF tiny login](/aaf_service_110x26.png "AAF Login")
