@@ -166,6 +166,7 @@ The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/dis
 1. edupersonprincipalname: The "NetID" of the person for the purposes of inter-institutional authentication.
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
+4. edupersonorcid: A person's [ORCID](http://orcid.org) identifier, if they have provided one
 
 You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
 
@@ -194,7 +195,7 @@ Once submitted the Tuakiri will review and contact you with any questions. You s
 #### If you're registering in the test federation
 Your application will be **automatically approved**. The completion screen will show the unique URL for your application to initiate login. You can use this immediently with your application to start the authentication process as we discussed in *Standard Flow* above.
 
-## Buttons
+## <a name="logo-images"></a> Buttons
 Tuakiri provides buttons in several sizes which your application **should** use to let your users know they can login via Tuakiri. These buttons are used in marketing and help documentation which is provided to end user support desks and makes the process of logging in seem familiar for users across multiple applications.
 
 You may hotlink or rehost these images. Please use in accordance with the Tuakiri Logo Policy available at the [Tuakiri logo page policy](https://tuakiri.ac.nz/confluence/display/Tuakiri/Logos).

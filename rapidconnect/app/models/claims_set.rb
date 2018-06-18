@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # require 'active_model'
 
 # A JWT Claims Set, and logic to generate a JWS.
@@ -24,11 +26,23 @@ class ClaimsSet
         claims.delete(:'https://aaf.edu.au/attributes')
       end
     end
+
+    def freshdesk(iss, aud, attributes_claim)
+      attrs = attributes_claim.attributes
+
+      new(iss, aud, attrs).tap do |claims_set|
+        claims = claims_set.claims
+        claims.transform_keys! { |k| k == :sub ? :external_id : k }
+        claims.merge!(email: attrs[:mail], o: attrs[:o], name: attrs[:cn])
+        claims.delete(:'https://aaf.edu.au/attributes')
+      end
+    end
   end
 
   def initialize(iss, aud, attrs)
-    @claims = base_claims.merge('https://aaf.edu.au/attributes'.to_sym => attrs)
-              .merge(iss: iss, aud: aud, sub: attrs[:edupersontargetedid])
+    @claims =
+      base_claims.merge('https://aaf.edu.au/attributes'.to_sym => attrs)
+                 .merge(iss: iss, aud: aud, sub: attrs[:edupersontargetedid])
   end
 
   def to_jws(secret)

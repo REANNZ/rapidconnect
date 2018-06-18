@@ -1,4 +1,5 @@
 require 'net/http'
+require 'openssl'
 require 'addressable/uri'
 require 'json'
 require 'yaml'
