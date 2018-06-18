@@ -599,7 +599,7 @@ class RapidConnect < Sinatra::Base
           <br>
           Or, if your service needs custom JWT structure (Freshdesk, Zendesk),<br>
           or the service needs additional Research and Education attributes (auEduPersonSharedToken),<br>
-          please contact the Support Desk at support@example.org - and after your<br>
+          please contact Tuakiri support at tuakiri@reannz.co.nz - and after your<br>
           service registration is adjusted, you will be provided with a different URL to use.<br>
           <br>
           Please contact Tuakiri support at tuakiri@reannz.co.nz if you have any questions or need any assistance with connecting your service to Tuakiri RapidConnect.
