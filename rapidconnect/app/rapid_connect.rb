@@ -559,7 +559,6 @@ class RapidConnect < Sinatra::Base
     mail_settings = settings.mail
     settings_hostname = settings.hostname
     service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{service.identifier}"
-    service_url_zendesk = "https://#{settings.hostname}/jwt/authnrequest/zendesk/#{service.identifier}"
     if service.enabled
          admin_action = "There is a new registration within Tuakiri Rapid Connect that has been automatically approved - but we are letting you know anyway."
     else
@@ -598,8 +597,10 @@ class RapidConnect < Sinatra::Base
           You can now configure your service to use this login URL :<br>
           <a href=\"#{service_url_research}\">#{service_url_research}</a><br>
           <br>
-          Or, alternatively, if your service is a Zendesk instance, please use the following URL instead:<br>
-          <a href=\"#{service_url_zendesk}\">#{service_url_zendesk}</a><br>
+          Or, if your service needs custom JWT structure (Freshdesk, Zendesk),<br>
+          or the service needs additional Research and Education attributes (auEduPersonSharedToken),<br>
+          please contact the Support Desk at support@example.org - and after your<br>
+          service registration is adjusted, you will be provided with a different URL to use.<br>
           <br>
           Please contact Tuakiri support at tuakiri@reannz.co.nz if you have any questions or need any assistance with connecting your service to Tuakiri RapidConnect.
         "
