@@ -11,9 +11,9 @@ gem 'sinatra-contrib'
 
 gem 'activemodel', '~> 4.2', require: 'active_model'
 gem 'json-jwt'
+gem 'memcache-client'
 gem 'redis'
 gem 'redis-rack'
-gem 'memcache-client'
 
 gem 'mail'
 gem 'rack-flash3'
