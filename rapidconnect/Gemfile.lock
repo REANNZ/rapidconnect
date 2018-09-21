@@ -17,7 +17,7 @@ GEM
     aes_key_wrap (1.0.1)
     ast (2.4.0)
     backports (3.11.3)
-    bindata (2.4.2)
+    bindata (2.4.3)
     builder (3.2.3)
     capybara (2.18.0)
       addressable
@@ -39,7 +39,7 @@ GEM
       i18n (>= 0.7)
     fakeredis (0.7.0)
       redis (>= 3.2, < 5.0)
-    ffi (1.9.23)
+    ffi (1.9.25)
     formatador (0.2.5)
     god (0.13.7)
     guard (2.14.2)
@@ -66,12 +66,10 @@ GEM
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
     json (2.1.0)
-    json-jwt (1.9.2)
+    json-jwt (1.9.4)
       activesupport
       aes_key_wrap
       bindata
-      securecompare
-      url_safe_base64
     kgio (2.11.2)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
@@ -145,7 +143,6 @@ GEM
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
     ruby_dep (1.5.0)
-    securecompare (1.0.0)
     shellany (0.0.1)
     shoulda-matchers (3.1.2)
       activesupport (>= 4.0.0)
@@ -177,7 +174,6 @@ GEM
     unicorn (5.4.0)
       kgio (~> 2.6)
       raindrops (~> 0.7)
-    url_safe_base64 (0.2.2)
     xpath (3.0.0)
       nokogiri (~> 1.8)
 
