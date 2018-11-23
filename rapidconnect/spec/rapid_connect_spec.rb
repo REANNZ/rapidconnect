@@ -95,7 +95,7 @@ describe RapidConnect do
       get '/developers'
       expect(last_response).to be_successful
       expect(Capybara.string(last_response.body))
-        .to have_content('Integrating with Tuakiri Rapid Connect')
+        .to have_content('Integrating with Rapid Connect')
     end
   end
 
