@@ -55,6 +55,7 @@ class RapidConnectService
   def attributes=(attrs)
     unknown = attrs.keys.map(&:to_s) - self.class.attribute_names
     raise("Bad attribute: #{unknown}") unless unknown.empty?
+
     attrs.each { |k, v| send(:"#{k}=", v) }
 
     upgrade

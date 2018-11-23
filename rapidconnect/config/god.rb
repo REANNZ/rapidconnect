@@ -14,15 +14,15 @@ LOG_DIRECTORY = File.join(ROOT, 'tmp', 'logs')
 FileUtils.mkdir_p(PID_FILE_DIRECTORY)
 FileUtils.mkdir_p(LOG_DIRECTORY)
 
-def defaults(w, name)
-  w.name = name
+def defaults(watch, name)
+  watch.name = name
 
-  w.stop_signal = 'QUIT'
+  watch.stop_signal = 'QUIT'
 
-  w.keepalive
-  w.dir = ROOT
+  watch.keepalive
+  watch.dir = ROOT
 
-  w.log = File.join(LOG_DIRECTORY, "#{name}.log")
+  watch.log = File.join(LOG_DIRECTORY, "#{name}.log")
 end
 
 God.watch do |w|
