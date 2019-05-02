@@ -83,13 +83,13 @@ GEM
     memcache-client (1.8.5)
     method_source (0.9.0)
     mini_mime (1.0.1)
-    mini_portile2 (2.3.0)
+    mini_portile2 (2.4.0)
     minitest (5.11.3)
     multi_json (1.13.1)
     mustermann (1.0.3)
     nenv (0.3.0)
-    nokogiri (1.8.2)
-      mini_portile2 (~> 2.3.0)
+    nokogiri (1.10.3)
+      mini_portile2 (~> 2.4.0)
     notiffany (0.1.1)
       nenv (~> 0.1)
       shellany (~> 0.0)
@@ -201,7 +201,7 @@ DEPENDENCIES
   json-jwt
   mail
   memcache-client
-  nokogiri (= 1.8.2)
+  nokogiri (= 1.10.3)
   rack-flash3
   rack-utf8_sanitizer
   rake
