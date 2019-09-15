@@ -139,7 +139,7 @@ class RapidConnect < Sinatra::Base
           mail: env['HTTP_MAIL'],
           principal_name: env['HTTP_EPPN'],
           scoped_affiliation: env['HTTP_AFFILIATION'],
-          o: env['HTTP_O'],
+          organization: env['HTTP_O'],
           orcid: env['HTTP_EDUPERSONORCID'],
           shared_token: env['HTTP_AUEDUPERSONSHAREDTOKEN']
         }
