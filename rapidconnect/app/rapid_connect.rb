@@ -77,7 +77,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.9.1-tuakiri5'
+    @current_version = '1.9.2-tuakiri1'
   end
 
   def check_reopen
@@ -148,7 +148,7 @@ class RapidConnect < Sinatra::Base
           mail: env['HTTP_MAIL'],
           principal_name: env['HTTP_EPPN'],
           scoped_affiliation: env['HTTP_AFFILIATION'],
-          o: env['HTTP_O'],
+          organization: env['HTTP_O'],
           orcid: env['HTTP_EDUPERSONORCID'],
           shared_token: env['HTTP_AUEDUPERSONSHAREDTOKEN']
         }
