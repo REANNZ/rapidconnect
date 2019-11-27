@@ -24,6 +24,7 @@ end
 
 @config = YAML.load_file('config.yml')
 
+target_file = @config['target_file'] || '/opt/rapidconnect/application/run/fr_org_names.json.new'
 org_names = []
 fr_response = secure_server_request Addressable::URI.encode @config['org_api_endpoint']
 fr_json = JSON.parse fr_response
@@ -33,5 +34,5 @@ fr_json["organizations"].each { |org|
   org_names << fr_org_json['organization']['displayName']
 }
 
-File.open('/opt/rapidconnect/application/run/fr_org_names.json.new', 'w') {|f| f.write( JSON.generate org_names.sort! ) }
+File.open(target_file, 'w') {|f| f.write( JSON.generate org_names.sort! ) }
 
