@@ -32,7 +32,7 @@ group :test, :development do
   gem 'factory_bot'
   gem 'faker'
   gem 'fakeredis'
-  gem 'nokogiri', '1.10.4'
+  gem 'nokogiri', '1.10.8'
   gem 'rspec'
   gem 'rubocop'
   gem 'simplecov'
