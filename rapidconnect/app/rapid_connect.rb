@@ -109,7 +109,7 @@ class RapidConnect < Sinatra::Base
 
   ## Status for load balancer
   get '/status' do
-    if settings.status_disabled_file && File.exists?(settings.status_disabled_file)
+    if settings.status_disabled_file && File.exist?(settings.status_disabled_file)
       404
     end
     ## else return a blank 200 page
@@ -177,11 +177,7 @@ class RapidConnect < Sinatra::Base
       @app_logger.info "Terminated session for #{session[:subject][:cn]}(#{session[:subject][:principal]})"
     end
     session.clear
-    if params[:return]
-      target = params[:return]
-    else
-      target = '/'
-    end
+    target = params[:return] || '/'
     redirect target
   end
 
@@ -271,9 +267,7 @@ class RapidConnect < Sinatra::Base
         @redis.hset('serviceproviders', identifier, service.to_json)
 
         send_registration_email(service)
-        if service.enabled
-          session[:registration_identifier] = identifier
-        end
+        session[:registration_identifier] = identifier if service.enabled
 
         @app_logger.info "New service #{service}, endpoint: #{service.endpoint}, contact email: #{service.registrant_mail}, organisation: #{service.organisation}"
         redirect to('/registration/complete')
@@ -288,9 +282,7 @@ class RapidConnect < Sinatra::Base
   get '/registration/complete' do
     @identifier = nil
     @approved = settings.auto_approve_in_test && settings.federation == 'test'
-    if @approved
-      @identifier = session[:registration_identifier]
-    end
+    @identifier = session[:registration_identifier] if @approved
     erb :'registration/complete'
   end
 

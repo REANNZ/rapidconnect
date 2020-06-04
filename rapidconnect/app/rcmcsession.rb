@@ -6,7 +6,7 @@ class RapidConnectMemcacheSession < Rack::Session::Memcache
   attr_reader :memcache_session_expiry
 
   DEFAULT_OPTIONS = Rack::Session::Memcache::DEFAULT_OPTIONS.merge \
-    :memcache_session_expiry => nil
+    memcache_session_expiry: nil
 
   def initialize(app, options = {})
     super
