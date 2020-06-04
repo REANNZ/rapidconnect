@@ -110,7 +110,7 @@ class RapidConnect < Sinatra::Base
   ## Status for load balancer
   get '/status' do
     if settings.status_disabled_file && File.exists?(settings.status_disabled_file)
-        404
+      404
     end
     ## else return a blank 200 page
   end
@@ -177,10 +177,10 @@ class RapidConnect < Sinatra::Base
       @app_logger.info "Terminated session for #{session[:subject][:cn]}(#{session[:subject][:principal]})"
     end
     session.clear
-    if params[:return] 
-        target = params[:return]
+    if params[:return]
+      target = params[:return]
     else
-        target = '/'
+      target = '/'
     end
     redirect target
   end
@@ -560,9 +560,9 @@ class RapidConnect < Sinatra::Base
     settings_hostname = settings.hostname
     service_url_research = "https://#{settings.hostname}/jwt/authnrequest/research/#{service.identifier}"
     if service.enabled
-         admin_action = "There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway."
+      admin_action = 'There is a new registration within AAF Rapid Connect that has been automatically approved - but we are letting you know anyway.'
     else
-         admin_action = "There is a new registration within AAF Rapid Connect that needs to be enabled."
+      admin_action = 'There is a new registration within AAF Rapid Connect that needs to be enabled.'
     end
     Mail.deliver do
       from mail_settings[:from]

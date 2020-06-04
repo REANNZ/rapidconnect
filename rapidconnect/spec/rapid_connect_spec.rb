@@ -381,10 +381,10 @@ describe RapidConnect do
       end
 
       context 'in production' do
-        before { 
-            RapidConnect.set :federation, 'production'
-            RapidConnect.set :auto_approve_in_test, true 
-        }
+        before do
+          RapidConnect.set :federation, 'production'
+          RapidConnect.set :auto_approve_in_test, true
+        end
 
         it 'sends an email' do
           run
@@ -403,10 +403,10 @@ describe RapidConnect do
       end
 
       context 'in test' do
-        before { 
-            RapidConnect.set :federation, 'test'
-            RapidConnect.set :auto_approve_in_test, true 
-        }
+        before do
+          RapidConnect.set :federation, 'test'
+          RapidConnect.set :auto_approve_in_test, true
+        end
 
         it 'sends notification email' do
           run
@@ -419,10 +419,10 @@ describe RapidConnect do
       end
 
       context 'in test' do
-        before { 
-            RapidConnect.set :federation, 'test'
-            RapidConnect.set :auto_approve_in_test, false 
-        }
+        before do
+          RapidConnect.set :federation, 'test'
+          RapidConnect.set :auto_approve_in_test, false
+        end
 
         it 'sends notification email' do
           run
@@ -433,8 +433,6 @@ describe RapidConnect do
                         enabled: false,
                         message: 'will review it and give final approval'
       end
-
-
     end
   end
 
