@@ -1,6 +1,7 @@
 issuer: 'https://rapid.example.org'
 hostname: 'rapid.example.org'
 status_disabled_file: '/opt/rapidconnect/application/run/disabled'
+ignore_eptid_set_errors: false
 organisations: '/opt/rapidconnect/application/run/fr_org_names.json'
 export:
   enabled: false
