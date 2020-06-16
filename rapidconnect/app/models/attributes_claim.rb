@@ -5,7 +5,10 @@
 class AttributesClaim
   attr_reader :attributes
 
+  # rubocop: disable Metrics/MethodLength
   def initialize(iss, aud, subject)
+    @settings = RapidConnect.settings
+    init_logger
     @attributes = {
       cn: subject[:cn], displayname: subject[:display_name],
       surname: subject[:surname], givenname: subject[:given_name],
@@ -17,8 +20,15 @@ class AttributesClaim
       edupersontargetedid: retarget_id(iss, aud, subject)
     }
   end
+  # rubocop: enable Metrics/MethodLength
 
   private
+
+  def init_logger
+    @app_logger = Logger.new(@settings.app_logfile)
+    @app_logger.level = Logger::INFO
+    @app_logger.formatter = Logger::Formatter.new
+  end
 
   def retarget_id(iss, aud, subject)
     principal, mail = subject.values_at(:principal, :mail)
