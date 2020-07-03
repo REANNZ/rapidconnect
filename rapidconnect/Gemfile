@@ -10,8 +10,8 @@ gem 'sinatra'
 gem 'sinatra-contrib'
 
 gem 'activemodel', '~> 4.2', require: 'active_model'
+gem 'dalli'
 gem 'json-jwt'
-gem 'memcache-client'
 gem 'redis'
 gem 'redis-rack'
 
