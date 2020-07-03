@@ -31,6 +31,7 @@ GEM
       simplecov
     coderay (1.1.2)
     concurrent-ruby (1.1.5)
+    dalli (2.7.10)
     diff-lcs (1.3)
     docile (1.3.1)
     erubis (2.7.0)
@@ -80,7 +81,6 @@ GEM
     lumberjack (1.0.13)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    memcache-client (1.8.5)
     method_source (0.9.0)
     mini_mime (1.0.1)
     mini_portile2 (2.4.0)
@@ -189,6 +189,7 @@ DEPENDENCIES
   activemodel (~> 4.2)
   capybara
   codeclimate-test-reporter
+  dalli
   erubis
   factory_bot
   faker
@@ -200,7 +201,6 @@ DEPENDENCIES
   guard-rubocop
   json-jwt
   mail
-  memcache-client
   nokogiri (= 1.10.8)
   rack-flash3
   rack-utf8_sanitizer
