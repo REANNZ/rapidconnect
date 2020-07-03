@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'rack/session/memcache'
+require 'rack/session/dalli'
 
-class RapidConnectMemcacheSession < Rack::Session::Memcache
+class RapidConnectMemcacheSession < Rack::Session::Dalli
   attr_reader :memcache_session_expiry
 
-  DEFAULT_OPTIONS = Rack::Session::Memcache::DEFAULT_OPTIONS.merge \
+  DEFAULT_OPTIONS = Rack::Session::Dalli::DEFAULT_OPTIONS.merge \
     memcache_session_expiry: nil
 
   def initialize(app, options = {})
