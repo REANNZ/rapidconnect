@@ -30,6 +30,7 @@ class RapidConnect < Sinatra::Base
     use Rack::Session::Pool, expire_in: 3600
   end
 
+  # use Rack::SslEnforcer, dd, hsts: { :expires => 31536000, :subdomains => true, :preload => true }
   use Rack::UTF8Sanitizer
   use Rack::MethodOverride
   use Rack::Flash, sweep: true
@@ -97,6 +98,10 @@ class RapidConnect < Sinatra::Base
   def call(env)
     check_reopen
     super(env)
+  end
+
+  before do
+    response['Strict-Transport-Security'] = 'max-age=31556952; includeSubDomains; preload'
   end
 
   ##
