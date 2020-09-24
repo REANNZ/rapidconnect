@@ -91,7 +91,7 @@ describe RapidConnect do
 
     it 'sets HSTS header' do
       get '/'
-      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains; preload')
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
   end
 
@@ -118,7 +118,7 @@ describe RapidConnect do
 
     it 'sets HSTS header' do
       get '/login/1'
-      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains; preload')
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'redirects to Shibboleth SP SSO with entityID' do
@@ -269,7 +269,7 @@ describe RapidConnect do
 
     it 'sets HSTS header' do
       get '/registration'
-      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains; preload')
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'shows the registration screen' do
@@ -447,7 +447,7 @@ describe RapidConnect do
     it 'sets HSTS header' do
       administrator
       get '/administration', {}, 'rack.session' => { subject: @valid_subject }
-      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains; preload')
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'shows the administration dashboard' do
