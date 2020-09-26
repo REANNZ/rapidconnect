@@ -100,6 +100,10 @@ class RapidConnect < Sinatra::Base
     super(env)
   end
 
+  before do
+    response['Strict-Transport-Security'] = 'max-age=31556952; includeSubDomains'
+  end
+
   ##
   # Marketing Site
   ##

@@ -88,6 +88,11 @@ describe RapidConnect do
       expect(Capybara.string(last_response.body))
         .to have_content('Welcome to AAF Rapid Connect')
     end
+
+    it 'sets HSTS header' do
+      get '/'
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
+    end
   end
 
   describe '/developers' do
@@ -109,6 +114,11 @@ describe RapidConnect do
     it 'forces the response not to be cached' do
       get '/login/1'
       expect(last_response['Cache-Control']).to eq('no-cache')
+    end
+
+    it 'sets HSTS header' do
+      get '/login/1'
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'redirects to Shibboleth SP SSO with entityID' do
@@ -255,6 +265,11 @@ describe RapidConnect do
       get '/registration'
       expect(last_response).to be_redirect
       expect(last_response.location).to eq('http://example.org/login/1')
+    end
+
+    it 'sets HSTS header' do
+      get '/registration'
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'shows the registration screen' do
@@ -449,6 +464,12 @@ describe RapidConnect do
     it 'halts with 403 if administration url requested when authenticated user is not an administrator' do
       get '/administration/xyz', {}, 'rack.session' => { subject: @non_administrator }
       expect(last_response.status).to eq(403)
+    end
+
+    it 'sets HSTS header' do
+      administrator
+      get '/administration', {}, 'rack.session' => { subject: @valid_subject }
+      expect(last_response.headers['Strict-Transport-Security']).to eq('max-age=31556952; includeSubDomains')
     end
 
     it 'shows the administration dashboard' do
