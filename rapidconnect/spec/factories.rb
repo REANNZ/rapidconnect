@@ -10,7 +10,7 @@ FactoryBot.define do
     enabled { true }
     organisation { Faker::Company.name }
     registrant_name { Faker::Name.name }
-    registrant_mail { Faker::Internet.email(registrant_name) }
+    registrant_mail { Faker::Internet.email(name: registrant_name) }
     created_at { Time.now.utc.to_i }
 
     to_create do |instance|
@@ -32,7 +32,7 @@ FactoryBot.define do
     surname { Faker::Name.last_name }
     cn { "#{given_name} #{surname}" }
     display_name { "#{given_name} #{surname}" }
-    principal_name { Faker::Internet.user_name("#{given_name} #{surname}") }
+    principal_name { Faker::Internet.user_name(specifier: "#{given_name} #{surname}") }
     mail { "#{principal_name}@#{idp_domain}" }
     principal { "#{idp_entity_id}!#{sp_entity_id}!#{SecureRandom.base64(21)}" }
     scoped_affiliation { "member@#{idp_domain}" }
