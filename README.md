@@ -1,21 +1,5 @@
 # AAF Rapid Connect
 
-[![Build Status][BS img]][Build Status]
-[![Dependency Status][DS img]][Dependency Status]
-[![Code Climate][CC img]][Code Climate]
-[![Coverage Status][CS img]][Code Climate]
-
-[Build Status]: https://codeship.com/projects/91224
-[Dependency Status]: https://gemnasium.com/ausaccessfed/rapidconnect
-[Code Climate]: https://codeclimate.com/github/ausaccessfed/rapidconnect
-
-[BS img]: https://img.shields.io/codeship/314a53c0-0cd9-0133-9f8f-7aae0ba3591b/develop.svg
-[DS img]: https://img.shields.io/gemnasium/ausaccessfed/rapidconnect.svg
-[CC img]: https://img.shields.io/codeclimate/github/ausaccessfed/rapidconnect.svg
-[CS img]: https://img.shields.io/codeclimate/coverage/github/ausaccessfed/rapidconnect.svg
-
-Author: Bradley Beddoes and Shaun Mangelsdorf
-
 Copyright 2013-2015, Australian Access Federation
 
 Licensed under the Apache License, Version 2.0 (the "License");
