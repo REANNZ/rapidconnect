@@ -77,7 +77,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.9.3-tuakiri4'
+    @current_version = '1.9.3-tuakiri5'
   end
 
   def check_reopen
@@ -98,6 +98,10 @@ class RapidConnect < Sinatra::Base
   def call(env)
     check_reopen
     super(env)
+  end
+
+  before do
+    response['Strict-Transport-Security'] = 'max-age=31556952; includeSubDomains'
   end
 
   ##
