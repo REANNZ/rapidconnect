@@ -63,14 +63,13 @@ class RapidConnect < Sinatra::Base
                       enable_starttls_auto: true
     end
 
-    unless settings.respond_to? :hostname
-      set :hostname, ::URI.parse(settings.issuer).hostname
-    end
+    set :hostname, ::URI.parse(settings.issuer).hostname unless settings.respond_to? :hostname
     # :nocov:
   end
 
   attr_reader :current_version
-  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/
+
+  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/.freeze
 
   def initialize
     super
@@ -119,9 +118,7 @@ class RapidConnect < Sinatra::Base
   ###
   get '/login/:id' do |id|
     shibboleth_login_url = "/Shibboleth.sso/Login?target=/login/shibboleth/#{id}"
-    if params[:entityID]
-      shibboleth_login_url = "#{shibboleth_login_url}&entityID=#{params[:entityID]}"
-    end
+    shibboleth_login_url = "#{shibboleth_login_url}&entityID=#{params[:entityID]}" if params[:entityID]
     redirect shibboleth_login_url
   end
 
@@ -278,9 +275,7 @@ class RapidConnect < Sinatra::Base
 
   get '/registration/complete' do
     @identifier = nil
-    if settings.federation == 'test'
-      @identifier = session[:registration_identifier]
-    end
+    @identifier = session[:registration_identifier] if settings.federation == 'test'
     erb :'registration/complete'
   end
 
@@ -333,7 +328,7 @@ class RapidConnect < Sinatra::Base
     if service.valid?
       @redis.hset('serviceproviders', identifier, service.to_json)
       @app_logger.info "Service #{identifier} updated by #{session[:subject][:principal]} #{session[:subject][:cn]}"
-      redirect to('/administration/services/' + identifier)
+      redirect to("/administration/services/#{identifier}")
     else
       flash[:error] = 'Invalid data supplied'
       redirect to('/administration/services')
@@ -350,7 +345,7 @@ class RapidConnect < Sinatra::Base
     @app_logger.info "Service #{identifier} toggled by #{session[:subject][:principal]} #{session[:subject][:cn]}"
 
     flash[:success] = 'Service modified successfully'
-    redirect to('/administration/services/' + identifier)
+    redirect to("/administration/services/#{identifier}")
   end
 
   delete '/administration/services/delete/:identifier' do |identifier|
@@ -447,13 +442,9 @@ class RapidConnect < Sinatra::Base
 
   before '/jwt/authnrequest/:type/:identifier' do |type, identifier|
     @service = load_service(identifier)
-    if @service.nil? || @service.type != type
-      halt 404, 'There is no such endpoint defined please validate the request.'
-    end
+    halt 404, 'There is no such endpoint defined please validate the request.' if @service.nil? || @service.type != type
 
-    unless @service.enabled
-      halt 403, "The service \"#{@service.name}\" is unable to process requests at this time."
-    end
+    halt 403, "The service \"#{@service.name}\" is unable to process requests at this time." unless @service.enabled
 
     iss = settings.issuer
     aud = @service.audience
@@ -504,7 +495,7 @@ class RapidConnect < Sinatra::Base
     company = claims[:o]
     timestamp = Time.now.utc.to_i.to_s
     secret = @service.secret
-    digest = OpenSSL::Digest::MD5.new
+    digest = OpenSSL::Digest.new('MD5')
     message = name + secret + email + timestamp
     hash = OpenSSL::HMAC.hexdigest(digest, secret, message)
 
@@ -528,9 +519,7 @@ class RapidConnect < Sinatra::Base
     session[:target][id] = request.url
 
     login_url = "/login/#{id}"
-    if params[:entityID]
-      login_url = "#{login_url}?entityID=#{params[:entityID]}"
-    end
+    login_url = "#{login_url}?entityID=#{params[:entityID]}" if params[:entityID]
     redirect login_url
   end
 
@@ -635,14 +624,10 @@ class RapidConnect < Sinatra::Base
   def api_authenticated?
     if settings.export[:enabled]
       authorization = request.env['HTTP_AUTHORIZATION']
-      unless authorization && authorization =~ AUTHORIZE_REGEX
-        halt 403, 'Invalid authorization token'
-      end
+      halt 403, 'Invalid authorization token' unless authorization && authorization =~ AUTHORIZE_REGEX
 
       service, secret = authorization.match(AUTHORIZE_REGEX).captures
-      unless secret == settings.export[:secret]
-        halt 403, 'Invalid authorization header'
-      end
+      halt 403, 'Invalid authorization header' unless secret == settings.export[:secret]
 
       @app_logger.info "Established API session for service #{service}"
     else
