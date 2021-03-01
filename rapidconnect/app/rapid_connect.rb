@@ -11,7 +11,6 @@ require 'rack-flash'
 require 'redis-rack'
 require 'mail'
 require 'rdiscount'
-require 'json'
 require 'uri'
 
 require_relative 'models/rapid_connect_service'
