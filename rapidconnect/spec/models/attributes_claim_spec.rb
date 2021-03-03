@@ -72,7 +72,7 @@ RSpec.describe AttributesClaim do
   end
 
   it 'has a different edupersontargetedid for another user' do
-    new_principal = auth_subject[:principal] + 'i'
+    new_principal = "#{auth_subject[:principal]}i"
     new_auth_subject = auth_subject.merge(principal: new_principal)
     new_claim = AttributesClaim.new(iss, aud, new_auth_subject)
 
