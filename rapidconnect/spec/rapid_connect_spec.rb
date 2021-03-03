@@ -952,13 +952,11 @@ describe RapidConnect do
   shared_examples_for 'export API' do
     context 'export disabled' do
       it '404' do
-        begin
-          Sinatra::Base.set :export, enabled: false
-          get '/export/services'
-          expect(last_response.status).to eq 404
-        ensure
-          Sinatra::Base.set :export, enabled: true
-        end
+        Sinatra::Base.set :export, enabled: false
+        get '/export/services'
+        expect(last_response.status).to eq 404
+      ensure
+        Sinatra::Base.set :export, enabled: true
       end
     end
 
