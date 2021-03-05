@@ -17,7 +17,7 @@ class RapidConnectService
             presence: true
   validates :created_at, numericality: { allow_nil: true }
   validates :audience, :endpoint,
-            presence: true, format: URI.regexp(%w[http https])
+            presence: true, format: URI::DEFAULT_PARSER.make_regexp(%w[http https])
   validates :type, inclusion: { in: %w[research auresearch zendesk freshdesk],
                                 allow_nil: true }
   validates :secret, presence: true, length: { minimum: 16 }
@@ -77,9 +77,7 @@ class RapidConnectService
 
   def uris_can_be_parsed
     URI_FIELDS.each do |field|
-      unless can_parse?(@attributes[field.to_s])
-        errors.add(field, 'is not a valid URI')
-      end
+      errors.add(field, 'is not a valid URI') unless can_parse?(@attributes[field.to_s])
     end
   end
 
