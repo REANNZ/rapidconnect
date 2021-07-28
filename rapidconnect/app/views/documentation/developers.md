@@ -155,11 +155,11 @@ Your application now has a fully verified JWT provided by AAF Rapid Connect.
 
 By looking at the claim **https://aaf.edu.au/attributes** you will be able to access information about the user which most Research and Scholarly applications require. The following core AAF attributes **SHOULD** be available:
 
-1. [cn](http://wiki.aaf.edu.au/tech-info/attributes/cn)
-2. [mail](http://wiki.aaf.edu.au/tech-info/attributes/mail)
-3. [displayname](http://wiki.aaf.edu.au/tech-info/attributes/displayname)
-4. [edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid)
-5. [edupersonscopedaffiliation](http://wiki.aaf.edu.au/tech-info/attributes/edupersonscopedaffiliation)
+1. cn
+2. mail
+3. displayname
+4. edupersontargetedid
+5. edupersonscopedaffiliation
 
 The following optional AAF attributes **MAY** be available at the discretion of the user's Identity Provider:
 
