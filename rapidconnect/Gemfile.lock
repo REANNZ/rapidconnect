@@ -16,6 +16,7 @@ GEM
       public_suffix (>= 2.0.2, < 5.0)
     aes_key_wrap (1.1.0)
     ast (2.4.2)
+    bigdecimal (1.4.2)
     bindata (2.4.10)
     builder (3.2.4)
     capybara (3.35.3)
@@ -195,6 +196,7 @@ PLATFORMS
 DEPENDENCIES
   aaf-gumboot
   activemodel (~> 4.2)
+  bigdecimal (= 1.4.2)
   capybara
   codeclimate-test-reporter
   erubis
@@ -227,4 +229,4 @@ DEPENDENCIES
   unicorn
 
 BUNDLED WITH
-   2.1.4
+   2.1.2
