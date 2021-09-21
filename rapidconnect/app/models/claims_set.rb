@@ -6,7 +6,7 @@
 class ClaimsSet
   attr_reader :claims
 
-  class <<self
+  class << self
     def research(iss, aud, attributes_claim)
       new(iss, aud, attributes_claim.attributes
         .except(:auedupersonsharedtoken, :o))
