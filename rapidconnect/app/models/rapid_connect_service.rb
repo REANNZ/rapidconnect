@@ -65,7 +65,7 @@ class RapidConnectService
     "RapidService(identifier=#{identifier || 'nil'} name=`#{name}`)"
   end
 
-  class <<self
+  class << self
     attr_reader :attribute_names
   end
 

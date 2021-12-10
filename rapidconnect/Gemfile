@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 gem 'god', require: false
 gem 'unicorn', require: false
 
+gem 'bigdecimal', '1.4.2'
 gem 'erubis'
 gem 'sinatra'
 gem 'sinatra-contrib'
