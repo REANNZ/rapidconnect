@@ -21,15 +21,12 @@ class AttributesClaim
   private
 
   def retarget_id(iss, aud, subject)
-    principal, mail = subject.values_at(:principal, :mail)
+    principal = subject[:principal]
 
-    stored_id(principal, aud) do
+    stored_id(principal, aud) || begin
       _, _, opaque = principal.split('!')
 
-      # The inclusion of 'mail' here is for backward compatibility. Since we're
-      # storing the ID anyway, the retargeted ID won't change if the subject
-      # has a new email address.
-      new_opaque = hash("#{opaque} #{mail} #{aud}")
+      new_opaque = hash("#{opaque} #{aud}")
       "#{iss}!#{aud}!#{new_opaque}"
     end
   end
@@ -37,10 +34,7 @@ class AttributesClaim
   def stored_id(principal, aud)
     anonymized_principal = OpenSSL::Digest::SHA256.hexdigest(principal)
     key = "eptid:#{aud}:#{anonymized_principal}"
-    redis = Redis.new
-
-    redis.get(key).tap { |r| return r if r }
-    yield.tap { |r| redis.set(key, r) }
+    Redis.new.get(key)
   end
 
   def hash(value)
