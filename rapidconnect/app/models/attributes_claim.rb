@@ -14,30 +14,22 @@ class AttributesClaim
       edupersonorcid: subject[:orcid],
       edupersonscopedaffiliation: subject[:scoped_affiliation],
       edupersonprincipalname: subject[:principal_name],
-      edupersontargetedid: retarget_id(iss, aud, subject)
+      edupersontargetedid: retarget_id(iss, aud, subject[:principal])
     }
   end
 
   private
 
-  def retarget_id(iss, aud, subject)
-    principal = subject[:principal]
-
+  def retarget_id(iss, aud, principal)
     stored_id(principal, aud) || begin
-      _, _, opaque = principal.split('!')
-
-      new_opaque = hash("#{opaque} #{aud}")
+      _idp_eid, _rapid_connect_sp_eid, opaque = principal.split('!')
+      new_opaque = OpenSSL::Digest.base64digest('SHA1', "#{opaque} #{aud}")
       "#{iss}!#{aud}!#{new_opaque}"
     end
   end
 
   def stored_id(principal, aud)
     anonymized_principal = OpenSSL::Digest::SHA256.hexdigest(principal)
-    key = "eptid:#{aud}:#{anonymized_principal}"
-    Redis.new.get(key)
-  end
-
-  def hash(value)
-    OpenSSL::Digest::SHA1.base64digest(value)
+    Redis.new.get("eptid:#{aud}:#{anonymized_principal}")
   end
 end
