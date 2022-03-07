@@ -60,7 +60,7 @@ RSpec.describe AttributesClaim do
       .to eq('https://rapid.example.com!https://service.example.com!' \
              'ZgIn68qu5WHxfS94DhlveAhgY4o=')
   end
-  
+
   context 'when a legacy edupersontargetedid exists for the subject and service' do
     before do
       stub_redis = instance_double(Redis)
