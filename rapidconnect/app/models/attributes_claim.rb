@@ -5,10 +5,7 @@
 class AttributesClaim
   attr_reader :attributes
 
-  # rubocop: disable Metrics/MethodLength
   def initialize(iss, aud, subject)
-    @settings = RapidConnect.settings
-    init_logger
     @attributes = {
       cn: subject[:cn], displayname: subject[:display_name],
       surname: subject[:surname], givenname: subject[:given_name],
@@ -20,15 +17,8 @@ class AttributesClaim
       edupersontargetedid: retarget_id(iss, aud, subject)
     }
   end
-  # rubocop: enable Metrics/MethodLength
 
   private
-
-  def init_logger
-    @app_logger = Logger.new(@settings.app_logfile)
-    @app_logger.level = Logger::INFO
-    @app_logger.formatter = Logger::Formatter.new
-  end
 
   def retarget_id(iss, aud, subject)
     principal, mail = subject.values_at(:principal, :mail)
@@ -44,44 +34,14 @@ class AttributesClaim
     end
   end
 
-  # rubocop: disable Metrics/MethodLength
   def stored_id(principal, aud)
     anonymized_principal = OpenSSL::Digest::SHA256.hexdigest(principal)
     key = "eptid:#{aud}:#{anonymized_principal}"
     redis = Redis.new
 
     redis.get(key).tap { |r| return r if r }
-    yield.tap do |r|
-      begin
-        redis.set(key, r)
-      rescue Redis::CommandError
-        # Allow ignoring eptid Redis set errors
-        # When running in Master-Slave mode, the Slave will talk to a read-only
-        # Redis instance.
-        #
-        # When a new user accesses a service for the first time (so targeted ID
-        # for the service does not exist in Redis yet), the targetedID would be
-        # computed and stored in Redis.
-        #
-        # But on the Slave instance, the storing would fail.
-        #
-        # Handle this edge case by allowing to ignore the SET error
-        # and continue, just logging a warning.
-        #
-        # Add a new configuration key "ignore_eptid_set_errors" - this is to be
-        # set to true only on Slave hosts.
-
-        if @settings.try(:ignore_eptid_set_errors)
-          @app_logger.warn "Redis: failed storing #{key} = #{r}, ignoring"
-        else
-          @app_logger.warn "Redis: failed storing #{key} = #{r}, aborting"
-          # re-raise the exception
-          raise
-        end
-      end
-    end
+    yield.tap { |r| redis.set(key, r) }
   end
-  # rubocop: enable Metrics/MethodLength
 
   def hash(value)
     OpenSSL::Digest::SHA1.base64digest(value)
