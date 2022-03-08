@@ -5,10 +5,7 @@
 class AttributesClaim
   attr_reader :attributes
 
-  # rubocop: disable Metrics/MethodLength
   def initialize(iss, aud, subject)
-    @settings = RapidConnect.settings
-    init_logger
     @attributes = {
       cn: subject[:cn], displayname: subject[:display_name],
       surname: subject[:surname], givenname: subject[:given_name],
@@ -17,73 +14,22 @@ class AttributesClaim
       edupersonorcid: subject[:orcid],
       edupersonscopedaffiliation: subject[:scoped_affiliation],
       edupersonprincipalname: subject[:principal_name],
-      edupersontargetedid: retarget_id(iss, aud, subject)
+      edupersontargetedid: retarget_id(iss, aud, subject[:principal])
     }
   end
-  # rubocop: enable Metrics/MethodLength
 
   private
 
-  def init_logger
-    @app_logger = Logger.new(@settings.app_logfile)
-    @app_logger.level = Logger::INFO
-    @app_logger.formatter = Logger::Formatter.new
-  end
-
-  def retarget_id(iss, aud, subject)
-    principal, mail = subject.values_at(:principal, :mail)
-
-    stored_id(principal, aud) do
-      _, _, opaque = principal.split('!')
-
-      # The inclusion of 'mail' here is for backward compatibility. Since we're
-      # storing the ID anyway, the retargeted ID won't change if the subject
-      # has a new email address.
-      new_opaque = hash("#{opaque} #{mail} #{aud}")
+  def retarget_id(iss, aud, principal)
+    stored_id(principal, aud) || begin
+      _idp_eid, _rapid_connect_sp_eid, opaque = principal.split('!')
+      new_opaque = OpenSSL::Digest.base64digest('SHA1', "#{opaque} #{aud}")
       "#{iss}!#{aud}!#{new_opaque}"
     end
   end
 
-  # rubocop: disable Metrics/MethodLength
   def stored_id(principal, aud)
     anonymized_principal = OpenSSL::Digest::SHA256.hexdigest(principal)
-    key = "eptid:#{aud}:#{anonymized_principal}"
-    redis = Redis.new
-
-    redis.get(key).tap { |r| return r if r }
-    yield.tap do |r|
-      begin
-        redis.set(key, r)
-      rescue Redis::CommandError
-        # Allow ignoring eptid Redis set errors
-        # When running in Master-Slave mode, the Slave will talk to a read-only
-        # Redis instance.
-        #
-        # When a new user accesses a service for the first time (so targeted ID
-        # for the service does not exist in Redis yet), the targetedID would be
-        # computed and stored in Redis.
-        #
-        # But on the Slave instance, the storing would fail.
-        #
-        # Handle this edge case by allowing to ignore the SET error
-        # and continue, just logging a warning.
-        #
-        # Add a new configuration key "ignore_eptid_set_errors" - this is to be
-        # set to true only on Slave hosts.
-
-        if @settings.try(:ignore_eptid_set_errors)
-          @app_logger.warn "Redis: failed storing #{key} = #{r}, ignoring"
-        else
-          @app_logger.warn "Redis: failed storing #{key} = #{r}, aborting"
-          # re-raise the exception
-          raise
-        end
-      end
-    end
-  end
-  # rubocop: enable Metrics/MethodLength
-
-  def hash(value)
-    OpenSSL::Digest::SHA1.base64digest(value)
+    Redis.new.get("eptid:#{aud}:#{anonymized_principal}")
   end
 end
