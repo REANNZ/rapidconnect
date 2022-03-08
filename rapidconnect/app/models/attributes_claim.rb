@@ -14,36 +14,22 @@ class AttributesClaim
       edupersonorcid: subject[:orcid],
       edupersonscopedaffiliation: subject[:scoped_affiliation],
       edupersonprincipalname: subject[:principal_name],
-      edupersontargetedid: retarget_id(iss, aud, subject)
+      edupersontargetedid: retarget_id(iss, aud, subject[:principal])
     }
   end
 
   private
 
-  def retarget_id(iss, aud, subject)
-    principal, mail = subject.values_at(:principal, :mail)
-
-    stored_id(principal, aud) do
-      _, _, opaque = principal.split('!')
-
-      # The inclusion of 'mail' here is for backward compatibility. Since we're
-      # storing the ID anyway, the retargeted ID won't change if the subject
-      # has a new email address.
-      new_opaque = hash("#{opaque} #{mail} #{aud}")
+  def retarget_id(iss, aud, principal)
+    stored_id(principal, aud) || begin
+      _idp_eid, _rapid_connect_sp_eid, opaque = principal.split('!')
+      new_opaque = OpenSSL::Digest.base64digest('SHA1', "#{opaque} #{aud}")
       "#{iss}!#{aud}!#{new_opaque}"
     end
   end
 
   def stored_id(principal, aud)
     anonymized_principal = OpenSSL::Digest::SHA256.hexdigest(principal)
-    key = "eptid:#{aud}:#{anonymized_principal}"
-    redis = Redis.new
-
-    redis.get(key).tap { |r| return r if r }
-    yield.tap { |r| redis.set(key, r) }
-  end
-
-  def hash(value)
-    OpenSSL::Digest::SHA1.base64digest(value)
+    Redis.new.get("eptid:#{aud}:#{anonymized_principal}")
   end
 end

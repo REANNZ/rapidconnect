@@ -56,11 +56,24 @@ RSpec.describe AttributesClaim do
   end
 
   it 'sets the edupersontargetedid attribute' do
-    # Expected value computed manually using the original `repack_principal`
-    # function from the RapidConnect class.
     expect(subject.attributes[:edupersontargetedid])
       .to eq('https://rapid.example.com!https://service.example.com!' \
-             'TBxeIzWIYcAVgKCnEZINqPiAYew=')
+             'ZgIn68qu5WHxfS94DhlveAhgY4o=')
+  end
+  
+  context 'when a legacy edupersontargetedid exists for the subject and service' do
+    before do
+      stub_redis = instance_double(Redis)
+      allow(Redis).to receive(:new).and_return stub_redis
+      expect(stub_redis).to receive(:get)
+        .with("eptid:#{aud}:#{OpenSSL::Digest::SHA256.hexdigest(auth_subject[:principal])}")
+        .and_return 'legacy_edupersontargetedid'
+    end
+
+    it 'has the legacy edupersontargetedid' do
+      expect(subject.attributes[:edupersontargetedid])
+        .to eq('legacy_edupersontargetedid')
+    end
   end
 
   it 'has the same edupersontargetedid attribute if email address changes' do
