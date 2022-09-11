@@ -217,13 +217,6 @@ describe RapidConnect do
         include_examples 'halts invalid user session'
       end
 
-      context 'missing cn' do
-        let(:invalid_headers) do
-          dup_headers_and_remove_exisiting('HTTP_CN')
-        end
-        include_examples 'halts invalid user session'
-      end
-
       context 'missing mail' do
         let(:invalid_headers) do
           dup_headers_and_remove_exisiting('HTTP_MAIL')
