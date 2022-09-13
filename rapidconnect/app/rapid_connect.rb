@@ -191,7 +191,6 @@ class RapidConnect < Sinatra::Base
 
   def valid_subject?(subject)
     subject[:principal].present? &&
-      subject[:cn].present? &&
       subject[:display_name].present?
   end
 
