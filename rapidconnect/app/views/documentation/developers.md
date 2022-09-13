@@ -155,11 +155,10 @@ Your application now has a fully verified JWT provided by Rapid Connect.
 
 By looking at the claim **https://aaf.edu.au/attributes** you will be able to access information about the user which most Research and Scholarly applications require. The following core [Tuakiri attributes](https://tuakiri.ac.nz/confluence/display/Tuakiri/Attributes) **SHOULD** be available:
 
-1. cn
-2. mail
-3. displayname
-4. edupersontargetedid
-5. edupersonscopedaffiliation
+1. mail
+2. displayname
+3. edupersontargetedid
+4. edupersonscopedaffiliation
 
 The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/display/Tuakiri/Attributes) **MAY** be available at the discretion of the user's Identity Provider:
 
@@ -167,6 +166,7 @@ The following optional [Tuakiri attributes](https://tuakiri.ac.nz/confluence/dis
 2. givenname: A person's first name or preferred name
 3. surname: A person's surname
 4. edupersonorcid: A person's [ORCID](http://orcid.org) identifier, if they have provided one
+5. cn: Deprecated. Provided for legacy compatibility only. If you can, use displayname instead
 
 You can now use this data to create a local account suitable for internal use by your application, for customisation and other purposes. It is RECOMMENDED that you use the data provided in either the JWT claim `sub` or the `https://aaf.edu.au/attributes` claim's `edupersontargetedid` field to uniquely identify users.
 

@@ -75,7 +75,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.11.2-tuakiri1'
+    @current_version = '1.11.2-tuakiri2'
   end
 
   def check_reopen
@@ -191,7 +191,6 @@ class RapidConnect < Sinatra::Base
 
   def valid_subject?(subject)
     subject[:principal].present? &&
-      subject[:cn].present? &&
       subject[:display_name].present?
   end
 
