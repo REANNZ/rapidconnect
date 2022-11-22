@@ -11,6 +11,7 @@ gem 'sinatra'
 gem 'sinatra-contrib'
 
 gem 'activemodel', '~> 4.2', require: 'active_model'
+gem 'connection_pool', '~> 2.3'
 gem 'dalli'
 gem 'json-jwt'
 gem 'redis'
