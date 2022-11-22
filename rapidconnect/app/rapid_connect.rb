@@ -75,7 +75,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.11.2-tuakiri3'
+    @current_version = '1.11.2-tuakiri4'
   end
 
   def check_reopen
@@ -111,9 +111,7 @@ class RapidConnect < Sinatra::Base
 
   ## Status for load balancer
   get '/status' do
-    if settings.status_disabled_file && File.exist?(settings.status_disabled_file)
-      404
-    end
+    404 if settings.status_disabled_file && File.exist?(settings.status_disabled_file)
     ## else return a blank 200 page
   end
 
