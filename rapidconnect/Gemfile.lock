@@ -214,7 +214,7 @@ DEPENDENCIES
   guard-rubocop
   json-jwt
   mail
-  nokogiri (= 1.13.9)
+  nokogiri
   rack-flash3
   rack-utf8_sanitizer
   rake
