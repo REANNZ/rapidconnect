@@ -34,7 +34,7 @@ group :test, :development do
   gem 'factory_bot'
   gem 'faker'
   gem 'fakeredis'
-  gem 'nokogiri', '1.13.9'
+  gem 'nokogiri'
   gem 'rspec'
   gem 'rubocop'
   gem 'rubocop-rails'
