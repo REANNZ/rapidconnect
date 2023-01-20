@@ -14,7 +14,7 @@ gem 'activemodel', '~> 6.1', require: 'active_model'
 gem 'connection_pool', '~> 2.3'
 gem 'dalli'
 gem 'json-jwt'
-gem 'redis'
+gem 'redis', '<5'
 gem 'redis-rack'
 
 gem 'mail'
