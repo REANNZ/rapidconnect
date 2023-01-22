@@ -1,6 +1,9 @@
 inherit_gem:
   aaf-gumboot: aaf-rubocop.yml
 
+AllCops:
+  NewCops: enable
+
 Rails:
   Enabled: false
 
@@ -11,7 +14,7 @@ Metrics/ClassLength:
   Exclude:
     - app/rapid_connect.rb
 
-Metrics/LineLength:
+Layout/LineLength:
   Exclude:
     - app/rapid_connect.rb
     - spec/rapid_connect_spec.rb

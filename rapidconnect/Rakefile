@@ -7,8 +7,8 @@ RSpec::Core::RakeTask.new(:spec)
 RuboCop::RakeTask.new
 
 task :mkdirs do
-  Dir.mkdir('logs') unless Dir.exist?('logs')
-  Dir.mkdir('tmp') unless Dir.exist?('tmp')
+  Dir.mkdir_p('logs')
+  Dir.mkdir_p('tmp')
 end
 
 task default: %i[mkdirs spec rubocop]

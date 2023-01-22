@@ -503,7 +503,7 @@ class RapidConnect < Sinatra::Base
     hash = OpenSSL::HMAC.hexdigest(digest, secret, message)
 
     "#{@endpoint}?name=#{name}&email=#{email}&company=#{company}" \
-    "&timestamp=#{timestamp}&hash=#{hash}"
+      "&timestamp=#{timestamp}&hash=#{hash}"
   end
 
   get '/developers' do
@@ -667,6 +667,6 @@ class RapidConnect < Sinatra::Base
   # Organisation names via FR
   ##
   def load_organisations
-    JSON.parse(IO.read(settings.organisations)).sort_by(&:downcase)
+    JSON.parse(File.read(settings.organisations)).sort_by(&:downcase)
   end
 end
