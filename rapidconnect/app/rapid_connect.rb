@@ -8,12 +8,12 @@ require 'json'
 require 'json/jwt'
 require 'securerandom'
 require 'rack-flash'
+require 'rack/session/dalli'
 require 'redis-rack'
 require 'mail'
 require 'rdiscount'
 require 'uri'
 
-require_relative 'rcmcsession'
 require_relative 'models/rapid_connect_service'
 require_relative 'models/claims_set'
 require_relative 'models/attributes_claim'
@@ -22,7 +22,7 @@ require_relative 'models/attributes_claim'
 class RapidConnect < Sinatra::Base
   configure :production, :development do
     # :nocov: Doesn't run in test environment
-    use RapidConnectMemcacheSession, memcache_session_expiry: 3600, secure: Sinatra::Base.production?
+    use Rack::Session::Dalli, expire_after: 3600, secure: Sinatra::Base.production?
     # :nocov:
   end
 
@@ -75,7 +75,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.11.2-tuakiri7'
+    @current_version = '1.11.3-tuakiri1'
   end
 
   def check_reopen
@@ -503,7 +503,7 @@ class RapidConnect < Sinatra::Base
     hash = OpenSSL::HMAC.hexdigest(digest, secret, message)
 
     "#{@endpoint}?name=#{name}&email=#{email}&company=#{company}" \
-    "&timestamp=#{timestamp}&hash=#{hash}"
+      "&timestamp=#{timestamp}&hash=#{hash}"
   end
 
   get '/developers' do
@@ -667,6 +667,6 @@ class RapidConnect < Sinatra::Base
   # Organisation names via FR
   ##
   def load_organisations
-    JSON.parse(IO.read(settings.organisations)).sort_by(&:downcase)
+    JSON.parse(File.read(settings.organisations)).sort_by(&:downcase)
   end
 end

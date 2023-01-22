@@ -13,7 +13,7 @@ describe RapidConnect do
   end
 
   before :all do
-    File.open('/tmp/rspec_organisations.json', 'w') { |f| f.write(JSON.generate(['Test Org Name', 'Another Test Org Name'])) }
+    File.write('/tmp/rspec_organisations.json', JSON.generate(['Test Org Name', 'Another Test Org Name']))
   end
 
   after :all do
@@ -124,9 +124,11 @@ describe RapidConnect do
     it 'redirects to Shibboleth SP SSO with entityID' do
       get '/login/1?entityID=https://vho.aaf.edu.au/idp/shibboleth'
       expect(last_response).to be_redirect
-      expect(last_response.location).to eq('http://example.org/Shibboleth.sso' \
-         '/Login?target=/login/shibboleth' \
-         '/1&entityID=https://vho.aaf.edu.au/idp/shibboleth')
+      expect(last_response.location).to eq(
+        'http://example.org/Shibboleth.sso' \
+        '/Login?target=/login/shibboleth' \
+        '/1&entityID=https://vho.aaf.edu.au/idp/shibboleth'
+      )
     end
 
     it 'sends a 403 response if Shibboleth SP login response contains no session id' do

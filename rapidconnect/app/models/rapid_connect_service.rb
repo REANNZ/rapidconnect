@@ -9,7 +9,6 @@ class RapidConnectService
   include ActiveModel::Dirty
 
   attr_accessor :identifier
-  attr_reader :attributes
 
   URI_FIELDS = %i[audience endpoint].freeze
 
@@ -30,18 +29,18 @@ class RapidConnectService
   ]
 
   @attribute_names.each do |n|
-    define_method(n) { @attributes[n.to_s] }
+    define_method(n) { @service_attributes[n.to_s] }
 
     define_method(:"#{n}=") do |v|
-      send(:"#{n}_will_change!") unless @attributes[n.to_s] == v
-      @attributes[n.to_s] = v
+      send(:"#{n}_will_change!") unless @service_attributes[n.to_s] == v
+      @service_attributes[n.to_s] = v
     end
   end
 
   define_attribute_methods @attribute_names
 
   def initialize
-    @attributes = {}
+    @service_attributes = {}
   end
 
   def from_json(*args)
@@ -50,6 +49,10 @@ class RapidConnectService
 
   def identifier!
     self.identifier ||= SecureRandom.urlsafe_base64
+  end
+
+  def attributes
+    @service_attributes
   end
 
   def attributes=(attrs)
@@ -77,7 +80,7 @@ class RapidConnectService
 
   def uris_can_be_parsed
     URI_FIELDS.each do |field|
-      errors.add(field, 'is not a valid URI') unless can_parse?(@attributes[field.to_s])
+      errors.add(field, 'is not a valid URI') unless can_parse?(@service_attributes[field.to_s])
     end
   end
 
