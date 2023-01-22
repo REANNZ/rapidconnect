@@ -8,12 +8,12 @@ require 'json'
 require 'json/jwt'
 require 'securerandom'
 require 'rack-flash'
+require 'rack/session/dalli'
 require 'redis-rack'
 require 'mail'
 require 'rdiscount'
 require 'uri'
 
-require_relative 'rcmcsession'
 require_relative 'models/rapid_connect_service'
 require_relative 'models/claims_set'
 require_relative 'models/attributes_claim'
@@ -22,7 +22,7 @@ require_relative 'models/attributes_claim'
 class RapidConnect < Sinatra::Base
   configure :production, :development do
     # :nocov: Doesn't run in test environment
-    use RapidConnectMemcacheSession, memcache_session_expiry: 3600, secure: Sinatra::Base.production?
+    use Rack::Session::Dalli, expire_after: 3600, secure: Sinatra::Base.production?
     # :nocov:
   end
 
