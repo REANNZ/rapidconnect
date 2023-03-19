@@ -60,7 +60,7 @@ class RapidConnect < Sinatra::Base
                       user_name: mail_settings[:user_name],
                       password: mail_settings[:password],
                       authentication: :plain,
-                      enable_starttls_auto: false
+                      enable_starttls_auto: true
     end
 
     set :hostname, ::URI.parse(settings.issuer).hostname unless settings.respond_to? :hostname
