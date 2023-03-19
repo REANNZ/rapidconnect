@@ -60,7 +60,7 @@ class RapidConnect < Sinatra::Base
                       user_name: mail_settings[:user_name],
                       password: mail_settings[:password],
                       authentication: :plain,
-                      enable_starttls_auto: false
+                      enable_starttls_auto: true
     end
 
     set :hostname, ::URI.parse(settings.issuer).hostname unless settings.respond_to? :hostname
@@ -75,7 +75,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.11.3-tuakiri3'
+    @current_version = '1.11.3-tuakiri4'
   end
 
   def check_reopen
