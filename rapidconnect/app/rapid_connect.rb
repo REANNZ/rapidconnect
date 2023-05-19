@@ -175,8 +175,29 @@ class RapidConnect < Sinatra::Base
       @app_logger.info "Terminated session for #{session[:subject][:cn]}(#{session[:subject][:principal]})"
     end
     session.clear
-    target = params[:return] || '/'
-    redirect target
+    redirect valid_target?(params[:return]) ? params[:return] : '/'
+  end
+
+  def valid_target?(target)
+    uri = parse_uri(target)
+    # Accept either an HTTPS URL for the same host, or a relative path redirect.
+    uri_valid = uri && (valid_absolute_uri?(uri) || valid_relative_uri?(uri))
+    @app_logger.info "Rejecting redirect url \"#{target}\"" if target && !uri_valid
+    uri_valid
+  end
+
+  def parse_uri(target)
+    URI.parse(target) if target
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  def valid_absolute_uri?(uri)
+    uri.scheme == 'https' && uri.hostname == settings.hostname
+  end
+
+  def valid_relative_uri?(uri)
+    !uri.scheme && !uri.hostname && uri.path.start_with?('/')
   end
 
   get '/serviceunknown' do
