@@ -193,11 +193,11 @@ class RapidConnect < Sinatra::Base
   end
 
   def valid_absolute_uri?(uri)
-    uri.scheme == 'https' && uri.hostname == settings.hostname
+    uri.scheme == 'https' && uri.port == 443 && uri.hostname == settings.hostname
   end
 
   def valid_relative_uri?(uri)
-    !uri.scheme && !uri.hostname && uri.path.start_with?('/')
+    !uri.scheme && !uri.port && !uri.hostname && uri.path.start_with?('/')
   end
 
   get '/serviceunknown' do
