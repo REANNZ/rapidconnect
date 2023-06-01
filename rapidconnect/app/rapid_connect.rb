@@ -75,7 +75,7 @@ class RapidConnect < Sinatra::Base
     super
     check_reopen
 
-    @current_version = '1.11.3-tuakiri6'
+    @current_version = '1.11.3-tuakiri8'
   end
 
   def check_reopen
