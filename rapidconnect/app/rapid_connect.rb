@@ -171,17 +171,19 @@ class RapidConnect < Sinatra::Base
   end
 
   get '/logout' do
+    allowed_hostname = get_allowed_hostname(load_service(params[:id])) if params[:id]
+
     if session[:subject]
       @app_logger.info "Terminated session for #{session[:subject][:cn]}(#{session[:subject][:principal]})"
     end
     session.clear
-    redirect valid_target?(params[:return]) ? params[:return] : '/'
+    redirect valid_target?(params[:return], allowed_hostname) ? params[:return] : '/'
   end
 
-  def valid_target?(target)
+  def valid_target?(target, allowed_hostname)
     uri = parse_uri(target)
     # Accept either an HTTPS URL for the same host, or a relative path redirect.
-    uri_valid = uri && (valid_absolute_uri?(uri) || valid_relative_uri?(uri))
+    uri_valid = uri && (valid_absolute_uri?(uri, allowed_hostname) || valid_relative_uri?(uri))
     @app_logger.info "Rejecting redirect url \"#{target}\"" if target && !uri_valid
     uri_valid
   end
@@ -192,12 +194,27 @@ class RapidConnect < Sinatra::Base
     nil
   end
 
-  def valid_absolute_uri?(uri)
-    uri.scheme == 'https' && uri.hostname == settings.hostname
+  # For a given valid service, return the hostname component of the endpoint URL IFF it is a suitable base URL for redirects
+  def get_allowed_hostname(service)
+    return unless service&.enabled
+
+    uri = parse_uri(service.endpoint)
+    # Accept base hostname if scheme is HTTPS on default port - and not a variation of localhost
+    if uri.hostname && uri.scheme == 'https' && uri.port == 443 && !['localhost', '127.0.0.1', '::1'].include?(uri.hostname)
+      uri.hostname
+    end
+  end
+
+  def valid_absolute_uri?(uri, allowed_remote_hostname)
+    return false unless uri.hostname
+
+    valid_hostnames = [settings.hostname, allowed_remote_hostname].compact
+
+    uri.scheme == 'https' && uri.port == 443 && valid_hostnames.include?(uri.hostname)
   end
 
   def valid_relative_uri?(uri)
-    !uri.scheme && !uri.hostname && uri.path.start_with?('/')
+    !uri.scheme && !uri.port && !uri.hostname && uri.path.start_with?('/')
   end
 
   get '/serviceunknown' do
