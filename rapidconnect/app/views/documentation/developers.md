@@ -174,7 +174,7 @@ The JWT claim `sub` and the `https://aaf.edu.au/attributes` claim's `edupersonta
 
 The **full** value of the field must be utilised to ensure your application uniquely identifies the remote user. Applications **MUST NOT** split this value based on the delimited bang segments.
 
-The value of `sub`/`edupersontargetedid` is **not** able to correlate a user between services. For more details see [http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid](http://wiki.aaf.edu.au/tech-info/attributes/edupersontargetedid).
+The value of `sub`/`edupersontargetedid` is **not** able to correlate a user between services. For more details see [https://attributes.tuakiri.ac.nz/documentation/attributes/eduPersonTargetedID](https://attributes.tuakiri.ac.nz/documentation/attributes/eduPersonTargetedID).
 
 ### Register your service
 
