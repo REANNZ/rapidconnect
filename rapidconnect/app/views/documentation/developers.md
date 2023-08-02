@@ -142,7 +142,7 @@ The endpoint must acquire the data provided in the parameter **assertion** for f
 Should any stage of the below validation fail your application **MUST** discard the token and present the user with a suitable error message.
 
 1. Verify that the signature for the signed JWT you have received is valid by using your locally stored secret value
-2. Ensure that the **iss** claim has the value *https://rapid.aaf.edu.au* when in the production environment, or *https://rapid.test.aaf.edu.au* when in the test environment
+2. Ensure that the **iss** claim has the value *https://rapidconnect.tuakiri.ac.nz* when in the production environment, or *https://rapidconnect.staging.tuakiri.ac.nz* when in the test environment
 3. Ensure that the **aud** claim has the value of your application's primary URL (provided as part of service registration)
 4. The current time MUST be after or equal to the the time provided in the **nbf** claim
 5. The current time MUST be *before* the time provided in the **exp** claim
