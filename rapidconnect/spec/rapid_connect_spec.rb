@@ -881,8 +881,8 @@ describe RapidConnect do
         run
         expect(last_response.headers).to include('Set-Cookie')
         expect(last_response.headers['Set-Cookie']).to match(/rack.session=/)
-        expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/)
-        expect(last_response.headers['Set-Cookie']).not_to match(/expires=/)
+        expect(last_response.headers['Set-Cookie']).to match(/HttpOnly/i)
+        expect(last_response.headers['Set-Cookie']).not_to match(/expires=/i)
       end
 
       it 'records the retargeted eptid' do
