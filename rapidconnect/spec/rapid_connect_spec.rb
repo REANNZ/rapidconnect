@@ -478,7 +478,7 @@ describe RapidConnect do
     end
 
     context '/services' do
-      let!(:service) { build(:rapid_connect_service, type: type) }
+      let!(:service) { build(:rapid_connect_service, type:) }
       let(:type) { 'research' }
       let(:rack_env) { { 'rack.session' => { subject: @valid_subject } } }
       let(:url) { '/administration/services' }
@@ -527,7 +527,7 @@ describe RapidConnect do
 
           context 'with no creation timestamp' do
             let!(:service) do
-              build(:rapid_connect_service, type: type, created_at: nil)
+              build(:rapid_connect_service, type:, created_at: nil)
             end
 
             it 'shows a message when no creation timestamp exists' do
@@ -586,7 +586,7 @@ describe RapidConnect do
       context '/update' do
         let(:method) { :put }
         let(:url) { '/administration/services/update' }
-        let(:params) { attrs.merge(identifier: identifier) }
+        let(:params) { attrs.merge(identifier:) }
 
         shared_examples 'a failed update' do
           it 'is rejected' do
@@ -830,7 +830,7 @@ describe RapidConnect do
     end
 
     shared_examples 'a valid service type' do
-      let(:service) { create(:rapid_connect_service, type: type) }
+      let(:service) { create(:rapid_connect_service, type:) }
       let(:identifier) { service.identifier }
       let(:principal) { @valid_subject[:principal] }
       let(:env) { { 'rack.session' => { subject: @valid_subject } } }
@@ -872,7 +872,7 @@ describe RapidConnect do
 
       context 'for a disabled service' do
         let(:service) do
-          create(:rapid_connect_service, type: type, enabled: false)
+          create(:rapid_connect_service, type:, enabled: false)
         end
         it { is_expected.to be_forbidden }
       end
