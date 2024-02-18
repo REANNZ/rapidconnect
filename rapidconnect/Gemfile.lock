@@ -17,7 +17,6 @@ GEM
     aes_key_wrap (1.1.0)
     ast (2.4.2)
     base64 (0.2.0)
-    bigdecimal (1.4.2)
     bindata (2.4.15)
     capybara (3.40.0)
       addressable
@@ -237,7 +236,6 @@ PLATFORMS
 DEPENDENCIES
   aaf-gumboot
   activemodel (~> 6.1)
-  bigdecimal (= 1.4.2)
   capybara
   codeclimate-test-reporter
   connection_pool (~> 2.3)
