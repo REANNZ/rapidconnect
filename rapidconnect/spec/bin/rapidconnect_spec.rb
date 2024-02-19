@@ -66,7 +66,9 @@ describe RapidConnectCLI do
     end
 
     context 'for a new registration' do
-      it { is_expected.to change(self, :service_count).by(1) }
+      it 'increments service count' do
+        expect { run }.to change(self, :service_count).by(1)
+      end
 
       it 'sets the attributes' do
         subject.call
@@ -89,7 +91,7 @@ describe RapidConnectCLI do
         subject { -> { run } }
 
         it 'indicates successful creation' do
-          expect(subject).to output(/Registered new service/).to_stderr
+          expect { run }.to output(/Registered new service/).to_stderr
         end
       end
 
@@ -134,7 +136,9 @@ describe RapidConnectCLI do
       context 'with a missing type option' do
         let(:type) { nil }
 
-        it { is_expected.to change(self, :service_count).by(1) }
+        it 'increments service count' do
+          expect { run }.to change(self, :service_count).by(1)
+        end
 
         it 'sets the type to "research"' do
           subject.call
@@ -156,11 +160,11 @@ describe RapidConnectCLI do
       let(:id) { existing.identifier }
 
       it 'updates the attributes' do
-        expect(subject).to change(self, :saved_attributes).to include(attrs)
+        expect { run }.to change(self, :saved_attributes).to include(attrs)
       end
 
       it 'does not update the created_at timestamp' do
-        expect(subject).not_to(change { service.created_at })
+        expect { run }.not_to(change { service.created_at })
       end
 
       context 'existing service is disabled' do
@@ -170,7 +174,7 @@ describe RapidConnectCLI do
         end
 
         it 'enables the existing service' do
-          expect(subject).to change { service.enabled }.to be_truthy
+          expect { run }.to change { service.enabled }.to be_truthy
         end
       end
 
@@ -182,7 +186,7 @@ describe RapidConnectCLI do
 
       shared_context 'leave attribute intact' do |attr:|
         it 'leaves the existing value intact' do
-          expect(subject).not_to(change { service.attributes[attr.to_s] })
+          expect { run }.not_to(change { service.attributes[attr.to_s] })
         end
       end
 
