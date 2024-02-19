@@ -69,13 +69,13 @@ class RapidConnect < Sinatra::Base
 
   attr_reader :current_version
 
-  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/.freeze
+  AUTHORIZE_REGEX = /^AAF-RAPID-EXPORT service="([^"]+)", key="([^"]*)?"$/
 
   def initialize
     super
     check_reopen
 
-    @current_version = '1.11.4-tuakiri1'
+    @current_version = '1.12.0'
   end
 
   def check_reopen
@@ -553,7 +553,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def authenticated?
-    return if session[:subject]
+    return false if session[:subject]
 
     id = SecureRandom.urlsafe_base64(24, false)
     session[:target] ||= {}
@@ -565,7 +565,7 @@ class RapidConnect < Sinatra::Base
   end
 
   def administrator?
-    return if @redis.hexists('administrators', session[:subject][:principal])
+    return false if @redis.hexists('administrators', session[:subject][:principal])
 
     @app_logger.warn "Denied access to administrative area to #{session[:subject][:principal]} #{session[:subject][:cn]}"
     status 403
@@ -651,7 +651,7 @@ class RapidConnect < Sinatra::Base
       service_as_json(id, service)
     end
 
-    { services: services }.to_json
+    { services: }.to_json
   end
 
   get '/export/basic' do
@@ -663,11 +663,11 @@ class RapidConnect < Sinatra::Base
       end
     end
 
-    { services: services }.to_json
+    { services: }.to_json
   end
 
   def service_as_json(id, service)
-    { id: id,
+    { id:,
       name: service.name,
       created_at: Time.at(service.created_at).utc.xmlschema,
       contact: {
