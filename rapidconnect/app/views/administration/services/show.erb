@@ -5,15 +5,15 @@
   <body>
 
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
-      <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
+      <li><a href="/administration">Administration</a></li>
+      <li><a href="/administration/services">Services</a></li>
       <li class="active"><%= @service.name %></li>
     </ul>
 
     <h2><%= @service.name %></h2>
 
     <% unless @service.enabled %>
-      <div class="alert alert-error">
+      <div class="alert alert-danger">
         <h4>Not Enabled</h4>
         This service is not currently enabled. It <strong>will fail</strong> to authenticate regardless of secret being used.
       </div>
@@ -52,8 +52,8 @@
 
     <% if @service.enabled %>
       <div class="row">
-        <div class="span12">
-          <h3 class="muted">Endpoints <small>To be provided to application administrators</small></h3>
+        <div class="col-md-12">
+          <h3 class="text-muted">Endpoints <small>To be provided to application administrators</small></h3>
           <ol>
             <li>
               <% url = "https://#{settings.hostname}/jwt/authnrequest/#{@service.type}/#{@identifier}" %>
@@ -67,9 +67,9 @@
     <% end %>
 
     <div class="row">
-      <div class="span6">
-        <h3 class="muted">Technical</h3>
-        <table class="table table-borderless table-sortable">
+      <div class="col-md-6">
+        <h3 class="text-muted">Technical</h3>
+        <table class="table">
           <tbody>
             <tr>
               <td>Identifier</td>
@@ -115,9 +115,9 @@
         </table>
       </div>
 
-      <div class="span6">
-        <h3 class="muted">Registrant</h3>
-        <table class="table table-borderless">
+      <div class="col-md-6">
+        <h3 class="text-muted">Registrant</h3>
+        <table class="table">
           <tbody>
             <tr>
               <td>Name</td>

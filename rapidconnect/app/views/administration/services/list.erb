@@ -4,7 +4,7 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li><a href="/administration">Administration</a></li>
       <li class="active">Services</li>
       <li class="pull-right"><strong><a href="/registration">Register Service</a></strong></li>
     </ul>
@@ -12,7 +12,7 @@
     <div class="container">
       <h2>Services</h2>
 
-      <table class="table table-borderless table-sortable">
+      <table class="table">
         <thead>
           <tr>
             <th>Name</th>
@@ -28,7 +28,7 @@
             <td><%= v.audience %></td>
             <td><%= v.enabled %></td>
             <td>
-              <a href="/administration/services/<%= k %>" class="btn btn-small">Show</a>
+              <a href="/administration/services/<%= k %>" class="btn btn-default btn-sm">Show</a>
             </td>
           </tr>
         <%- end -%>

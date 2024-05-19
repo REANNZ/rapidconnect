@@ -4,7 +4,7 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
+      <li><a href="/administration">Administration</a></li>
       <li class="active">Administrators</li>
       <li class="pull-right"><strong><a href="/administration/administrators/create">Create Administrator</a></strong></li>
     </ul>
@@ -12,7 +12,7 @@
     <div class="container">
       <h2>Administrators</h2>
 
-      <table class="table table-borderless table-sortable">
+      <table class="table">
         <thead>
           <tr>
             <th>Name</th>
@@ -31,7 +31,7 @@
               <!-- <%= k %> -->
             </td>
             <td>
-              <a href="#" data-type="Administrator" data-target="delete-<%= i %>" class="delete-target btn btn-danger btn-small">Delete</a>
+              <a href="#" data-type="Administrator" data-target="delete-<%= i %>" class="delete-target btn btn-danger btn-sm">Delete</a>
               <form action="/administration/administrators/delete" method="post" id="delete-<%= i %>">
                 <input name="_method" type="hidden" value="delete" />
                 <input name="identifier" type="hidden" value="<%= k %>" />

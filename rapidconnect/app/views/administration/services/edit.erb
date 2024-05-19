@@ -4,9 +4,9 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a> <span class="divider">/</span></li>
-      <li><a href="/administration/services">Services</a> <span class="divider">/</span></li>
-      <li><a href="/administration/services/<%= @identifier %>"><%= @service.name %></a> <span class="divider">/</span></li>
+      <li><a href="/administration">Administration</a></li>
+      <li><a href="/administration/services">Services</a></li>
+      <li><a href="/administration/services/<%= @identifier %>"><%= @service.name %></a></li>
       <li class="active">Editing</li>
     </ul>
 
@@ -17,27 +17,21 @@
       <input type="hidden" name="identifier" value="<%= @identifier %>">
       <input name="_method" type="hidden" value="put" />
 
-      <h3 class="muted">Technical Details</h3>
+      <h3 class="text-muted">Technical Details</h3>
 
-      <div class="control-group">
-        <label class="control-label" for="name">Name</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="name" class="span5 required" value="<%= @service.name %>">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="name">Name</label>
+          <input type="text" name="name" class="col-md-5 required" value="<%= @service.name %>">
+          <div class="col-md-4 help-block">
             <p>
               A descriptive name for the service.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="type">Type</label>
-        <div class="controls">
-          <div class="span5">
-            <select name="type" class="span5 required">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="type">Type</label>
+          <select name="type" class="col-md-5 required">
               <%- %w(research auresearch zendesk freshdesk).each do |type| -%>
                 <%- if @service.type == type -%>
                   <option value="<%= type %>" selected><%= type %></option>
@@ -45,52 +39,39 @@
                   <option value="<%= type %>"><%= type %></option>
                 <%- end -%>
               <%- end -%>
-            </select>
-          </div>
-          <div class="span4 help-block">
+          </select>
+          <div class="col-md-4 help-block">
             <p>
               The type of service, which helps the application choose the
               correct attribute set and callback mechanism.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="audience">Service URL</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="audience" class="span5 required" value="<%= @service.audience %>">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="audience">Service URL</label>
+          <input type="text" name="audience" class="col-md-5 required" value="<%= @service.audience %>">
+          <div class="col-md-4 help-block">
             <p>
               The primary URL of the service.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="endpoint">Callback URL</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="endpoint" class="span5 required" value="<%= @service.endpoint %>">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="endpoint">Callback URL</label>
+          <input type="text" name="endpoint" class="col-md-5 required" value="<%= @service.endpoint %>">
+          <div class="col-md-4 help-block">
             <p>
               The URL that Tuakiri Rapid Connect should POST responses to.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="secret">Secret</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="secret" class="span5 required" value="<%= @service.secret %>" autocomplete="off">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="secret">Secret</label>
+          <input type="text" name="secret" class="col-md-5 required" value="<%= @service.secret %>" autocomplete="off">
+          <div class="col-md-4 help-block">
             <p>
               Secret used by Tuakiri Rapid Connect and the application to verify JWS.
             </p>
@@ -99,31 +80,24 @@
               <code>openssl rand -base64 24</code>
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="enabled">Enabled</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="checkbox" name="enabled" class="span5" <%= @service.enabled ? "checked" : "" %>>
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="enabled">Enabled</label>
+          <input type="checkbox" name="enabled" class="col-md-5" <%= @service.enabled ? "checked" : "" %>>
+          <div class="col-md-4 help-block">
             <p>
               Determines if this service is able to make authentication requests agains Tuakiri Rapid Connect.
             </p>
           </div>
-        </div>
       </div>
 
       <hr>
 
-      <h3 class="muted">Registrant</h3>
-      <div class="control-group">
-        <label class="control-label" for="name">Organisation</label>
-        <div class="controls">
-          <div class="span5">
-            <select name="organisation" class="span5 required">
+      <h3 class="text-muted">Registrant</h3>
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="name">Organisation</label>
+          <select name="organisation" class="col-md-5 required">
               <option></option>
               <% @organisations.each { |org| %>
                 <% if org.eql? @service.organisation %>
@@ -132,47 +106,39 @@
                   <option value='<%= org %>'><%= org %></option>
                 <% end %>
               <% } %>
-            </select>
-          </div>
-          <div class="span4 help-block">
+          </select>
+          <div class="col-md-4 help-block">
             <p>
               The organisation registered in Tuakiri which is sponsoring this service.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="registrant_name">Name</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="registrant_name" class="span5 required" value="<%= @service.registrant_name %>">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="registrant_name">Name</label>
+          <input type="text" name="registrant_name" class="col-md-5 required" value="<%= @service.registrant_name %>">
+          <div class="col-md-4 help-block">
             <p>
 
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="registrant_mail">Email</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="registrant_mail" class="span5 required" value="<%= @service.registrant_mail %>">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group">
+          <label class="col-md-3 control-label" for="registrant_mail">Email</label>
+          <input type="text" name="registrant_mail" class="col-md-5 required" value="<%= @service.registrant_mail %>">
+          <div class="col-md-4 help-block">
             <p>
 
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="form-actions">
+      <div class="form-group">
+        <div class="col-md-5 col-md-offset-3">
         <button type="submit" class="btn btn-info">Update Service</button>
-        <a href="/administration/services/<%= @identifier %>" class="btn">Cancel</a>
+        <a href="/administration/services/<%= @identifier %>" class="btn btn-default">Cancel</a>
+        </div>
       </div>
 
     </form>
