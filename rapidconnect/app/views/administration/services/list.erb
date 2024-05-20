@@ -4,9 +4,9 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a></li>
-      <li class="active">Services</li>
-      <li class="pull-right"><strong><a href="/registration">Register Service</a></strong></li>
+      <li class="breadcrumb-item"><a href="/administration">Administration</a></li>
+      <li class="breadcrumb-item active">Services</li>
+      <li class="ml-auto"><strong><a href="/registration">Register Service</a></strong></li>
     </ul>
 
     <div class="container">
@@ -28,7 +28,7 @@
             <td><%= v.audience %></td>
             <td><%= v.enabled %></td>
             <td>
-              <a href="/administration/services/<%= k %>" class="btn btn-default btn-sm">Show</a>
+              <a href="/administration/services/<%= k %>" class="btn btn-secondary btn-sm">Show</a>
             </td>
           </tr>
         <%- end -%>

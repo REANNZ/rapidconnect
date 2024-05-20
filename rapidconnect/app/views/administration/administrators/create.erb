@@ -4,39 +4,39 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a></li>
-      <li><a href="/administration/administrators">Administrators</a></li>
-      <li class="active">Create Administrator</li>
+      <li class="breadcrumb-item"><a href="/administration">Administration</a></li>
+      <li class="breadcrumb-item"><a href="/administration/administrators">Administrators</a></li>
+      <li class="breadcrumb-item active">Create Administrator</li>
     </ul>
 
     <h2>Create Administrator</h2>
 
-    <form method="post" action="/administration/administrators/save" class="form form-horizontal validate">
+    <form method="post" action="/administration/administrators/save" class="form validate">
 
-      <div class="form-group">
-          <label class="col-md-3 control-label" for="name">Name</label>
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="name">Name</label>
           <input type="text" name="name" class="col-md-5 required" placeholder="Jimbo Jones">
-          <div class="col-md-4 help-block">
+          <div class="col-md-4 form-text">
             <p>
 
             </p>
           </div>
       </div>
 
-      <div class="form-group">
-          <label class="col-md-3 control-label" for="mail">Email</label>
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="mail">Email</label>
           <input type="text" name="mail" class="col-md-5 required" placeholder="jimbo@jones.com">
-          <div class="col-md-4 help-block">
+          <div class="col-md-4 form-text">
             <p>
 
             </p>
           </div>
       </div>
 
-      <div class="form-group">
-          <label class="col-md-3 control-label" for="identifier">Targeted ID</label>
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="identifier">Targeted ID</label>
           <input type="text" name="identifier" class="col-md-5 required" placeholder="https://idp.example.com/idp....">
-          <div class="col-md-4 help-block">
+          <div class="col-md-4 form-text">
             <p>
               The Targeted ID associated with Tuakiri Rapid Connect for the new administrator.
             </p>
@@ -44,10 +44,10 @@
       </div>
 
 
-      <div class="form-group">
+      <div class="form-group row">
         <div class="col-md-5 col-md-offset-3">
         <button type="submit" class="btn btn-info">Add Administrator</button>
-        <a href="/" class="btn btn-default">Cancel</a>
+        <a href="/" class="btn btn-secondary">Cancel</a>
         </div>
       </div>
 

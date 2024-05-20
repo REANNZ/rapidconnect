@@ -5,9 +5,9 @@
   <body>
 
     <ul class="breadcrumb">
-      <li><a href="/administration">Administration</a></li>
-      <li><a href="/administration/services">Services</a></li>
-      <li class="active"><%= @service.name %></li>
+      <li class="breadcrumb-item"><a href="/administration">Administration</a></li>
+      <li class="breadcrumb-item"><a href="/administration/services">Services</a></li>
+      <li class="breadcrumb-item active"><%= @service.name %></li>
     </ul>
 
     <h2><%= @service.name %></h2>
@@ -20,13 +20,12 @@
     <% end %>
 
     <ul class="nav nav-tabs">
-      <li class="dropdown pull-right">
+      <li class="dropdown ml-auto">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
           Actions
-          <b class="caret"></b>
         </a>
         <ul class="dropdown-menu">
-          <li>
+          <li class="dropdown-item">
             <% if @service.enabled %>
               <a href="#" class="toggle-target" data-type="disabled" data-target="toggle-<%= @identifier %>">Disable</a>
             <% else %>
@@ -37,10 +36,10 @@
             </form>
           </li>
 
-          <li class="divider"></li>
+          <li class="dropdown-divider"></li>
 
-          <li><a href="/administration/services/edit/<%= @identifier %>">Edit</a></li>
-          <li>
+          <li class="dropdown-item"><a href="/administration/services/edit/<%= @identifier %>">Edit</a></li>
+          <li class="dropdown-item">
             <a href="#" class="delete-target" data-type="Service" data-target="delete-<%= @identifier %>">Delete</a>
             <form action="/administration/services/delete/<%= @identifier %>" method="post" id="delete-<%= @identifier %>">
               <input name="_method" type="hidden" value="delete" />

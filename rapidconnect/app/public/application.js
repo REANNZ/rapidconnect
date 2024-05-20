@@ -15,7 +15,7 @@ $(document).ready(function() {
         },
         cancel: {
           'label' : 'Cancel',
-          'className' : 'btn-default',
+          'className' : 'btn-secondary',
           'callback': function() {
           }
         }
@@ -38,7 +38,7 @@ $(document).ready(function() {
         },
         cancel: {
           'label' : 'Cancel',
-          'className' : 'btn-default',
+          'className' : 'btn-secondary',
           'callback': function() {
           }
         }

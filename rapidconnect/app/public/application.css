@@ -389,8 +389,8 @@ form input[type="text"], input[type="password"]
    color: #CADDA4;
 }
 
-/* but make the action pull-right link bright */
-.breadcrumb .pull-right a {
+/* but make the action pushed to right with ml-auto link bright */
+.breadcrumb .ml-auto a {
     color: #FFFFFF;
 }
 
