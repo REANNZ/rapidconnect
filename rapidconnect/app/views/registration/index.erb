@@ -3,82 +3,63 @@
   </head>
   <body>
     <ul class="breadcrumb">
-      <li class="active">Service Registration</li>
+      <li class="breadcrumb-item active">Service Registration</li>
     </ul>
 
     <div class="container">
     <h2>Service Registration</h2>
 
-    <form method="post" action="/registration/save" class="form form-horizontal validate">
+    <form method="post" action="/registration/save" class="form validate">
 
-      <div class="control-group">
-        <label class="control-label" for="name">Organisation</label>
-        <div class="controls">
-          <div class="span5">
-            <select id="orgselect" name="organisation" class="span5" required>
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="name">Organisation</label>
+          <select id="orgselect" name="organisation" class="col-md-5 custom-select" required>
               <option></option>
               <% @organisations.each { |org| %>
                 <option value='<%= org %>'><%= org %></option>
               <% } %>
-            </select>
-          </div>
-          <div class="span4 help-block">
+          </select>
+          <div class="col-md-4 form-text">
             <p>
               The Tuakiri registered organisation which is sponsoring this service. If your organisation does not appear here please <strong>STOP registration</strong> and <a href="mailto:tuakiri@reannz.co.nz?subject=My organisation is not shown in Rapid Connect">contact Tuakiri support</a> for more details.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="name">Name</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="name" class="span5" placeholder="Our Web Application" required>
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="name">Name</label>
+          <input type="text" name="name" class="col-md-5" placeholder="Our Web Application" required>
+          <div class="col-md-4 form-text">
             <p>
               A descriptive name for your service.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="audience">URL</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="audience" class="span5" placeholder="https://application.com">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="audience">URL</label>
+          <input type="text" name="audience" class="col-md-5" placeholder="https://application.com">
+          <div class="col-md-4 form-text">
             <p>
               The primary URL of your application. This will be provided to you in the JWT aud field.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="endpoint">Callback URL</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="endpoint" class="span5" placeholder="https://application.com/auth/jwt" required>
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="endpoint">Callback URL</label>
+          <input type="text" name="endpoint" class="col-md-5" placeholder="https://application.com/auth/jwt" required>
+          <div class="col-md-4 form-text">
             <p>
               The secure URL within <strong>your application</strong> that Tuakiri Rapid Connect should POST responses to.
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label" for="secret">Secret</label>
-        <div class="controls">
-          <div class="span5">
-            <input type="text" name="secret" class="span5" required minlength="16" autocomplete="off">
-          </div>
-          <div class="span4 help-block">
+      <div class="form-group row">
+          <label class="col-md-3 col-form-label" for="secret">Secret</label>
+          <input type="text" name="secret" class="col-md-5" required minlength="16" autocomplete="off">
+          <div class="col-md-4 form-text">
             <p>
               Must be random and securely stored by the service. This value should never be publicly disclosed and is used by the service to verify signed tokens from Tuakiri Rapid Connect.
             </p>
@@ -87,12 +68,13 @@
               <code>openssl rand -base64 24</code>
             </p>
           </div>
-        </div>
       </div>
 
-      <div class="form-actions">
+      <div class="form-group row">
+        <div class="col-md-5 col-md-offset-3">
         <button type="submit" class="btn btn-info">Register Service</button>
-        <a href="/" class="btn">Cancel</a>
+        <a href="/" class="btn btn-secondary">Cancel</a>
+        </div>
       </div>
 
     </form>
