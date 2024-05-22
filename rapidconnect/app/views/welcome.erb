@@ -15,7 +15,7 @@
               <h2><img src="rclogo.png" width="80" height="80"> Rapid Connect</h2>
               <br>
               <p>
-                A new approach for connecting applications to New Zealand Research and Higher Education users
+                Connecting applications to New Zealand Research and Higher Education users
               </p>
             </center>
           </div>
@@ -28,13 +28,17 @@
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <h3 class="text-muted">Benefits</h3>
+            <h3 class="text-muted">About Rapid Connect</h3>
             <ul>
+
+              <li>Rapid Connect provides an easy way for applications to authenticate users via a signed Json Web Token (JWT)</li>
               <li>There is <strong>no need to install a Shibboleth SP</strong> on your webserver;</li>
               <li>It natively integrates into commonly used development languages;</li>
               <li>PaaS solutions like Heroku, Google App Engine and Pagoda become suitable deployment targets for Tuakiri services;</li>
               <li>Attributes are already defined in logical sets, there is no approval process for attributes; and</li>
               <li>Integration code is <strong>minimal</strong>, simple to write and <strong>easy to test</strong>.</li>
+              <li>However, JWT and Rapid Connect originate from before the <a href="https://openid.net/developers/how-connect-works/">OpenID Connect specification</a> was created and adopted.</li>
+              <li>For deployment of new applications, please <strong>consider using the <a href="https://docs.tuakiri.ac.nz/tuakiri_openid_connect_bridge">Tuakiri OpenID Connect Bridge</a> instead of Rapid Connect</strong> if possible.</li>
             </ul>
             <br>
             <center>
@@ -61,51 +65,8 @@
 
         <hr>
 
-        <h3 class="text-muted">Example Implementations</h3>
-        <div class="row">
-          <div class="col-md-4">
-            <center>
-              <h4 class="text-muted">Ruby</h4>
-              <a href="https://aaf-echo.herokuapp.com"><img src="heroku.png" alt="Heroku demo access"></a>
-              <br><br>
-              <p>
-                A demo of Rapid Connect <a href="https://aaf-echo.herokuapp.com">running on Heroku</a>.
-              </p>
-              <p><a href="https://github.com/ausaccessfed/rapidconnect-sample-ruby">View this example application on GitHub</a>.</p>
-            </center>
-          </div>
-          <div class="col-md-4">
-            <center>
-              <h4 class="text-muted">Python</h4>
-              <a href="https://aaf-echo.appspot.com"><img src="goog.png" alt="Google App Engine demo access"></a>
-              <br><br>
-              <p>
-                A demo of Rapid Connect <a href="https://aaf-echo.appspot.com">running on Google App Engine</a>.
-              </p>
-              <p><a href="https://github.com/ausaccessfed/rapidconnect-sample-python">View this example application on GitHub</a>.</p>
-            </center>
-          </div>
-          <div class="col-md-4">
-            <center>
-              <h4 class="text-muted">PHP</h4>
-              <a href="https://aaf-echo.gopagoda.com"><img src="pagoda.png" alt="Pagoda Box demo access"></a>
-              <br><br>
-              <p>
-                A demo of Rapid Connect <a href="https://aaf-echo.gopagoda.com">running on Pagoda Box</a>.
-              </p>
-              <p><a href="https://github.com/ausaccessfed/rapidconnect-sample-php">View this example application on GitHub</a>.</p>
-            </center>
-          </div>
-        </div>
-        <br>
-        <p class="text-muted">
-          <small><strong>!</strong> Demonstration applications run on developer accounts and may take some time to load if instances have been paused by the PaaS provider. Demonstration applications use <strong>production</strong> AAF Identity Providers for login.</small>
-        </p>
-
-        <hr>
-
         <h3 class="text-muted">Example Integration Code</h3>
-        <p>Here is the full source (minus the actual HTML) of an application developed in Ruby using the Sinatra framework. It implements all the bits required for using Rapid Connect.</p>
+        <p>Here is the full source (minus the actual HTML) of an <a href="https://github.com/ausaccessfed/rapidconnect-sample-ruby/">application</a> developed in Ruby using the Sinatra framework. It implements all the bits required for using Rapid Connect.</p>
         <script src="https://gist.github.com/bradleybeddoes/6154072.js"></script>
 
         <br><br>
