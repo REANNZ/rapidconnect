@@ -28,6 +28,7 @@ fr_response = secure_server_request Addressable::URI.encode @config['org_api_end
 fr_json = JSON.parse fr_response
 
 fr_json["organizations"].each { |org|
+  next unless org['functioning']
   fr_org_json = JSON.parse(secure_server_request org['link'])
   org_names << fr_org_json['organization']['displayName']
 }
