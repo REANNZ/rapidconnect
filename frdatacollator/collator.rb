@@ -27,9 +27,8 @@ org_names = []
 fr_response = secure_server_request Addressable::URI.encode @config['org_api_endpoint']
 fr_json = JSON.parse fr_response
 
-fr_json["organizations"].select { |org| org['functioning'] }.each { |org|
-  fr_org_json = JSON.parse(secure_server_request org['link'])
-  org_names << fr_org_json['organization']['displayName']
+fr_json["organizations"].select { |org| org['active'] }.each { |org|
+  org_names << org['organizationInfoData']['en']['OrganizationDisplayName']
 }
 
 File.open(target_file, 'w') {|f| f.write( JSON.pretty_generate org_names.sort! ) }
