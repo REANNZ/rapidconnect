@@ -1,5 +1,4 @@
 require 'net/http'
-require 'openssl'
 require 'addressable/uri'
 require 'json'
 require 'yaml'
@@ -10,7 +9,6 @@ require 'yaml'
 def secure_server_request(uri)
   http = Net::HTTP.new @config['server'], 443
   http.use_ssl = true
-  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   req = Net::HTTP::Get.new uri
   response = http.request req
 
@@ -29,10 +27,9 @@ org_names = []
 fr_response = secure_server_request Addressable::URI.encode @config['org_api_endpoint']
 fr_json = JSON.parse fr_response
 
-fr_json["organizations"].each { |org|
-  fr_org_json = JSON.parse(secure_server_request org['link'])
-  org_names << fr_org_json['organization']['displayName']
+fr_json["organizations"].select { |org| org['active'] }.each { |org|
+  org_names << org['organizationInfoData']['en']['OrganizationDisplayName']
 }
 
-File.open(target_file, 'w') {|f| f.write( JSON.generate org_names.sort! ) }
+File.open(target_file, 'w') {|f| f.write( JSON.pretty_generate org_names.sort! ) }
 
