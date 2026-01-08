@@ -227,7 +227,7 @@ GEM
     unicorn (6.1.0)
       kgio (~> 2.6)
       raindrops (~> 0.7)
-    uri (0.13.2)
+    uri (0.13.3)
     xpath (3.2.0)
       nokogiri (~> 1.8)
     zeitwerk (2.6.13)
