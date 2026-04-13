@@ -1,9 +1,9 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.6)
-      public_suffix (>= 2.0.2, < 6.0)
-    public_suffix (5.0.4)
+    addressable (2.9.0)
+      public_suffix (>= 2.0.2, < 8.0)
+    public_suffix (7.0.5)
 
 PLATFORMS
   ruby
