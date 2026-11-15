@@ -1,5 +1,5 @@
 require 'net/http'
-require 'addressable/uri'
+require 'uri'
 require 'json'
 require 'yaml'
 
@@ -7,16 +7,13 @@ require 'yaml'
 # Grab all organisations currently in FR for users to select when registering services
 ##
 def secure_server_request(uri)
-  http = Net::HTTP.new @config['server'], 443
-  http.use_ssl = true
-  req = Net::HTTP::Get.new uri
-  response = http.request req
+  response = Net::HTTP::get_response uri
 
   case response
     when Net::HTTPSuccess
       response.body
     else
-      raise "Invalid FR response for API call #{response.value}"
+      raise "Invalid FR response for API call #{response.code}"
   end
 end
 
@@ -24,7 +21,7 @@ end
 
 target_file = @config['target_file'] || '/opt/rapidconnect/application/run/fr_org_names.json.new'
 org_names = []
-fr_response = secure_server_request Addressable::URI.encode @config['org_api_endpoint']
+fr_response = secure_server_request URI(@config['org_api_url'])
 fr_json = JSON.parse fr_response
 
 fr_json["organizations"].select { |org| org['active'] }.each { |org|
