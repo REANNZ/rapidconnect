@@ -1,3 +1,2 @@
-server: 'manager.test.example.edu.au'
-org_api_endpoint: '/federationregistry/api/v1/organizations'
+org_api_url: 'https://manager.test.example.edu.au/federationregistry/api/v1/organizations'
 target_file: '/opt/rapidconnect/application/run/fr_org_names.json.new'
