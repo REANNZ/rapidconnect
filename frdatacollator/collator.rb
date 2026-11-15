@@ -16,7 +16,7 @@ def secure_server_request(uri)
     when Net::HTTPSuccess
       response.body
     else
-      raise "Invalid FR response for API call #{response.value}"
+      raise "Invalid FR response for API call #{response.code}"
   end
 end
 
